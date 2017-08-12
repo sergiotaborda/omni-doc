@@ -1,0 +1,354 @@
+[*Trabalhando com números em Java*]
+
+
+[h2]Introdução[h2]
+			Trabalhar com números em Java pode ser uma tarefa complicada e frustrante para 
+			quem está começando. 
+			
+[h2]Tipos numéricos[h2] 
+			Java, tal como a maioria das linguagens modernas, tem vários tipos numéricos. 
+			Cada um caracterizado pelo número de bits que ocupa. A diferença entre java e 
+			algumas outras linguagens- especialmente as chamadas linguagens de script- 
+			é o suporte a tipos numéricos como tipos primitivos. Neste contexto, 
+			[i]tipo primitivo[/i] significa que não é um objeto. 
+			O uso de tipos primitivos aumenta a eficiência da JVM e permite que ela funcione 
+			até em ambientes com pouca memória e poder de processamento ( como nas plataformas JME e JavaCard). 
+			Por isto se diz que Java não é uma linguagem puramente orientada a objetos já que 
+			é possível programar sem eles utilizando apenas tipos primitivos. 
+			É claro que isso é mais difícil e é como se faziam programas à 40 anos atrás ou mais.
+			
+			Os tipos primitivos numéricos em Java são:
+			byte - ocupa 8 bits (1 byte ) :  Representa apenas números inteiros. 
+			O menor número possível representar com um byte é -128 e o maior é 127.  
+			Repare que 8 bits podem produzir 256 números diferentes que exatamente quantos 
+			números existem entre -128 e 127.
+			short - ocupa 16 bits (2 bytes). Representa apenas números inteiros. 
+			O menor número possível representar com um short é -32.768 e o maior é 32.767
+			char - ocupa 16 bits (2 bytes) e representa apenas números inteiros, 
+			contudo ao contrário do short só aceita números positivos. O menor numero 
+			possível representar é 0 e o maior é 65.536. O char é um tipo numérico especial 
+			e veremos porquê, contudo ele é um tipo numérico. Isso tem, na prática, grandes implicações 
+			na programação Java.
+			int - ocupa 32 bits (4 bytes). Representa apenas números inteiros. 
+			O menor número possível representar é -2.147.483.648 e o maior é 2.147.483.647
+			long - ocupa 64 bits (8 bytes). Representa apenas números inteiros. 
+			O menor número possível representar é -9.223.372.036.854.775.808 e o maior 
+			9.223.372.036.854.775.807
+			float - ocupa 32 bits (4 bytes). Pode representar números inteiros ou não. 
+			O menor valor possível representar é 1.40239846x10-46 e o maior é 
+			3.40282347x1038. Em java o float é garantidamente implementado 
+			conforme a norma IEEE 754-1985 o que significa que o calculo pode ser repetido 
+			em qualquer hardware ou sistema operacional. 
+			double - ocupa 64 bits ( 8 bytes). Pode representar números inteiros ou não. 
+			O menor valor possível representar é 4.94065645841246544 x10-324 e o 
+			maior é 1.7976931348623157×10308. Em java o double é garantidamente 
+			implementado conforme a norma IEEE 754-1985 o que significa que o calculo pode 
+			ser repetido em qualquer hardware ou sistema operacional. 
+			
+[h2]Representações de inteiros[h2]
+			Em java os literais numéricos ( os números que você escreve diretamente no código) podem ser escritos em quatro 
+			bases diferentes: decimal, octal, hexadecimal e binária.
+			
+			Decimal é a representação padrão e aquela a que estamos habituados. Simplesmente escrevemos 42, por exemplo, e pronto. 
+			Para especificar a representação em hexadecimal (base 16) começamos o numero com um zero e um 'x' e fica 0x42 ( que não é a mesma coisa que 42)
+			Para a representação octal (base 8) começamos o número com um zero apenas e fica 042 ( que é diferente de 42 e 0x42).
+			Para a representação binária (base 2) começamos o número com um zero um b e fica 0b011101. A representação binária só aceita 0 e 1 e é
+			uma representação possível apenas no Java 7 e posteriores.
+			
+			Cuidado! Em Java um zero à esquerda significa que está sendo usada uma base diferente da decimal. Felizmente raramente você irá necessitar usar esta representação.
+			
+[h2]Operações[h2]
+			As quatro operações básicas : soma, subtração, multiplicação e divisão estão 
+			disponíveis diretamente através dos operadores [icode]+[/icode], [icode]–[/icode],
+			[icode]*[/icode] e [icode]/[/icode] respectivamente. 
+			Além destas temos ainda a operação modulo através do operador [icode]%[/icode] que apenas se aplica a números inteiros.
+			
+			Embora todos os tipos possam ser utilizados em cálculos existem regras especiais que são necessárias conhecer para 
+			não ter surpresas.
+			
+[h3]Operações aritméticas sobre inteiros[/h3]
+				A JVM sempre irá converter o número para um int para fazer um cálculo, exceto 
+				no caso do long em que o long será utilizado. Experimente fazer este calculo em Java:
+				
+[code=java]
+
+byte a = 1;
+byte b = 2;
+byte c = a + b;
+				
+[/code]
+	
+				Ao executar este código terá um surpresa.  A JVM irá informá-lo que não é possível atribuir um int a um byte.  
+				Porquê ?  Como foi dito, [icode]a[/icode] e [icode]b[/icode] serão convertidos para int para poderem ser somados. 
+				O resultado será portanto um int, e um int ( 2 bytes)  não cabe em um byte.
+				
+				Se tivermos a certeza que cabe, então podemos forçar a operação com um [e]cast[/e]. Assim:
+				
+[code=java]
+
+byte c = (byte) (a + b);
+				
+[/code]
+	
+				Contudo, imagine que [icode]a[/icode] é 70 e [icode]b[/icode] é 80. O resultado será 150 que é maior 
+				que o maior número que um byte pode representar (127) . Ao fazer o [e]cast[/e] o resultado é inesperado. 
+				Vejamos com mais atenção como se processa. O numero 70 em binário se representa como [icode]01000110[/icode]  e 
+				80 como [icode]01010000[/icode]. Para somar o java transforma para int com 32 bits.70 fica então [icode]0000000001000110[/icode] 
+				e 80 fica [icode]0000000001010000[/icode]. A soma é então efetuada e o resultado é 150, em binário [icode]0000000010010110[/icode]. 
+				Ok. Agora como fazemos isso caber em um byte de volta ? Sim, cortamos os zeros à esquerda e ficamos como o valor [icode]10010110[/icode] em byte. 
+				Hummm… mas que valor está aqui representado ?
+				
+				Como vimos, à exceção do [icode]char[/icode] todos os tipos numéricos em java têm sinal, ou seja, podem representar 
+				números negativos ou positivos. Como o java controla o sinal ? Através do ultimo bit (o mais à esquerda). 
+				Se 0 é positivo, se 1 é negativo. Repare que 70 e 80 têm um 0 no bit mais à esquerda (porque são positivos). 
+				Contudo, o resultado da nossa soma começa com 1. Isso significa que é um numero negativo. 
+				É o numero -22. Humm… com certeza não é 150. Não é o número que esperávamos.
+				
+				A lição a aprender daqui é que para fazer cálculos temos que escolher um tipo numérico apropriado. 
+				Como a JVM sempre converte para [icode]int[/icode] para fazer a conta, usar [icode]int[/icode] é o mais natural e comum. 
+				Exceto é claro quando é necessário usar o [icode]long[/icode]. Na prática não são muitas as vezes que precisamos 
+				de um [icode]long[/icode].
+				
+				Uma outra armadilha é a divisão de inteiros, chamada obviamente : divisão inteira.  Quanto é  5/2 ?   
+				
+				Se respondeu 2,5 está enganado.  Na divisão inteira nunca o resultado será um número não inteiro. 
+				Na realidade o resultado, 5/2 é 2. A divisão inteira representa o quociente entre dois inteiros que 
+				também é um inteiro. Para conhecermos o resto da divisão usamos o operador modulo ([icode]%[/icode]). 
+				Assim, [icode]5%2[/icode] é 3.  
+						
+				O que acontece se dividirmos por zero ? Uma [icode]ArimethicException[/icode] é o que acontece. 
+				Em matemática de inteiros não é possível dividir por zero. Cuidado com isto.
+				
+[h3]Operações aritméticas sobre decimais[/h3]
+				Para resolver as "limitações" com a matemática de divisão de inteiros os primitivos float e double podem ser utilizados 
+				para obter cálculos com vírgula ( ponto flutuante). Assim 5d/2d = 2,5 ( o d é para indicar "double"). 
+				
+				Se um das parcelas for um inteiro ( byte, short, int , etc.. )  e outro um double , o inteiro será promovido 
+				a double com o mesmo valor antes da conta ser feita. Lembre-se que float e double podem representar os mesmos 
+				valores int e long respectivamente.  Assim teremos 5 /2d = 2,5 ( onde 5 é inteiro)
+				
+				E o que acontece se dividirmos um double ou float por zero ? Nenhuma exceção será lançada. Um valor será obtido. 
+				O valor especial chamado Infinity (infinito) é o resultado. Este valor é estranho, mas matematicamente aceitável 
+				como resultado. Operações com Infinity resulta em NaN ( Not A Number = não é um número). Este ainda mais estranho 
+				valor é aceite na especificação  IEEE 754-1985. Este valor significa que fizemos uma operação que leva a perder 
+				a conexão lógica das operações.
+				
+				A lição a tirar daqui é que utilizando double ou float um cálculo nunca lançará exceções. Contudo, isso 
+				não significa que o resultado esteja certo ou sequer que seja um número.Um problema grave com o double 
+				é que ele não é bom para representar potências negativas de dez, ou seja, números como 0,1 ou 0,01 ...
+				Para provar isso execute estes dois códigos:
+				
+[code=java]
+
+double a = 0.1;
+double r = a * 10;
+System.out.println ( r ); // imprime 10
+				
+[/code]
+	e por outro lado
+[code=java]
+
+double a = 0.1;
+double c = 0;
+for (int i=0 ; i<10 ; i++){
+c = c + a;
+}
+System.out.println ( r ); // imprime 0.9999999999999999
+				
+[/code]
+	
+				Matematicamente , somar 0.1 dez vezes é a mesma coisa que multiplicar 0.1 por dez. Contudo, na prática, com double, não é.
+				Imagine, agora, que são centavos de dólar que estamos somando. Estamos perdendo dinheiro na soma. Nada bom.
+				Para resolver este problemas precisamos apelar para a criação de objetos que seja inteligentes e consigam driblar este problema.
+				
+[h2]Objetos Numéricos[h2]
+			O que fazer quando o número que queremos representar é maior que um [icode]long[/icode] ? O que fazer quando queremos realizar 
+			operações sem perda de exatidão ?
+			
+			A resposta do Java é utilizar um padrão de projeto - o [pattern]ValueObject[/pattern] - e criar um objeto que represente 
+			o valor que queremos com as propriedades que queremos.
+			
+			Para representar um número maior que um [icode]long[/icode] o Java disponibiliza a classe [class]BigInteger[/class]. 
+			Estes números muito grandes (128 bits ou mais) são muito importantes em criptografia moderna para formar chaves fortes. 
+			Sem a existência desde objeto seria impossível implementar criptografia em Java. Além disso [icode]BigInteger[/icode] oferece 
+			um conjunto de métodos que permitem realizar operações com objetos deste tipo de forma semelhante ao que fazemos 
+			com [icode]int[/icode] ou [icode]long[/icode] e algumas extra como [icode]isProbablePrime[/icode] que determina se um dado 
+			número é um número primo. Números primos são muito importantes em criptografia dai a necessidade deste tipo de método.
+			
+			Para representar número decimais o Java oferece a classe [class]BigDecimal[/class]. 
+			Esta classe permite realizar todas as operações aritméticas sem perda de exatidão. BigDecimal é o substituto natural 
+			de [icode]double[/icode] e [icode]float[/icode] e deve ser usado sempre que a perda de precisão não for aceitável tal 
+			como em sistema que lidam com dinheiro.
+			Contudo, neste caso especifico, ainda existe o problema do arredondamento e o de somar dinheiro em moedas diferentes. 
+			Para resolver o problema da representação de dinheiro a  melhor solução é usar o padrão [pattern]Money[/pattern] 
+			(que inteligentemente nem precisa de BigDecimal, basta um long).
+			
+			BigDecimal conta com vários modos de arredondamento que podem ser estipulados no momento da operação ou via um objeto 
+			de contexto [class]MathContext[/class] que pode ser usado ao longo de várias operações.
+			
+			Ambas classes [icode]BigDecimal[/icode] e [icode]BigInteger[/icode] herdam de [icode]Number[/icode]. Number é a raiz para 
+			todos os objetos numéricos padrão na plataforma Java e permite que todos eles sejam convertidos para os tipos numéricos 
+			primitivos através de métodos como [icode]doubleValue[/icode] e [icode]integerValue[/icode],por exemplo.
+			
+[h2]Objectos para primitivos[h2]
+			Classes que herdam de [icode]Number[/icode] são conhecidos como objetos Wrapper (Encapsuladores). 
+			Estes objetos são equivalentes às suas contra-partes primitivas mas não contém métodos para realizar operações.
+			Contudo, contém muitos  métodos  úteis para converter primitivos para objetos e primitivos de e para String.
+			Assim para cada primitivo existe um objeto que herda de Number, a saber: [icode]Byte[/icode], [icode]Short[/icode], [icode]Character[/icode], 
+			[icode]Integer[/icode], [icode]Long[/icode] , [icode]Float[/icode] e [icode]Double[/icode]. 
+			[icode]Integer[/icode] é a versão objeto de [icode]int[/icode] e [icode]Character[/icode] a versão objeto de [icode]char[/icode].Os outros 
+			são a versão do tipo primitivo com o mesmo nome.
+			
+			Poder utilizar números primitivos como se fossem objetos têm muitas vantagens. 
+			Por exemplo, podemos guarda um conjunto de número em um objeto [icode]List[/icode] ou em um [icode]Map[/icode]. 
+			Sendo que esta é uma funcionalidade muito útil, a partir da versão Java 5, o Java inclui as funcionalidades de 
+			Auto-Boxing e Auto-Unboxing.
+			
+			Auto-boxing significa que o compilador detecta quando um número primitivo está sendo utilizado onde se 
+			espera um objeto e automaticamente encapsula (coloca na caixa – boxes) esse primitivo no seu wrapper 
+			correspondente. A operação de auto-unboxing é o inverso e acontece quando o compilador detecta que 
+			um primitivo é esperado onde um objeto está sendo utilizado.
+			
+			Embora as operações de auto-boxing sejam úteis elas podem ser perigosas se não forem usadas corretamente. 
+			Os dois motivos principais para isso são: 
+			Um objeto pode ser null. Ao realizar o unboxing o compilador escolhe um dos métodos de Number 
+				para o primitivo certo. Por exemplo, se for esperado um [icode]double[/icode] o compilador invoca 
+				[icode]objeto.doubleValue()[/icode] . O problema está em que se o objeto for [icode]null[/icode] esta 
+				operação irá causar uma exceção [icode]NullPointerException[/icode] quando o código for executado. 
+				A operação de unboxing mascara este problema dos olhos desatentos e pode causar muitos problemas.Prefira sempre fazer 
+				as operações de [e]boxing[/e] explicitamente.
+				Como [class]Number[/class] não contém métodos para realizar operações aritméticas sempre que um [e]wrapper[/e] 
+				de um primitivo for utilizado em uma operação o compilador irá incluir duas operações de unboxing para converter os objetos para 
+				primitivos, fazer o cálculo, e converter de volta para um objeto com uma operação de auto-boxing.  
+			 São três , ou mais, operações de boxing desnecessárias que causam a criação de objeto à toa. Embora as JVM 
+			 modernas não se engasguem com isso é considerado uma má prática de programação e um abuso da funcionalidade 
+			 de auto-boxing totalmente desproposital. Use sempre primitivos quanto estiver realizando cálculos. 
+			 Sobretudo se para os cálculos estiver usando algum tipo de laço ( [keyword]for[/keyword] ou [keyword]while[/keyword]).
+				
+[h2]Operações avançadas sobre inteiros : operações binárias[h2]
+			Além das operações aritméticas é possível realizar operações bit-a-bit sobre todos os tipos primitivos inteiros. 
+			Estas operações são muito úteis ao trabalha com criptografia, manipulação de imagem ou de arquivos. 
+			Os operadores binários são o [icode]&[/icode] ( operador E) , [icode]|[/icode] (operador OU), [icode]^[/icode] ( operador XOR) 
+			e [icode]![/icode] (operador NOT). Não confundir com os operadores lógicos [icode]&&[/icode] e [icode]||[/icode] que apenas 
+			atuam sobre o tipo primitivo [icode]boolean[/icode] que, em Java, não é um número.
+			
+			Mas o que fazer quando queremos manipular mais de 64 bits ( aqueles que existem em um long). 
+			Para resolver isso você pode usar [icode]BigInteger[/icode] que também conta com operações bit-a-bit ou utilizar [icode]BitSet[/icode]. 
+			[icode]BitSet[/icode] é uma classe especializada em trabalhar com conjuntos de bits e fornece operações para 
+			operar sobre eles de forma mais eficiente.
+			
+[h2]Operações avançadas sobre decimais e a classe java.util.Math[h2]
+			Nem só de somas e multiplicações vivem as operações matemáticas. Funções mais complexas como seno e co-seno , 
+			potência , raiz quadrada e logaritmo são operações comuns e necessárias em vários ramos.
+			
+			Java dá suporte a estas operações através da classe [class]Math[/class]. Esta classe apenas 
+			contém métodos estáticos úteis para estes tipos de operações e outras funções genérica como valor absoluto (abs) , sinal (sgn) e 
+			arredondamento (round).
+			
+			Estas funções trabalham com [icode]double[/icode] e como vimos isso pode significar problemas. 
+			Contudo, normalmente, para este tipo avançado de operações isso não é um problema muito grave, mas como 
+			sempre acontece ao trabalhar com double, surpresas desagradáveis podem acontecer. Portanto, utilize 
+			estas funções com cuidado e atenção.
+			
+[h2]Character[h2]
+			O Java disponibiliza o tipo numérico sem sinal chamado [icode]char[/icode].  Este tipo é especial porque o 
+			Java estabelece uma correspondência intrínseca entre cada [icode]char[/icode] e um dos caracteres da tabela 
+			Unicode com o mesmo numero.  Por isso os valores  de [icode]char[/icode] são escritos usando letras tal como 'a' ou '@' ou '4' . 
+			O interessante é que sendo um tipo numérico podemos realizar aritmética com este valores, ou ainda misturar com inteiros e fazer, e fazer por exemplo:
+			
+[code=java]
+ 
+			char resultado = 'a' + '4';
+			char letraB = 'a' + 1;
+			
+[/code]
+	
+			 Esta operação curiosa representa andar pela tabela Unicode um numero de "casas" para a direita. 
+			 Assim, 'a' + 1 é 'b' e 'b' + 1 é 'c' e 'a' + 2 é 'c'.  Estas operações são úteis ao manipular textos 
+			 e são a base da classe [class]String[/class] – talvez a classe mais usada em Java.
+			 A classe String nada mais é que uma classe que encapsula e manipula um array de char para compor textos.
+			 
+			É verdade que um char representa um caracter unicode, mas apenas e só porque o Java faz o mapeamento intrinsecamente. 
+			Na realidade das coisas char é apenas um número que apenas pode ser positivo, o que faz dele o único tipo [e]unsigned[/e] do java.
+			
+[h2]Instanciando objetos de valor[h2]
+			Todos os objetos que herdam de [class]Number[/class] contam com construtores para a instanciação. Contudo isto é um legado da versão 1.4 e anteriores do java que não deve ser usado na prática.
+			Para instanciar um objeto de valor deve se usado o método [icode]valueOf()[/icode]. Este método é,normalmente, sobrecarregado para aceitar argumentos primitivos e [class]String[/class]. 
+			Para os objetos de valor que representam valores inteiros ( Byte, Short, Integer , BigInteger e Long) o uso de [icode]valueOf()[/icode] é bastante simples, descomplicado e direto. Contudo, para os tipos decimais
+			(Double, Float e BigDecimal) o uso de [icode]valueOf()[/icode] pode ser bastante enganador. A regra a seguir para os tipos decimais é sempre deve ser preferido o uso do método [icode]valueOf()[/icode] que recebe um
+			objeto [class]String[/class]. Desta forma não há perda de precisão, mesmo quando usamos Double e Float. 
+			
+[code=java]
+ 
+			
+			// incorreto
+			BigDecimal big = BigDecimal.valueof(1.23456);
+			
+			// correto
+			BigDecimal big = BigDecimal.valueof("1.23456");
+			
+			
+[/code]
+	
+			Apenas use as outras sobrecargas de  [icode]valueOf()[/icode] quando não conseguir ter acesso a uma representação em [class]String[/class].
+			
+			Poderíamos esperar que os construtores destes objetos fossem mais amigáveis e cuidassem dos casos estranhos, conforme a própria documentação javadoc refere, esse não é o caso. O que significa que a 
+			atenção deve ser redobrada ao trabalhar com números decimais.
+			
+[h2]Convertendo entre objetos de valor[h2]
+			A conversão entre primitivos é feita através da operação de [e]cast[/e], contudo para objetos isso não é possível. 
+			Para converter entre os diferentes objetos de valor devemos recorrer à conversão para primitivos e o uso de  [icode]valueOf()[/icode]. Esta regra é válida para os valores inteiros, mas como sempre não se aplica para
+			os tipos decimais.  
+			
+			Poderíamos pensar, por exemplo, que o código a seguir é uma forma legitima de converter um objeto [class]Double[/class] para [class]BigDecimal[/class].
+			
+[code=java]
+ 
+			
+			// diretamente do valor primitivo
+			
+			BigDecimal big = BigDecimal.valueof(1.23456);
+			
+			// diretamente do wrapper
+			Double d = Double.valueof(1.23456);
+			
+			BigDecimal big = BigDecimal.valueof(d.doubleValue());
+			
+			
+[/code]
+	
+			Contudo, a forma seguinte - conforme explicado no Javadoc de BigDecimal, é preferível.
+			
+[code=java]
+ 
+			
+			
+			// diretamente do valor primitivo
+			
+			BigDecimal big = BigDecimal.valueof(Double.toString(1.23456));
+			
+			// diretamente do wrapper
+			Double d = Double.valueof(1.23456);
+			
+			BigDecimal big = BigDecimal.valueof(d.toString());
+			
+			
+[/code]
+	
+			Esta conversão só funciona para os valores de double e float que [class]BigDecimal[/class] aceita. Para valores como [icode]NaN[/icode](Not a Number) e [icode]infinity[/icode] não há conversão possível 
+			
+[h2]Comparações[h2]
+			Para os tipos primitivos o java ainda suporta os operadores de comparação == ( igual), > (maior), < (menor) ,
+			 >= (maior ou igual) , <= (menor ou igual) e  != (diferente).
+			 
+			Para tipos inteiros funciona perfeitamente, mas para [icode]double[/icode] e [icode]float[/icode] não é suficiente. 
+			Para uma explicação detalhada do porquê leia Comparando Objetos em Java, mas 
+			essencialmente os operadores normais não funcionam corretamente para comparar [icode]double[/icode] e [icode]float[/icode] e é necessário apelar para o método [icode]compare[/icode] que se encontra no 
+			wrapper respectivo. 
+			 
+			A moral da história é simples. Utilize apenas primitivos inteiros ( byte, short, char, int, long) para números inteiros
+			e [icode]BigDecimal[/icode] para decimais. Não use [icode]double[/icode] nem [icode]float[/icode] a menos que você saiba muito 
+			bem o que está fazendo. Utilizar estes tipos é o equivalente computacional de fazer malabarismos com motos-serras com as 
+			mãos empreganadas de óleo lubrificante. Só para especialistas... Para valores monetários utilize o padrão [pattern]Money[/pattern]
+			já que nenhum dos tipos primitivos, nem nenhuns dos objetos de valor asseguram as regras necessárias às operações aritméticas com dinheiro.
+			

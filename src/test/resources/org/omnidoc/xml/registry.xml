@@ -1,0 +1,204 @@
+<document>
+
+	<properties>
+		<title>Registry</title>
+	</properties>
+	
+	<related-patterns>
+		<name>Singleton</name>
+		<name>Service Locator</name>
+		<name>Bridge</name>
+		<name>Service</name>
+		<name>Repository</name>
+	</related-patterns>
+	
+	<body>
+		<section name="Objetivo">
+			<p>
+			Prover uma forma de objetos contactarem outros objectos de forma desacoplada de ambos.
+			</p>
+		</section>
+		<section name="Propósito" >
+			<p>
+			Uma aplicação funciona pela colaboração entre objectos, portanto a primeira coisa necessária
+			é que o objeto executor possa encontrar o seu colaborador. Esta colaboração cria uma dependencia entre
+			o objeto executor e aquele que ele necessita para executar a sua tarefa.
+			</p>
+			<p>
+			A injeção de dependencia (passar o objeto colaborador como argumento do contrutor do objecto executor)
+			é uma opção viável mas que acopla para sempre as instancias de ambos objetos. 
+			</p>
+			<p>
+			Por outro lado o fato de ser necessária a colaboração de um objeto de um certo tipo, isso não significa que
+			esse colaborador não possa ser modificado ou substituido por outro. Além disso, dois objetos instancias
+			da mesma classe podem ser configuradas de forma diferente de forma a realizar a mesma operação
+			de forma diferente ou sobre um contexto diferente. O padrão Registry oferece portanto um nivel maior de 
+			configuração de qual instancia irá desempenhar o trabalho.
+			</p>
+			<p>
+			Se desacoplamos os objetos precisamos de um ponto de encontro em é garantido que o colaborador esteja presente
+			e onde é garantido que o objeto trabalhador o irá procurar. Consequentemente este será um ponto de
+			acesso global.
+			</p>
+		</section>
+
+		<section name="Implementação" >
+			<p>
+			Existem várias formas de implementar o padrão Registry.
+			</p>
+			<section name="Usando uma classe">
+				<p>
+				A forma mais simples é criar uma classe não extensivel e não instanciável onde podemos 
+				registrar (dai o nome) o objeto colaborador e onde o objeto executor irá procurá-la.
+				</p>
+				<source language="java" legend="Implementação básica">
+public final class Registry { // não extensivel
+
+	private Registry(){} // não instanciável e não extensivel
+	
+	private static Dicionario dicionario;
+	
+	public static Dicionario getDicionario(){
+		return dicionario;
+	}
+	
+	public static void setDicionario(Dicionario umDicionario){
+		dicionario = umDicionario;
+	}
+
+}				
+				</source>
+				<p>
+				Qualquer objecto que precise utilizar um dicionário agora sabe como obtê-lo sem se
+				preocupar com a classe verdadeira desse objeto. Em particular, o registro pode ser
+				feito utilizando uma interface o que aumenta ainda mais as opções.
+				</p>
+				<p>
+				Imaginando que <code>Dicionario</code> é uma interface, poderiamos ter classes
+				<code>PtDicionario</code>,  <code>EnDicionario</code> e <code>EsDicionario</code>
+				e escolher no inicio da aplicação qual usar.
+				</p>
+				<source language="java" legend="Registrando o objecto">
+public class Main{
+
+	public static final void main(String[] args){
+		
+		// utiliza o dicionario ingles.
+		Registry.setDicionario(new EnDicionario());
+	
+	}
+}
+				</source>
+				<p>
+				Se a aplicação faz traduções então é necessário utilizar mais do que um dicionario.
+				Poderiamos criar um método de registro para cada um, mas isso seria penoso. É mais fácil
+				utilizar uma chave de registro. A chave de registro é um outro objeto (normalmente um <code>String</code>,
+				mas não precisa ser sempre) que permite recuperar o objecto depois.
+				</p>
+				<p>
+				No nosso caso utilizaremos um <code>String</code> representando a lingua.Repare como a estrutura 
+				interna foi alterada para usar um <class>Map</class>.
+				</p>
+				<source language="java" legend="Implementação básica">
+public final class Registry { // não extensivel
+
+	private Registry(){} // não instanciável e não extensivel
+	
+	private static final Map&lt;String,Dicionario&gt; dicionarios = new HashMap&lt;String,Dicionario&gt;();
+	
+	public static Dicionario getDicionario(String language){
+		return dicionarios.get(language);
+	}
+	
+	public static void addDicionario(String language,Dicionario dicionario){
+		dicionario.put( language,dicionario);
+	}
+
+}				
+				</source>		
+
+				<section name="Registros e Repositorios">
+					<p>
+					Um uso comum para o padrão Registry é servir como ponto de encontro de objectos
+					que implementam o padrão Repository. Um repository está associado a uma entidade
+					que é representada por uma classe. 
+					</p>
+					<p>
+					Poderiamos registrar um Repositorio com um método de registro para cada entidade,
+					mas seria mais interessante utilizar a entidade ( a classe da entidade) como chave 
+					do registro. 
+					</p>
+					<p>
+					O exemplo a seguir assume que existe um tipo Repositorio&lt;E&gt; genéricamente tipado.
+					</p>
+					<source language="java" legend="Implementação com repositorios e genéricos">
+public final class Repositories { // não extensivel
+
+	private Registry(){} // não instanciável e não extensivel
+	
+	private static final Map&lt;String,Repositorio&gt; repositorios = new HashMap&lt;String,Repositorio&gt;();
+	
+	public static &lt;E&gt; Repositorio&lt;E&gt; forEntity(Class&lt;E&gt; entityType){
+		return repositorios.get(entityType.getName());
+	}
+	
+	public static &lt;E&gt; void addRepository(lass&lt;E&gt; entityType,Repositorio&lt;E&gt; repository){
+		repositorios.put( entityType.getName(),repository);
+	}
+
+}				
+					</source>
+				</section>
+				
+			</section>
+		</section>
+		<section name="Exemplos na API padrão" >
+			<p>
+			O padrão Registry está presente na API padrão na classe <class>System</class> de onde podem
+			se obter e registrar vários objetos uteis. Particularmente <code>System.getProperty()</code>
+			e <code>System.out</code> e <code>System.in</code>.  
+			</p>
+			<p>
+			Além disso o padrão Registry está presente em <code>DriveManager.getConnection()</code>
+			</p>
+		</section>
+		<section name="Generalização">
+			<p>
+			Como vemos um objecto que implemente o padrão registry pode ser muito util. Existe acesso global
+			aos objetos registrados e podemos utilizar chaves de registro para diferenciar entre objetos 
+			diferentes mas da mesma classe.
+			</p>
+			<p>
+			Este padrão é tão util que é seguido pela tecnologia Java Name and Directory Interface (JNDI).
+			Esta tencologia da plataforma java utiliza caminhos como chaves de registro permitindo
+			não apenas registrar os objetos, mas também registrá-los segundo uma hierarquia. Além, disso
+			permite que o registro e a recuperação dos objetos seja feito remotamente (em outra máquina)
+			abrindo assim a opção de um registro centrar para aplicações distribuidas.
+			</p>
+		</section>
+		<section name="Discussão">
+			<p>
+			O padrão Registry é estremamente importante em Orientação a Objetos porque permite que objetos
+			colaborem sem que estejam fisicamente acoplados. A implementação pode ter muitas variantes, mas 
+			sob uma forma ou outra é utilizado em muitas tecnologias java como JNDI para encontrar objetos genéricos 
+			e Jini e OSGi para encontrar serviços.
+			</p>
+		</section>
+		<section name="Padrões relacionados">
+			<p>
+			O padrão Registry é utilizando para sempre que uma abtração precisa ser relacionada à implementação
+			de forma desacoplada. Portanto é natural associa-lo ao padrão <pattern>Service</pattern>.
+			O Registry é também encontrado junto ao padrão <pattern>Repository</pattern> e <pattern>Bridge</pattern>
+			</p>
+			<p>
+			Porque o registro é global o uso de Registry é uma boa alternativa ao uso de <pattern>Singleton</pattern>
+			já que provê a opção de acesso remoto sem forçar a opção de unicidade da instanciação.
+			</p>
+			<p>
+			O padrão Registry pode também se transforma no padrão <pattern>Service Locator</pattern> em que, básicamente,
+			o registro não é feito através do mesmo objeto e é encontrado em tempo de execução através de uma chave (ou endereço).
+			</p>
+		</section>
+	</body>
+
+</document>

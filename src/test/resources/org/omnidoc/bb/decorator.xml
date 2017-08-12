@@ -1,0 +1,159 @@
+[*Decorator*]
+
+
+[h2]Objetivo[/h2]
+Permitir alterar o comportamento que um objeto que já está implementado e/ou adicionar
+funcionalidade a objetos que já existem e não podem ser alterados.
+
+Essencialmente, um [pattern]Decorator[/pattern] modifica objeto original no sentido que ele
+adiciona alguma funcionalidade ao objeto original. Essa alteração pode acontecer na funcionalidade interna (na implementação)
+mas normalmente acontece no contrato adicionando mais métodos aos métodos originais. Diz-se que o objeto
+original foi [i]decorado[/i] pelo objeto que implementa o padrão [pattern]Decorator[/pattern].
+
+O padrão [pattern]Decorator[/pattern] permite que um objeto já decorado seja decorado de novo. Este mecanismo em que se encaixam objetos
+em outros produz o efeito de bonecas russas, onde dentre de um objeto existe sempre outro até no fim da linha onde existe um objeto realmente original.
+A composição de decoradores é uma forma alternativa à herança para o aproveitamento de funcionalidade e é a base de conceitos como o de [e]stream[/e]
+[h2]Propósito[/h2]
+Em alguns cenários gostaríamos de modificar o comportamento ou adicionar comportamento de um objeto, inclusive objetos 
+de classes de terceiros. Contudo não temos acesso ou não podemos modificar a classe original do objeto nem substitui-la por uma nova classe.
+Queremos na realidade aproveitar a maior parte da funcionalidade que a classe já tem, mas modificar algum aspecto ou adicional alguma
+funcionalidade. 
+
+O objeto [pattern]Decorator[/pattern] pode ou não fazer uso de interfaces ou herdar da classe decorada afim de  fixar o contrato 
+original, mas sempre irá manter o contrato original do objeto. Como, na prática, não estamos interessados em modificar todos os métodos,
+então temos que delegar a invocação do método ao objeto original. Por isso, sempre o objeto que implementa o padrão [pattern]Decorator[/pattern] 
+contém o objeto original que está sendo decorado e para o qual pode delegar a invocação de métodos. O [pattern]Decorator[/pattern] pode também
+utilizar os métodos os objeto original de uma combinação diferente que produza uma nova funcionalidade, conseguindo assim entender
+a funcionalidade do objeto original. Além disso a implementação do padrão pode conter outros objetos também, o que permite
+ainda mais flexibilidade na hora de criar novas funcionalidades.
+
+[h2]Implementação[/h2]
+A implementação do padrão [pattern]Decorator[/pattern] é simples. Basta criar uma nova classe que tenha o mesmo contrato que a classe
+original, obter esse objeto original no construtor e delegar todas as chamadas. Depois, modificar aquelas chamadas que desejamos alterar
+e adicionar métodos para as funcionalidades que queremos adicionar.
+
+[code=java]
+
+class Pessoa {
+	
+	private String nome;
+	private String sobrenome;
+	private Date dataNascimento;
+
+	public void setNome(String nome){
+		this.nome = nome;
+	}
+	
+	public String getNome(){
+		return this.nome;
+	}
+	
+	public void setSobrenome(String sobrenome){
+		this.sobrenome = sobrenome;
+	}
+	
+	public String getSobrenome(){
+		return this.sobrenome;
+	}
+	
+	public Date getDataNascimento(){
+		return this.dataNascimento;
+	}
+	
+	public void setDataNascimento(Date date){
+		this.dataNascimento = date;
+	}
+
+}
+
+class PessoaDecorator extends Pessoa {
+
+	private Pessoa original;
+	
+	public PessoaDecorator (Pessoa original){
+		this.original = original;
+	}
+	
+	// delega métodos
+	public void setNome(String nome){
+		original.setNome(nome);
+	}
+	
+	public String getNome(){
+		return original.getNome();
+	}
+	
+	public void setSobrenome(String sobrenome){
+		original.setSobrenome(sobrenome);
+	}
+	
+	public String getSobrenome(){
+		return this.orginal.getSobrenome();
+	}
+	
+	public Date getDataNascimento(){
+		return original.getDataNascimento();
+	}
+	
+	public void setDataNascimento(Date date){
+		original.setDataNascimento(date);
+	}
+	
+	// novos métodos
+	public int idade(Date hoje){
+		return DateUtils.anosEntre(original.getDataNascimento(), hoje);
+	}
+	
+	public String toString(){
+		return original.getNome() + " " + original.getSobrenome();
+	}
+}
+
+
+[/code]
+	
+Um objeto que apenas delega todas as chamadas de todos os métodos para o objeto original é chamado muitas vezes de [e]Delegator[/e].
+Um delegator é a base para um decorator e pode ser considerado um padrão auxiliar do [pattern]Decorator[/pattern].
+
+[h3]Encadeamento[/h3]
+Note que o construtor de um decorator sempre recebe, pelo menos, o objeto original.
+Isto permite encadear vários decoradores num conceito semelhante a bonecas russas em que o objeto mais interior 
+é o objeto real enclausurado num conjunto de decoradores.
+
+Assim, o padrão [pattern]Decorator[/pattern] pode ser usado como base para um tipo especial de [pattern]Chain of Responsability[/pattern]
+aplicado a um método do objeto. Encontramos uso disto, por exemplo, na API de Streams do Java, em que o byte sendo gravado ou lido passa
+por várias implementações da stream entre o local físico onde se encontra gravado e o programa que o está lendo/gravando.
+
+[h2]Discussão[/h2]
+O padrão [pattern]Decorator[/pattern] é uma alternativa ao uso de herança usando composição para extender classes. Nem sempre a classe é extensível, nem sempre a classe
+é do nosso repositório de código. O padrão [pattern]Decorator[/pattern] se utiliza de composição para extender e modificar o comportamento
+de uma classe, permitindo assim que qualquer objeto possa ser estendido sem uso de herança. 
+Por que usa composição, podemos dizer que um [pattern]Decorator[/pattern] modifica o comportamento do objeto em tempo de execução
+enquanto a herança é um mecanismo que modifica o comportamento em tempo de compilação. 
+
+A diferença é substancial e importante. Ainda mais relevante nos dias de hoje quando mecanismo de injeção automática de dependências são comuns
+e largamente utilizados, até por especificações padrão como a JEE. Aliando o padrão [pattern]Decorator[/pattern] a motores de injeção
+conseguimos modificar comportamentos de classes conforme quisermos em tempo de execução, o que nos permite utilizar o contexto e o ambiente
+de execução como parâmetros para decidir o quê modificar e como. Esta técnica é ainda mais estendida com o uso concomitante dos padrões [pattern]Adapter[/pattern]
+e [pattern]Proxy[/pattern] que são da mesma familia que [pattern]Decorator[/pattern].
+
+[h2]Exemplos Na API Padrão[/h2]
+O padrão [pattern]Decorator[/pattern] é muito utilizado em I/O sobretudo como base do conceito de Stream.
+Os tipos [class]InputStream[/class] e [class]OutputStream[/class] são definidos como interfaces,
+para que seja possível criar decoradores. Exemplos de decoradores são  [class]BufferedInputStream[/class], 
+[class]FilterInputStream[/class], 
+[class]FilterOutputStream[/class] e [class]ProgressMonitorInputStream[/class] para citar alguns.
+Estas implementações fazem uso pesado do processo de encadeamento que identificamos anteriormente.
+
+O padrão também é utilizado em classes como todas as classes filhas de [class]Number[/class] , [class]Character[/class] e [class]Boolean[/class] que são decoradores de tipos primitivos. 
+Permitindo por exemplo calcular o hash code e converter para outros primitivos.
+
+[h2]Padrões associados[/h2]
+O padrão Decorator se relaciona ao padrão [pattern]Adapter[/pattern] e ao padrão [pattern]Proxy[/pattern].
+
+Conceitualmente um objeto que implementa o padrão [pattern]Decorator[/pattern] se diferencia de um objeto que implementa o padrão [pattern]Adapter[/pattern] 
+por que o [pattern]Decorator[/pattern] mantém o contrato original da classe e no máximo só o extende, enquanto o [pattern]Adapter[/pattern] expõe um contrato
+completamente diferente daquele do objeto original.
+
+O objeto é considerado implementação do padrão [pattern]Proxy[/pattern] quando o objeto original sendo utilizado não corresponde verdadeiramente
+com o objeto original, mas com um objeto "representante" do original, contudo o contrato do objeto original é mantido.

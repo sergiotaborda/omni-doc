@@ -1,0 +1,303 @@
+[*DAO*]
+
+
+[h2]Objetivo[/h2]
+		Prover isolamento da tecnologia de persistência.
+		
+[h2]Propósito[/h2]
+		O padrão Data Access Object (DAO) é um padrão introduzido no ambiente JEE  para simplificar e desacoplar a interação das aplicações Java com a API JDBC.
+		
+[h2]O Problema[/h2]
+		A grande maioria das aplicações de nível corporativo usam algum tipo de persistência de dados. Entre eles o mais usado é o Banco de Dados. A linguagem SQL 
+		é amplamente utilizada para comunicar com os sistemas gerenciadores de banco de dados (SGBD). Java suporta esta necessidade desde cedo através da API JDBC (Java Database Connectivity).
+		
+		Antes do uso de Java em sistemas corporativos as aplicações eram majoritariamente escritas em linguagens orientadas a processo e a ordem e instruções SQL específicas continham regras de negócio. 
+		Ao passar esses sistemas para Java, essas regras não se poderiam perder e, ao mesmo tempo, há que se trabalhar com objetos. O padrão DAO visava originalmente encapsular esses conjuntos de 
+		códigos SQL que existiam em aplicações legadas . Esse código continha regras tanto na pesquisa dos dados, tanto na edição dos dados. 
+		É comum ao inserir um determinado dado, ter que inserir ou atualizar outros.
+		
+		Para projetos novos, que não dependem de código legado, JDBC é a escolha para comunicar com bancos dados. Contudo o uso de JDBC obriga as aplicações Java, a 
+		escrever SQL para comunicar com o gerenciador de bando de dados. Essa comunicação é feita utilizando o padrão [pattern]Bridge[/pattern] em que a interface é Java e igual para 
+		todos os sistema de gerenciamento de bancos de dados e a implementação é específica de cada um encapsulada no conceito de driver. O problema é que nem todos os drivers JDBC
+		suportam todos os tipos de instrução SQL, ou nem sempre com o mesmo dialeto. Alguns suportam operações que outros não. Java é orientado a objetos e mapear as propriedades 
+		dos objetos para tabelas utilizando SQL é processo chato, demorado, passível de erro e que ninguém quer repetir em diferentes pontos da aplicação.
+		
+		Finalmente, nem todas as aplicações comunicam apenas com banco de dados. Algumas podem comunicar com servidores LDAP ou serviços externos Business-to-Business (B2B), por exemplo. 
+		Esta comunicação é muitas vezes elaborada depois que a aplicação está em produção substituindo o banco como fonte de dados. As API para comunicação com estes sistemas são diferentes do 
+		JDBC quer em termos de contrato de interface quer em termos de filosofia. Um outro exemplo seria um sistema que utiliza um banco de dados NoSQL.
+		
+		O problema que o padrão DAO tenta resolver tem, na realidade, três perspectivas:
+			
+			   Legado : Queremos encapsular lógicas de persistência legadas escritas com SQL ou outras tecnologias de forma simples. 
+			   Queremos apenas utilizar as tecnologias java, mas manter as mesmas regras de negócio.
+			   
+				Isolamento : Queremos que a aplicação seja isolada da API com que está comunicando. Queremos poder alterar a API utilizada internamente sem alterar o contrato de acesso aos dados. 
+				No caso especifico do JDBC, queremos ainda poder utilizar diferentes dialetos do SQL conforme o SGBD que está sendo utilizado para tirar o máximo de proveito das especificidades de cada
+				SGBD.
+				
+				Mapeamento de Objetos : Queremos utilizar objetos no ambiente Java. Queremos poder utilizar os mesmos objetos independentemente da API de persistência.
+				Normalmente isto passa por respeitar algum  Mapeamento Objeto-Relacionamento ORM (Object-Relational Mapping). Isto pode ser feito de forma automatizada ou não.
+				Outros mapeamentos são possíveis, dependendo da tecnologia subjacente; como para XML, LDAP ou WebServices. 
+				Os mapeamentos ORM podem ainda mudar quando mudamos de gerenciador de banco de dados
+				
+[h2]A solução[/h2]
+		O padrão DAO soluciona estes problemas de uma forma simples. Todas as comunicações com o mecanismo de persistência são mediadas por um objeto o DAO.
+		Esse objeto mapeia informações transportadas em objetos ([pattern]Transfer Object[/pattern]) para instruções da API de persistência e mapeia resultados 
+		obtidos dela de volta para os mesmos objetos de transporte. Toda a lógica de mapeamento e execução das instruções é deixada dentro do objeto DAO desta forma 
+		isolando a aplicação da API de persistência por completo.
+		
+		O objeto DAO é responsável por operar o mecanismo de persistência em nome da aplicação tipicamente executando os quatro tipos de operações - Criar, Recuperar , Alterar, Apagar - conhecidas 
+		pela sigla CRUD - do inglês Create, Retrive, Update , Delete. As operações de edição são invocadas diretamente passando o objeto com as informações a serem editadas.
+		As operações de recuperação são normalmente implementadas como métodos específicos. Por exemplo, recuperar o objeto que corresponde com uma certa chave, ou critério de busca. 
+		Estes métodos contém regras de negocio diferentes conforme o tipo de dados sendo persistido. Em particular pode não existir nenhuma regra particular, ou a regra só poder ser 
+		executada em um tipo especifico de API de persistência.
+		
+		O DAO é um tipo muito especifico de Serviço (padrão [pattern]Service[/pattern]) especializado em conversar com o SGBD e em prover as operações CRUD e de pesquisas.
+		Por isto o contrato de um DAO é diferenciado da sua implementação (como é normal no padrão [pattern]Service[/pattern]) e cada implementação corresponde a uma tecnologia especifica e/ou a um SGBD
+		especifico. Em ultima análise não se trata de uma única implementação, mas de uma familias de implementações. Cada familia especificamente desenhada para um tecnologia de persistência, um SGDB e até
+		um conjunto especifico de objetos de transporte.
+		
+[h2]O contrato[/h2]
+		Se estamos utilizando diferentes DAO conforme o mecanismo de persistência que queremos usar, temos que ter alguma forma de escolher qual utilizar.
+		Se você estiver utilizando algum framework de injeção de dependência (DI), basta configurá-lo para injetar a implementação certa. 
+		Outra opção (que não é incompatível com a anterior) é o uso do padrão [pattern]Factory[/pattern] ou de [pattern]Abstract Factory[/pattern].
+		
+		A interface do padrão original é simples. São fornecidos métodos para as operações CRUD, sendo que a operação de recuperação é distribuída em diferentes métodos 
+		de pesquisa especializados. São estes métodos especializados que encapsulam facilmente lógicas de pesquisa de sistemas legados.
+		
+[code=java]
+
+	public class Customer {
+		// atributos
+		// acessores e modificadores
+
+	}
+	
+	public interface CustomerDAO {
+	
+		Customer create () ;
+		void insert ( Customer c ) ;
+		void update ( Customer c ) ;
+		void delete ( Customer c ) ;
+		Customer findByID ( Integer id ) ;
+		Customer finfByCustomerNumber ( String customerNumber ) ;
+	
+    }
+
+
+	public class JDBCCustomerDAO implements CustomerDAO {
+	
+		 public Customer create (){
+		 return new Customer () ;
+		 }
+		 public void insert ( Customer c ){
+		 // usa JDBC para criar e executar uma frase SQL de inserção.
+		 }
+		 public void update ( Customer c ){
+		// usa JDBC para criar e executar uma frase SQL de atualização.
+		 }
+		public void delete ( Customer c ){
+		 // usa JDBC para criar e executar uma frase SQL que remove o cliente do banco
+		 }
+		 public Customer findByID ( Integer id ){
+		 // usa JDBC para criar e executar uma frase SQL que pesquisa o cliente com a chave passada.
+		 }
+		 public Customer finfByCustomerNumber ( String customerNumber ){
+		 // usa JDBC para criar e executar uma frase SQL que pesquisa o cliente com o numero passado.
+		 }
+	}
+
+		
+[/code]
+	
+		O mesmo código teria que ser repetido para todos os tipos de objeto persistido.
+		
+		O método [icode]create()[/icode] foi explicitamente colocado na interface do DAO porque será importante mais à frente. 
+		Por agora ele simplesmente cria o objeto, algo que poderíamos fazer facilmente fora do DAO. Esta utilização do padrão [pattern]Factory Method[/pattern] parece fútil, 
+		mas como veremos a seguir é importante para alguns tipos especiais de implementação do padrão DAO.
+		
+[h2]Sabores de DAO[/h2]
+		Existem vários "sabores" de DAO. A razão para isto é que o padrão DAO não é muito prático quando o sistema tem muitos objetos persistentes.
+		
+[h3]DAO padrão[/h3]
+			Vimos como seria a implementação padrão  do DAO. Para cada tipo de objeto de transporte - Cliente, Pedido , etc... - existe um objeto DAO correspondente. 
+			Os objetos DAO formam uma camada na aplicação . A aplicação tem que invocar o DAO certo para trabalhar com o objeto de transporte certo. Cada objeto DAO 
+			sabe como ler e popular as propriedades do objeto de transporte e usá-las na API do mecanismo de persistência que está usando.
+			
+			Neste sabor do padrão os objetos DAO formam um camada espessa recheada de lógica de mapeamento misturada com lógica de persistência e lógica de negócio. 
+			Além disso ele cria a necessidade de um conjunto muito grande de classes distribuídas nas seguintes categorias:
+				Objetos de transporte. Eles são encarregados de manter os dados em memória na forma de objetos e estruturas de objetos. Exemplo: [icode]Customer[/icode]Interface DAO - Interface para o DAO de um certo tipo de TO. Exemplo: [icode]CustomerDAO[/icode]Implementação DAO - Implementação da interface para o DAO de um certo tipo de TO e um certo tipo de API de persistência. Exemplo: [icode]JDBCCustomerDAO[/icode]Factory de DAO - Fabrica que sabe qual implementação utilizar para cada interface. Na realidade a fabrica é uma metáfora para o mecanismo de mapeamento entre a interface e a implementação.
+					Utilizando um mecanismo de DI teríamos de as mapear igualmente, apenas o faríamos de forma diferente.
+			Se o seu sistema tiver 10 tipos de objeto persistente (10 tabelas) você precisa escrever 30 classes só para começar.	
+			
+[h3]DAO com Tipos Genéricos[/h3]
+			Talvez usando tipos genéricos poderíamos diminuir a quantidade de interfaces e implementações necessárias. Na realidade isso não é bem verdade, porque as interfaces do DAO 
+			contêm métodos de procura específicos dependentes do objeto de transporte , das regras de persistência e de regras de negócio , mas poderíamos diminuir os métodos que são comuns a todos os objetos persistidos.
+			Usando tipos genéricos neste estágio não nos ajuda a diminuir o número de classes ou simplificar a implementação mas nos ajuda a diminuir o numero de métodos por interface 
+			DAO utilizando interfaces comuns (padrão [pattern]Separated Interface[/pattern]]).
+			
+[code=java]
+
+public interface DAO<T> { // interface comum
+	T create () ;
+	void insert ( <T> obj ) ;
+	void update ( <T> obj ) ;
+	void delete ( <T> obj ) ;
+	T findByID ( Integer id ) ;
+}
+
+public interface CustomerDAO extends DAO<Customer> {
+	Customer findByCustomerNumber ( String customerNumber );
+}
+	
+[/code]
+	
+		Diminuímos a quantidade de métodos na interface DAO especifica de cada objeto de transporte, mas não ganhamos muito. Criamos mais uma classe e a implementação ainda continua específica.
+		
+[h3]DAO com Bridge[/h3]
+			Até agora deixamos os objetos de transporte serem explicitamente classes. Isto é na realidade um problema. Todas as implementações do DAO para as várias tecnologias estão forçadas a 
+			utilizar o mesmo objeto. Se o objeto mudar (por exemplo, adicionarmos um campo) todas as implementações de DAO para as várias tecnologias têm que mudar. Para evitar este problema 
+			aplicamos o padrão [pattern]Bridge[/pattern] deixando as implementações e as interfaces serem definidas independentes.Para isso utilizamos interfaces em vez de classes para 
+			especificar os nossos objetos de transporte .
+			
+			Como estamos utilizando o padrão [pattern]Factory Method[/pattern] para obter os objetos de transporte, podemos agora retornar uma implementação especifica da implementação do DAO.
+			Com isto podemos fazer muitos tipos de otimização. Por exemplo, podemos incluir uma lógica que nos permite saber se os valores dos dados mudaram. Isso ajudará no método de atualização. 
+			Se nada mudou simplesmente não faz nada e poupa a comunicação com o banco. Quando a implementação controla todos os fatores é fácil fazer otimizações. 
+			Esta técnica é utilizada pela própria API JDBC para desacoplar a aplicação Java do gerenciador de banco de dados permitindo que este faça as otimizações que achar necessárias.
+			
+			Como não existe nenhuma outra lógica nos objetos de transporte que não seja ler e escrever os seus atributos podemos utilizar uma implementação genérica baseada 
+			num mapa atributo-valor utilizando o padrão [pattern]Proxy[/pattern]. Basicamente utilizamos um [class]Map[/class] e o encapsulamos dinamicamente na interface do objeto de 
+			transporte esperado. Isto é relativamente simples de fazer utilizando a classe [class]java.lang.reflect.Proxy[/class] da API padrão.
+			
+			A utilização do padrão [pattern]Bridge[/pattern] não nos ajuda a diminuir classes, mas ajuda na implementação. Podemos ter controle total sobre como 
+			implementamos os objetos DAO e como comunicamos com a API de persistência. Isso permite que utilizemos otimizações, entre as quais o uso de Proxy para os objetos de transporte. 
+			Retirando efetivamente da aplicação o trabalho de os codificar e manter.
+			
+[h3]DAO e Metadados[/h3]
+			Para reduzir o número de implementações necessárias, ou pelo menos diminuir a implementação de métodos comuns é necessário termos a informação descrita de uma forma mais abstrata.
+			Temos que utilizar metadados. Existem dois tipos de metadados que podem ser usados, não necessariamente excludentes. Podemos utilizar metadados existentes na própria estrutura das classes.
+			Este uso é normalmente referido como Introspecção (Introspection é um tipo particular de Reflection) Por exemplo, não usar new na classe e usar os mecanismo de do Java para criar o 
+			objeto a partir da sua classe. ( se utilizarmos o mecanismo de proxy descrito antes já estaremos fazendo isto implicitamente) Outro exemplo é utilizar introspecção para ler e escrever 
+			os atributos dos objetos dinamicamente invocando os métodos get/set dinamicamente. Para que o mecanismo de introspecção funcione a implementação do DAO precisa previamente saber a 
+			classe do objeto de transporte.
+			
+			Outra forma de metadados são aqueles relacionados à estrutura persistente do objeto. No caso de bancos de dados seriam os metadados das tabelas e seus relacionamentos.
+			Podemos deixar à responsabilidade da implementação do DAO descobrir e utilizar os metadados. Uma melhor opção é utilizar o padrão MetadataMapper  deixando essa responsabilidade 
+			para outro objeto. Este objeto pode simultaneamente obter informações da estrutura de classes como ser configurado com informações extra sobre relacionamentos e tabelas.
+			
+			Com metadados a implementação dos métodos básicos é comum a todos os tipos de objeto de transporte, simplificando a implementação do DAO. Essas implementações comuns podem ser 
+			encapsuladas num classe pai de todos os DAOs. Os DAO específicos podem estender esta classe se necessário para prover mais mecanismos de busca, ou alterar os mecanismos padrão.
+			
+[code=java]
+
+public class AbstractDAO<T> implements DAO<T> {
+
+	MetadataProvider metadata;
+
+	public AbstractDAO ( MetadataProvider metadata ){
+		this .metadata = metadata;
+	}
+
+	public T create (){
+		return metadata.getTOClass () .newInstance () ;
+	}
+
+    public T findByID ( Integer id){
+		// traduz para SQL usando os metadados
+		// neste caso seria necessário saber o nome do campo que é o id da tabela.
+	}
+}		
+			
+[/code]
+	
+			O número de classes diminuiu. Agora podemos utilizar sempre [icode]AbstractDAO[/icode] apenas constituindo classes especificar quando existem métodos ou 
+			regras especificas a serem implementadas. A utilização de fabricas ou DI é vital para o sucesso desta abordagem porque podemos retornar uma instância de AbstractDAO  
+			devidamente configurada para um TO particular. Apenas em casos particulares precisaremos retornar alguma classes especial. E quando tivermos que fazer isso poderemos 
+			aproveitar a maioria dos métodos via herança.
+			
+[h3]DAO e QueryObject[/h3]
+			Aquilo que separa o sabor anterior de implementações ainda mais genéricas para o padrão [pattern]DAO[/pattern] são os métodos especiais de pesquisa. Criar um método para cada estratégia 
+			de pesquisa aumenta rapidamente a interface do [pattern]DAO[/pattern]. Isso é mau pois estamos aumentando a responsabilidade dos implementadores da interface. Isso obriga a que todos os 
+			[pattern]DAO[/pattern] de todos os mecanismos implementem esses métodos. Inadevertidamente podemos criar métodos que certos tipos de persistência não podem executar. Mesmo com o padrão 
+			[pattern]Bridge[/pattern], isso pode ser complicado de gerenciar.
+			
+			Para solucionar isso podemos invocar o Principio de Separação de Responsabilidade (SoC) e abstrair a lógica de pesquisa num objeto à parte. Estas várias estratégias 
+			de pesquisa podem ser utilizadas pelo [pattern]DAO[/pattern] de diferentes tipos e até mesmo para diferentes mecanismos de persistência. Em particular podemos criar implementações de [pattern]Query Object[/pattern]
+			que permitam as operações mais comuns. Deixando para os métodos especiais apenas aquelas que não podem ser traduzidas pelo Query Object. Sendo que SQL é uma linguagem de pesquisa 
+			genérica é normalmente possível explicitar a maioria das opções utilizando uma implementação de Query Object. O numero de métodos específicos que ainda teriam que ser criados nas 
+			interfaces especificas dos [pattern]DAO[/pattern] diminuem na razão inversa do poder de abstração da sua implementação de Query Object.Ou seja, quanto mais puder usar Query Object menos usará métodos 
+			específicos.
+			
+[code=java]
+
+public class AbstractDAO<T> implements DAO<T> {
+
+	MetadataProvider metadata;
+
+	public AbstractDAO ( MetadataProvider metadata ){
+		this .metadata = metadata;
+	}
+
+	public T create (){
+		return metadata.getTOClass () .newInstance () ;
+	}
+
+    public T findByID ( Integer id){
+	
+		QueryObject<T> query = new QueryObject<T>();
+		
+		query.addCriterion(new IdFieldCrietion(id)); // critério que pesquisa usando o campo de id
+		
+		return findByQuery(query);
+	}
+	
+	public List<T> findAll (){
+		QueryObject<T> query = new QueryObject<T>();
+		// um query sem restrições significa 'trás todos'
+		return findByQuery(query);
+	}
+	protected  List<T> findByQuery ( QueryObject<T> query){
+		// traduz o objeto query para SQL de forma genérica e usando os metadados
+		// apenas este método tem que ser reimplementado em cada tecnologia de persistência 
+		// e não cada método per se.
+	}
+}		
+			
+[/code]
+	
+			A utilização destes objetos de pesquisa não significa que se devem distribuir lógicas de pesquisa por toda a aplicação. 
+			Se fizer isso não mais estará utilizando o padrão [pattern]DAO[/pattern], mas algo mais semelhante a um [pattern]Domain Store[/pattern]. O uso de [pattern]Query Object[/pattern] neste contexto
+			é protegido e interno apenas à implementação da classe do [pattern]DAO[/pattern].
+			
+			O uso de [pattern]Query Object[/pattern] simplifica a interface do [pattern]DAO[/pattern] diminuindo o numero de métodos de pesquisa específicos. Apenas um método ([icode]findByQuery[/icode] no exemplo),
+			precisa manipular SQL para pesquisas. Desta forma a regra fica mais concisa e mais fácil de transportar para outras tecnologias de persistência.
+			
+[h2]Discussão[/h2]
+			O padrão [pattern]DAO[/pattern] (Data Access Object) nasce como uma forma de encapsular a comunicação com o bando de dados, especialmente quando usada a tecnologia JDBC. O uso de [pattern]DAO[/pattern] pretende
+			esconder a diferença de paradigmas entre a Orientação a Objetos e a Orientação da Tabelas. Por outro lado, o [pattern]DAO[/pattern] é pensado para permitir o uso de diferentes tecnologias de persistência
+			e inclusive diferentes dialetos de uma mesma tecnologia. 
+		
+			Estruturalmente o padrão [pattern]DAO[/pattern] é uma especialização do padrão [pattern]Service[/pattern] e por isso segue o principio de uma interface que define o contrato e um conjunto de implementações possíveis.
+			Normalmente não pensamos no [pattern]DAO[/pattern] como um [pattern]Service[/pattern] porque associamos o [pattern]DAO[/pattern] à camada de persistência (andar de integração) e o [pattern]Service[/pattern] à camada 
+			de negócios ( andar de domínio). Contudo isto não é estritamente verdade e a separação é artificial. Hoje em dia podemos ver como o [pattern]DAO[/pattern] é exposto diretamente via o uso de protocolos como REST, por exemplo.
+		
+			O padrão [pattern]DAO[/pattern] ganhou seu lugar ao sol no planeta Java quando a tecnologia JEE foi introduzida. Contudo hoje é um padrão obsoleto cujo único propósito de uso é a integração com código legado. O padrão 
+			[pattern]Domain Store[/pattern] é uma simplificação mais comum e hoje padronizado por especificações como a JPA ou ferramentas como o Hibernate. O [pattern]Domain Store[/pattern] ainda usa [pattern]DAO[/pattern] por baixo dos panos
+			mas de uma forma muito mais automatizada e invisível ao programador, à arquitetura e ao domínio.
+		
+[h2]Padrões Relacionados[/h2]
+			O padrão [pattern]DAO[/pattern] é, como vimos, uma especificação do padrão [pattern]Service[/pattern] cujo propósito é servir dados. 
+		
+			O padrão [pattern]DAO[/pattern] se relaciona ainda ao padrão [pattern]Interpreter[/pattern] já que freqüentemente o seu trabalho é traduzir métodos para frases SQL. O padrão [pattern]DAO[/pattern] se relaciona ao padrão 
+			[pattern]Factory[/pattern] de duas formas. Primeiro porque é responsável por criar objetos cujo estado depende do estado do banco de dados e segundo porque a própria instância do [pattern]DAO[/pattern] é normalmente obtida de uma fábrica.
+			Neste mesma linha está relacionado aos padrões [pattern]Abstract Factory[/pattern] e [pattern]Bridge[/pattern] porque geralmente não temos apenas um tipo de [pattern]DAO[/pattern] mas uma familia de [pattern]DAO[/pattern], um para cada entidade e tecnologia
+			de persistência.
+		
+			O padrão [pattern]DAO[/pattern] pode ainda se relacionar aos padrões [pattern]Transfer Object[/pattern] e [pattern]Entity[/pattern] no que concerne ao objetos que são criados e usados como parâmetros de pesquisas. 
+			Para pesquisas se relaciona também ao padrão [pattern]QueryObject[/pattern] seja pelo uso de frases SQL (que são implementações de [pattern]QueryObject[/pattern] usando [class]String[/class]) ou seja uma outra 
+			implementação especifica (por exemplo, usando XPath para pesquisar XML).
+		
+			O padrão está ainda relacionado aos padrões [pattern]Domain Store[/pattern] e [pattern]Repository[/pattern]. O primeiro é responsável apenas pelo mecanismo de encapsular a tecnologia de persistencia usando metadados
+			e o segundo é apenas responsável pela definição de métodos de pesquisa e respetiva tradução para [pattern]Query Object[/pattern]s que o [pattern]Domain Store[/pattern] irá interpretar. Este trio de padrões substitui por completo o uso
+			de [pattern]DAO[/pattern] e o tornam obsoleto para uso na camada de domínio.
+		

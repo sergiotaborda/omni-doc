@@ -1,0 +1,146 @@
+[*Ratio*]
+
+
+[h2]Objetivo[/h2]
+			Permitir manipular frações minimizando as operações de divisão.
+			
+[h2]Propósito[/h2]
+			A operação de divisão é uma das mais complexas no mundo da computação porque leva
+			facilmente a uma perda de exatidão nos cálculos. Usando valores primitivos 
+			de ponto flutuante como [icode]double[/icode] e [icode]float[/icode] isso se torna mais óbvio,
+			mas mesmo utilizando [class]BigDecimal[/class] esse problema se coloca ao termos que 
+			escolher o modo de arredondamento a cada divisão.
+			
+			O padrão [pattern]Ratio[/pattern](Rácio,Razão, Proporção) minimiza o problema ao adiar 
+			ao máximo a necessidade de executar a divisão, controlando o valor do numerador e do
+			denominador separadamente e usando as regras aritméticas para frações.
+			
+[h2]Implementação[/h2]
+			Para este exemplo de implementação usaremos a classe [class]BigDecimal[/class] como base para mantermos
+			os valores do numerador e do denominador.
+			
+[code=java]
+
+public class Ratio implements Comparable<Ratio>{
+
+	public static Ratio valueOf(String numerador){
+		return Ratio(new BigDecimal(numerador), BigDecimal.ONE);
+	}
+	
+	public static Ratio valueOf(String numerador, String denominador){
+		return Ratio(new BigDecimal(numerador), new BigDecimal(denominador));
+	}
+	
+	private BigDecimal numerador;
+	private BigDecimal denominador;
+	
+	private Ratio(BigDecimal numerador, BigDecimal denominador){
+		this.numerador = numerador;
+		this.denominador = denominador;
+	}
+
+	public Ratio plus(Ratio other){
+		// a soma de a/b + c/d é igual a (ad+cb)/bd
+		
+		BigDecimal ad = this.numerador.multiply(other.denominador);
+		BigDecimal cd = this.denominador.multiply(other.numerador);
+		
+		BigDecimal bd = this.denominador.multiply(other.denominador);
+		
+		return new Ratio(ad.add(cd), bd); // não ha divisão
+	}
+	
+	public Ratio subtract(Ratio other){
+		return this.plus(other.negate());
+	}
+	
+	public Ratio negate(){
+		return new Ratio(this.numerador.negate(), this.denominador);
+	}
+	
+	public Ratio multiply(Ratio other){
+		// o produto de a/b x c/d é igual a ac/bd
+		
+		BigDecimal ac = this.numerador.multiply(other.numerador);
+		BigDecimal bd = this.denominador.multiply(other.denominador);
+		
+		return new Ratio(ac, bd); // não ha divisão
+	}
+	
+	public Ratio divide(Ratio other){
+		// a divisão de a/b  por c/d é igual 
+		// ao produto de a/b x d/c que é igual a ad/bc
+	
+		BigDecimal ad = this.numerador.multiply(other.denominador);
+		BigDecimal bc = this.denominador.multiply(other.numerador);
+		
+		return new Ratio(ad, bc); // não ha divisão
+	}
+	
+	public boolean isZero(){
+		return numerator.compareTo(BigDecimal.ZERO)==0;
+	}
+	
+	public boolean isOne(){
+		return numerator.compareTo(denominador)==0;
+	}
+	
+	public BigDecimal asNumber(){
+		return numerator.signum()==0 
+              ? BigDecimal.ZERO 
+              : denominator.compareTo(BigDecimal.ONE)==0
+                  ? numerator 
+                  : numerator.divide(denominator, 15, RoundingMode.HALF_EVEN);
+	}
+	
+	public int compareTo(Ratio other){
+	    // a/b == c/d => ad == cb
+
+	 	BigDecimal cb = denominator.multiply(other.numerator);
+        BigDecimal ad = numerator.multiply(other.denominator);
+                
+        return ad.compareTo(cb);
+	}
+	
+	public int hashCode(){
+		return 0;
+	}
+	
+	public boolean equals(Object other){
+		return other instanceof Ratio && compareTo((Ratio)other)==0;
+	}
+	
+}						
+			
+[/code]
+	
+			Repare que a única vez que dividimos o numerador pelo denominador é quando
+			somos obrigados a retornar um valor [i]condensado[/i] em [icode]asNumber()[/icode].
+			Mesmo quando comparamos dois [icode]Ratio[/icode] o fazemos sem recorrer à divisão.
+			
+			Esta implementação de [pattern]Ratio[/pattern] tem a implementação de [icode]Comparable[/icode]
+			compativel com [icode]equals[/icode]. Para isso tivemos que sacrificar a computação de um [icode]hashCode[/icode]
+			melhor. Isto porque numeradores e denominadores iguais garantem igualdade, mas numeradores e denominadores diferentes
+			não necessariamente significam desigualdade. Por exemplo, 2/3 é o mesmo que 4/6 e são objetos iguais, embora os numeradores
+			e denominadores sejam todos diferentes. O uso de uma constante garante que o método [icode]hashCode[/icode]
+			está implementado em coerência com [icode]equals[/icode].
+			
+[h2]Discussão[/h2]
+			O padrão [pattern]Ratio[/pattern] adia todas as operações de divisão desde que todas
+			as operações sejam feitas com ele. Isso permite que trabalhemos até com números impossíveis como 0/0, o que
+			pode ser um problema no caso geral.
+			
+			Aqui nomeamos a implementação da classe com o nome do padrão, mas numa aplicação real, usaríamos um nome mais sugestivo como
+			[icode]NumeroReal[/icode], por exemplo.
+			
+			No exemplo de implementação usamos [icode]BigDecimal[/icode] para exemplificar e manter os cálculos simples. Na prática
+			poderíamos usar outras estratégias como usar [icode]BigInteger[/icode] ou mesmo usar objetos que implementem 
+			[pattern]Quantity[/pattern], como [pattern]Money[/pattern].
+			
+			O próprio padrão [pattern]Money[/pattern] pode ser implementado internamente usando um 
+			objeto [pattern]Ratio[/pattern] internamente ou ele mesmo ser implementado conforme este padrão. Ao trabalhar com dinheiro
+			divisões implicam em arredondamentos que implicam em perda ou ganho de centavos o que implica num problema de contabilidade.  
+			
+[h2]Padrões associados[/h2][pattern]Ratio[/pattern] está diretamente associado a [pattern]Value Object[/pattern] pois representa essencialmente um valor
+			numérico. O objetivo de [pattern]Ratio[/pattern] é prevenir o uso da operação de divisão e isso tem aplicação direta
+			em várias áreas mas principalmente na financeira relacionando o padrão [pattern]Ratio[/pattern] com o padrão [pattern]Money[/pattern]

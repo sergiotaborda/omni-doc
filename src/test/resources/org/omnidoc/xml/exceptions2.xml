@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<document type="article" theme="java">
+
+<properties>
+	<author>Sérgio Manuel Marcos Taborda
+		<about>
+		Sérgio é Engenheiro Físico pela Faculdade de Ciências da Universidade de Lisboa mas encontrou no Java a sua vocação. 
+		Trabalha com Java  desde 2004 e é Programador Java Certificado Sun. 
+		</about>
+		<email>
+		sergiotaborda@yahoo.com.br
+		</email>
+	</author>
+	<title>
+		Trabalhando com Exceções
+		<part>2</part>
+		<subtitle>Boas Práticas</subtitle>
+	</title>
+	<published>2007-05-10</published>
+	<mnemonic>excecoes-boas-praticas</mnemonic>
+	<collection>exceptions</collection>
+</properties>
+
+
+<references>
+<ref id="1">
+<title>Three Rules for Effective Exception Handling</title>
+<author>Jim Cuching</author>
+<url>http://today.java.net/pub/a/today/2003/12/04/exceptions.html</url>
+</ref>
+<ref id="2">
+<title>Best Practices for Exception Handling</title>
+<author>Gunjan Doshi</author>
+<url>http://www.onjava.com/pub/a/onjava/2003/11/19/exceptions.html</url>
+</ref>
+<ref id="3">
+<title>About effective Exception Handling</title>
+<author>Dino Celovic</author>
+<author>Nader Soukouti</author>
+<url>http://www.sanabel-solutions.com/publications/About%20Effective%20Exception%20Handling.pdf</url>
+</ref>
+</references>
+
+<body>
+
+<section name="O problema">
+	<p>
+	O mecanismo de exceções em Java criou o conceito de exceção verificada. 
+	Este conceito implica que qualquer método que chame um outro que lança uma exceção 
+	verificada é obrigado pelo compilador e dar um tratamento é exceção. 
+	O compilador Java é muito bom mas não chega a ser inteligente ao ponto de saber 
+	se o tratamento que você deu à exceção é realmente uma solução ou uma enrolação.
+	</p>
+	<p>
+	Muitas vezes de torna chato ter que trabalhar a todo o momento com exceções verificadas. 
+	� comum ter que trabalhar com <code>SQLException</code> ou <code>IOException</code> são muito comuns e pouco especificas.
+	Frente a exceções como estas rápidamente o programador desiste de tratar tantas exceções e aí
+	começa o problema. 
+	Por convicção, inexperiência ou omissão, o programador acaba desconsiderando a 
+	exceção que aconteceu, muitas vezes fazendo a exceção, simplesmente, desaparecer.
+	Obviamente isso é atirar pela janela um dos mecanismos mais importantes e avançados do Java: o tratamento
+	de exceções verificadas.
+	</p>
+	<p>
+	No artigo anterior desta série vimos como os conceitos de exceção e tratamento de exceção
+	foram incorporados na linguagem Java. Veremos neste artigo um conjunto de regras para 
+	tirar o proveito máximo desse mecanismo, sem que ele se torna onipresente e chato.
+	</p>
+</section>	
+
+<section name="O  quê , onde e  porquê" >
+	
+	<p>Qual é o problema, onde aconteceu o problema e porquê o problema aconteceu.
+	Quanto melhor a exceção responder a estas três perguntas mais útil ela será.
+	</p>
+	<p> 
+	O que deu errado é transmitido no nome da própria classe que representa a exceção. 
+	Por exemplo, <code>OutofMemoryError</code> significa que não há mais memória disponível; 
+	<code>NumberFormatException</code> significa que o formato do numero é incorreto; 
+	<code>FileNotFoundException</code> significa que o  arquivo não foi encontrado.
+	O nome da exceção é muito importante pois identifica o quê deu errado.
+	</p>
+	<p>
+	A razão do problema é explicado na mensagem contida na própria exceção e que pode ser obtido com <code>getMessage()</code>.
+	Essa explicação é textual e normalmente em inglês. é possível internacionalizar a mensagem, mas isso só é feito em casos
+	em que a mensagem tem que ser apresentada ao usuário final.
+	</p>
+	<p>
+	O onde deu errado é respondido pelo <estrang>stack trace</estrang> que cada exceção pode obter e que revela em qual linha 
+	de qual classe o problema aconteceu.O <estrang>stack trace</estrang> mostra a hierarquia de todas as exceções que derivaram da exceção original.
+	Caso seja necessário podemos navegar pelo <estrang>stack trace</estrang> para saber se um certo tipo de exceção aconteceu,
+	ou simplesmente qual foi a exceção que originou o problema.
+	</p>
+
+</section>
+
+<section name="Taxionomia de uma Exceção" >
+
+	<p>
+	<source language="java" legend="Métodos básicos da classe Throwable">
+	public class Throwable {
+	
+	public Throwable(String message, Throwable cause); // construtor
+	
+	public Throwable getCause(); // outro Throwable que foi a causa deste
+	
+	public String getMessage(); // mensagem relativa à causa
+	
+	public void printStackTrace(PrintStream s);
+	
+	public void printStackTrace();
+	
+	}
+	</source>
+	
+	A classe Throwable é, em Java, a classe mãe de todas as exceções. Ela oferece alguns métodos 
+	que nos permitem conhecer um pouco mais do problema que aconteceu.
+	
+	</p>
+
+
+</section>
+
+
+
+<section name="Tratando de Exceções" >
+	<p>
+	Existem três níveis em que temos que tratar de exceções. 
+	Primeiro, é preciso decidir se uma exceção aconteceu. Neste nível temos que decidir se devemos lançar uma exceção,
+	e se sim, decidir qual exceção lançar.
+	Em seguida o nível em que invocamos um  método que pode lançar exceções. Aqui temos que decidir quais delas poderemos resolver e quais não.
+	Por fim, temos que decidir como resolver as exceções e o que fazer com aquelas que não podemos resolver imediatamente.
+	
+	O desafio está em entender como proceder em cada um destes níveis pode determinar o sucesso ou o fracasso de uma implementação.
+	Eis algumas boas-práticas
+	</p>
+
+	<section name="Não deixe para os outros o que você pode lançar primeiro" >
+	<p>
+	Detalhe exatamente o que o seu método faz e o que impediria de completar essa tarefa. 
+	Se alguma das condições de impedimento está presente lance <emph>imediatamente</emph> uma exceção explicando porque 
+	o método não pode fazer o seu trabalho. Não espere até que um outro método auxiliar que você vai usar depois lance uma exceção incompreensível 
+	quando você pode lançar uma muito mais detalhada. Eis um exemplo
+	
+	<source language="java" legend="Como não fazer - não deixe para os outros o que você pode lançar primeiro">
+	public void leArquivo(File arquivo) throws IOException{
+	
+	    // chama função auxiliar 
+	    read(new FileInputStream(arquivo)) ; // lança IOException genérica
+		
+	}
+	</source>
+
+	
+	<source language="java" legend="Como fazer - não deixe para os outros o que você pode lançar primeiro">
+	public void leArquivo(File arquivo) throws IOException{
+	
+	    if (arquivo == null){
+			throw new IllegalArgumentException("Argument cannot be null");
+	    } else if (!arquivo.isFile()){
+			throw new IllegalArgumentException("Argument does not represent a file");
+	    } else if (!arquivo.exists()){
+	        throw new MyFileNotFoundException(arquivo); // criará a mensagem a partir dos dados de arquivo
+	    } 
+	    // chama função auxiliar 
+	    read(new FileInputStream(arquivo)) ; // lança IOException genérica
+		
+	}
+	</source>
+
+	A exceção <code>MyFileNotFoundException</code> é uma exceção própria que contém um método getFile() para permitir processamento posterior
+	</p>
+	<p>
+	A importância desta regra é poder saber onde, e porquê, o problema aconteceu. 
+	Quanto mais cedo você lançar a exceção, mais perto fica o onde e mais claro fica o porquê.
+	</p>
+
+	</section>
+	<section name="Não capture o que você não pode segurar" >
+	<p>
+	Quando um método que você está invocando lançar uma exceção, se você não sabe o que fazer com ela, simplesmente não faça nada. 
+	Deixe para quem entende. Se todos os métodos aplicarem esta regra, você não precisa ficar enchendo seu código com tratamentos
+	imprestáveis e chatos. 
+	Mas atenção, também não seja irresponsável achando que sempre existirá um outro método que cuide de seu problema. 
+	O método tem que conhecer o seu lugar no sistema. Se o método não tem a quem passar a batata quente então não lhe resta alternativa
+	senão tratar o problema, ou pelo menos, reportar que o problema aconteceu. 
+	A importância desta regra é minimizar o código que trata exceções impossíveis de resolver, centralizando ações necessárias nesses casos, 
+	como apresentar uma mensagem ao usuário, reportar o evento para um registro (log), ou mesmo fechar a aplicação.
+	</p>
+	<p>
+	Cumprir esta regra não é tão simples quanto parece. A forma simples é simplesmente declarar que o método chamador
+	também lança a exceção do método chamado. No exemplo, deixamos <code>leArquivo()</code> lançar <code>IOException</code> 
+	porque <code>read()</code> lança essa exceção e não sabemos como tratá-la. Contudo, se este método fizesse parte de uma interface
+	que não pode lançar <code>IOException</code>, então teríamos que encapsular esse tipo de exceção em outra que a interface define. Se não define nenhuma
+	teríamos que encapsulá-la numa <code>RuntimeException</code>. Esse encapsulamento pode ser um problema ao tentar aplicar a próxima regra.
+	
+	</p>
+</section>
+
+<section name="Seja especifico" >
+
+	<p>
+	Quando você tiver que lançar uma exceção, seja especifico.
+	Não lance exceções genéricas que significam tudo e nada simultaneamente. 
+	Use a exceção que melhor detalha o problema. Se nenhuma existir, crie a sua própria classe de exceção que seja especifica o bastante.
+	Apenas especifica o bastante pois não é bom ser demasiado especifica. 
+	Por exemplo, não pense em lançar uma exceção se o problema aconteceu  antes do almoço e outra se aconteceu depois do almoço.Esse tipo
+	de informação será inútil se a exceção não for registrada para posterior consulta, mas se for, o próprio mecanismo de registro poderá
+	injetar essa informação. Olhando o nosso exemplo, podemos ser mais específicos.
+
+	<source language="java" legend="Como fazer - seja especifico" >
+	public void leArquivo(File arquivo){
+	
+	    if (arquivo == null){
+			throw new MyNullArgumentException("arquivo"); // nome do argumento que é nulo. Opcional. 
+	    } else if (!arquivo.exists()){
+	        throw new MyFileNotFoundException(arquivo); // criará a mensagem a partir dos dados de arquivo
+	    } ele if (!arquivo.isFile()){
+		t	hrow new MyNotAFileException(arquivo); // criará a mensagem a partir dos dados de arquivo
+	    }
+	    // chama função auxiliar 
+	    try {
+			read(new FileInputStream(arquivo)) ; lança IOException genérica
+	    } catch (FileNotFoundException e) {
+	          //já verificámos que o arquivo existe no if anterior, então
+	          // se esta exceção acontecer significa que não temos privilégios para ler o arquivo
+	          throw new NoReadPriviledgeException()
+	    } cacth (IOException e){ 
+	       // no caso genérico  não ha muito a fazer,  a não ser, possivelmente, encapsular a exceção
+	       throw new MyIOException(e);
+	    }
+	
+		
+	}
+	</source>
+
+	<code>MyIOException</code> é uma <code>RuntimeException</code> com a função especifica de encapsular <code>IOException</code>
+
+	</p>
+	<p>
+	A importância de ser especifico é aumentar o detalhe sobre o problema, para que seja mais fácil identificá-lo e resolvê-lo independentemente
+	se outros. 
+	
+	</p>
+</section>
+
+</section>
+<section name="O que não fazer" >
+
+	<section name="Exceções e loops">
+	
+	</section>
+
+	<section name="Log e lança">
+	<p>É um erro comum construir código como este:
+	</p>
+	
+	<source language="java" legend="Log e lança">
+	catch (SQLException e) {
+  		LOG.error("Blablabla", e);
+  		throw e;
+	}
+	</source>
+	<p>ou</p>
+	<source language="java" legend="Log e lança">
+	catch (IOException e) {
+	  LOG.error("Blablabla", e);
+	  throw new MinhaException("Blablabla outra vez", e);
+	}
+	</source>
+	<p>ou</p>
+	<source language="java" legend="log e lança">
+	catch (Exception e) {
+	  e.printStackTrace();
+	  throw new MinhaException(""Blablabla outra vez"", e);
+	}
+	</source>
+	<p>
+	Provavelmente essa exceção relançada será enviada para o log (registro) em outro ponto do
+	sistema, então não há razão de fazer o log aqui.
+	</p>
+	</section>
+	
+	<section name="Lançar Exception">
+	<p>Código com esta assinatura:</p>
+	<source language="java" legend="Lançando Exception">
+	public void algumMetodo() throws Exception {
+	</source>
+	<p>
+	Significa não dar nenhuma informação ao método chamador do tipo de exceções que podem acontecer.
+	Basicamente isto significa: "posso lançar qualquer coisa". Isso viola a regra de ser especifico.
+	Em opção deve-se explicitar qual ou quais as exceções que são lançadas.
+	</p>
+	</section>
+	
+	<section name="Lançando a casa pela janela">
+	<p>Código com esta assinatura:</p>
+	<source language="java" legend="Lançando Exception">
+	public void algumMetodo() throws EstaException, AquelaException, UmaOutraException, OutraPossivelException, EAindaMaisUmaException {
+	</source>
+	<p>
+	Como várias exceções podem acontecer, todas são registradas. Isto é especifico, mas polui a interface
+	do método além de ser um pesadelo para o método que chamar este criar um monte de catch.
+	A opção é user um conjunto menor de exceções que encapsulem aquelas.
+	</p>
+	</section>
+	
+	<section name="Sequestro da Excepção">
+	<p>
+	Sequestrar a exceção significa que após a capturar ela não é relançada, em nenhuma forma.
+	Simplesmente se captura a exceção sem nunca a lançar de volta ou dar um tratamento apropriado.
+	Não capture o que não pode tratar. Enviar para o log, não é tratar. Imprimir o <estrang>stack</estrang> trace não é tratar.
+	</p>
+	<source language="java" legend="Sequestro de Exception">
+	try {
+	  algumMetodo();
+	} catch (Exception e) {
+	  LOG.error("metodo falhou", e);
+	}
+	</source>
+	</section>
+	
+	<section name="Eliminação do rastro da Exceção">
+	<p>
+	Ao encapsular a exceção em outra, despresa-se o rastro (<estrang>stack trace</estrang>) 
+	invocando e.getMessage() em vez de passar <code>e</code> como a causa da exceção que estamos criando.
+	É importante manter o rastro pois é nele que se inclui a informação de que pedaço de código gerou a exceção original.
+	</p>
+	<source language="java" legend="Eliminação do rastro de Exception">
+	try {
+	  algumMetodo();
+	} catch (Exception e) {
+		throw new MinhaException("Blablalbla: " + e.getMessage());
+	}
+	</source>
+	</section>
+</section>
+
+<section name="Criando suas próprias exceções" >
+
+
+	<section name="Preciso mesmo de criar uma classe de exceção?" >
+		<p>
+			A primeira coisa importante a fazer na hora de criar a sua própria exceção é perguntar-se se precisa mesmo criar uma exceção própria.
+			Eis alguns casos em que não é proveitoso criar a sua própria exceção:
+			<ul>
+			<li>já existe uma exceção nas bibliotecas padrão que representam o problema que quer tratar.</li>
+			<li>A sua exceção não vai adicionar nenhuma informação suplementar é caracterização do problema.</li>
+			</ul>
+			Eis alguns casos onde você terá que criar a sua própria exceção:
+			<ul>
+			<li>já existe uma exceção nas bibliotecas padrão que representam o problema que quer tratar, mas é verifica.você precisa de uma
+			exceção não-verifica</li>
+			<li>A sua exceção vai adicionar informação suplementar é caracterização do problema para enriquecer possíveis métodos de tratamento, e/ou 
+			registros.</li>
+			</ul>
+		</p>
+	</section>
+
+	<section name="Verificada ou não verficiada, eis o dilema" >
+	<p>
+	Quanto tiver que decidir entre usar uma exceção verificada e uma não verifica pergunte-se:"Qual ação o chamador pode tomar para 
+	resolver este problema?"
+	</p> 
+	</section>
+
+	<section name="Camadas e exceções" >
+	<p>
+	Uma das maiores dificuldades ao lidar com exceções é decidir como elas se propagarão 
+	entre as <gloss id="layer">camadas</gloss> e <gloss id="tier">andares</gloss> do sistema.
+	O bom <estrang>design</estrang> de camadas resulta num conjunto de interfaces que o cliente da camada usará para invocar 
+	as suas funcionalidades. Essas interfaces devem apenas lançar exceções especificas da camada. Um bom exemplo desta arquitetura
+	são as API de IO e de JDBC. Elas apenas lançam exceções decorrentes da sua atividade. Como vimos não é bom lançar apenas um tipo de exceção,
+	mas estas API demonstram o principio de encapsular todas as exceções que acontecem dentro da camada , como exceções próprias da camada.
+	O cliente da camada deverá analisar a exceção que recebem, e traduzir essas exceção para um dos tipos de exceção da sua camada.
+	Isto só deverá ser feito se a camada não sabe como resolver o problema apresentado pela camada inferior.
+	</p>
+	
+	</section>
+	<section name="Empacotamento e visibilidade" >
+	<p>Ao seguir a regra anterior temos normalmente de criar uma hierarquia de exceções na camada. As classes dessa camada fazem parte de um pacote 
+	especifico. As exceções da camada devem estar nesse mesmo pacote. As exceções têm que ser públicas para que possam ser capturadas por outras 
+	partes do sistema contidas em outros pacotes. Tente,tanto quanto possível, reduzir a visibilidade dos construtores para o nível de pacote.
+	Esta regra é especialmente válida se a exceção carrega informações que podem ser apenas obtidas dentro da camada. Esta regra não se aplica
+	a exceções que fazem parte de uma API genérica ou extensível.<note>A API de IO é de uso genérico e a API JDBC é extensível, por isso elas
+	apresentam exceções publicas com construtores públicos. Mas na sua aplicação as exceções de negócio devem estar fortemente acopladas com 
+	as regras de negócio que estão implementadas na camada de negócio. Nesse caso não faz sentido deixar que outras camadas criem e 
+	lancem exceções de negócio e como tal seus construtores podem ser de nível de pacote.</note>
+	A visibilidade do construtor não é um detalhe crítico da implementação de exceções, mas pode ser uma ferramenta para simplificar o seu uso, o 
+	seu escopo e o seu entendimento.  
+	</p>
+	</section>
+
+</section>
+
+</body>
+
+</document>

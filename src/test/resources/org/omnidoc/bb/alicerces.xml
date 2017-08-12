@@ -1,0 +1,128 @@
+[*Os alicerces da Plataforma Java*]
+
+
+[h2]Os Alicerces da Plataforma Java[/h2]
+		A tecnologia Java foi desenhada para resolver vários problemas do desenvolvimento de aplicações
+		que eram bastante comuns até ao seu surgimento. Estes problemas relacionam-se principalmente com três aspectos do desenvolvimento
+		de software: o ambiente de execução, o paradigma de programação e as bibliotecas prontas.
+		
+[h3]Ambiente de Execução[/h3]
+			Um software corre em um computador, mas mais especificamente ele corre em um processador. Ao processador
+			está associada uma memória volátil (RAM) que pode ser utilizada enquanto o software corre, e é limpa quando ele 
+			é desligado. Cada vez que a engenharia do processador mudava, e com ela o conjunto de instruções válidas,
+			tínhamos que gerar um novo software. 
+			
+			Com o advento do [wiki=pt;{text()}]multiprocessamento[/wiki], produzido pela adição de um sistema operacional entre o 
+			software e o hardware, o software passou a ser dependente das capacidades do sistema operacional. Mas construir um 
+			software que pudesse ser executado em mais do que um sistema operacional era complexo e suscetível a erros. 
+			
+			O hardware e o Sistema Operacional (OS) passaram a formar a plataforma mais perto da máquina real. 
+			Uma relação que seria indissociável até hoje.
+			O software tinha agora que ser compatível com um OS e com uma familia de processadores.
+			Este problema era abordado de diferentes formas, mas no seu coração estava a escrita de programas ligeiramente diferentes
+			conforme a plataforma alvo. 
+			
+			Por outro lado, o software utilizava a memória da máquina e era responsável pela sua sanitização, ou seja, quando
+			algo que estava na memória não era mais necessário esse espaço tinha que ser expurgado. Escusado dizer que, esse processo
+			era manual e suscetível a muitos erros e problemas, sendo uma das portas secretas mais utilizadas para circunscrever
+			a segurança de software e de dados - muito usado para executar vírus e outros tipos de código malicioso.
+			
+			A proposta da tecnologia Java é acabar com estes problemas de uma vez por todas. A tecnologia Java inclui uma outra peça: a plataforma Java.
+			Esta plataforma assenta-se sobre o OS e o hardware, e produz um acesso aos seus recursos de forma única. Assim, um software 
+			escrito para a Plataforma Java pode ser executado em qualquer máquina física, com qualquer sistema operacional. Esta capacidade 
+			é chamada de "portabilidade" e o seu segredo é a Java Virtual Machine (JVM - Máquina Virtual Java). 	 
+			
+			Além disso, é disponibilizado um conjunto pré-empacotado de bibliotecas-padrão que suprem as necessidade básicas 
+			da maioria das aplicações. Tudo isto, juntamente com um conjunto de ferramentas e uma linguagem de programação, formam
+			o Ambiente de Execução Java (Java Runtime Environment - JRE), que, por sua vez, é a única coisa que precisa ser instalada na sua máquina 
+			se quiser executar o software desenvolvido com a tecnologia Java.   
+			
+	[img=/ilust/{img/@src}]{legend/text()}[/img]
+	
+[h4]JVM - Java Virtual Machine[/h4]
+				A JVM é uma especificação para uma máquina virtual. Uma máquina virtual é uma máquina que simula ter um processador e uma memória
+				tal como um máquina real, necessitando de uma máquina real com memória que execute o processamento. 
+				
+				Porque a JVM simula uma memória, ela tem uma especificação própria de como essa memória tem que ser.
+				Isto permite mais controle sobre a memória. Mas, a principal vantagem da JVM é a introdução do conceito de Memória Gerenciada em que a JVM se preocupa em expurgar a memória física
+				e o faz automaticamente, sem intervenção humana, através de um mecanismo chamado Garbage Colector (Coletor de Lixo).  
+				
+				O principais problemas das estruturas de desenvolvimento antecessoras está resolvido. Com a JVM o software pode ser escrito sem medo da obsolescência da engenharia do processador,
+				do sistema operacional, e sem preocupações mortais sobre vazamento e gerenciamento de memória.
+				
+				Sendo a JVM virtual e dependente do OS e do Hardware subjacentes, é necessário criar mais do que uma JVM para cumprir a promessa da portabilidade.
+				Felizmente isso já está feito para a grande maioria do processadores e sistemas operacionais mais utilizados no mercado	e, até mesmo, para alguns mais obscuros.
+				Além disso, existem implementações da JVM mais modestas em recursos que podem funcionar em equipamentos de processamento limitado como celulares, por exemplo.
+				
+				Resta escolher um paradigma para o desenvolvimento e um conjunto de bibliotecas auxiliares.
+				
+[h4]Paradigma de Desenvolvimento[/h4]
+				Como todas as estruturas para o desenvolvimento de software, também a tecnologia Java precisa de um paradigma de programação
+				e um conjunto de ferramentas de suporte como compiladores, por exemplo, para que o software possa ser criado. 
+				
+				A tecnologia Java por ser baseada em uma máquina virtual e com a possibilidade de controlar a memória de forma eficiente optou pelo
+				uso do paradigma de "Programação Orientada a Objeto", o que ajudou a popularizar.
+				Neste paradigma, o desenvolvimento é feito através da criação e programação do comportamento de objetos, que juntos, fornecem as capacidades do software.
+				
+				A linguagem de programação escolhida para a tarefa de mediar o compilador e o ser humano foi a Linguagem de Programação Java.
+				Esta linguagem segue uma sintaxe semelhante à família de linguagens C, estabelece um conjunto de palavras-chave pequeno e regras
+				estritas que estabelecem como o código deve ser escrito e são impostas através de um compilador sofisticado. 
+				
+				A Plataforma Java oferece, além da portabilidade e do gerenciamento automático de memória, a capacidade de criar diferentes threads (fluxos de execução)
+				de forma independente dos recursos reais do OS ou do Hardware. Isso significa que é sempre possível seus programas utilizarem processamento paralelo,
+				mesmo quando o estrato subjacente não possibilita isso nativamente. A linguagem Java contém primitivas que ajudam a programar código 
+				preparado para a execução paralela. 
+				
+				A partir da linguagem Java, a tecnologia disponibiliza um conjunto de bibliotecas auxiliares já implementadas e testadas 
+				que permitem acessar vários recursos do hardware e do OS de forma portável. O conjunto destas bibliotecas é chamado Edição. O conjunto 
+				padrão de bibliotecas é chamado de Edição Standard (Standard Edition - SE). 
+				
+[h4]Java SE - Standard Edition[/h4]
+				A Edição Standard conta com atualizações periódicas. Estas atualizações coincidem com alterações na especificação da JVM ou da Linguagem Java
+				de forma que sempre tiram partido das mais recentes capacidades da tecnologia Java. Cada biblioteca preparada para ser utilizada na JVM 
+				é chamada API (Aplication Programer Interface), e assim falamos da "API de" em vez da "biblioteca de".
+				
+				Desde a primeira edição na década de 90, a Java SE passou por uma ampliação ao serem adicionadas tecnologias e bibliotecas que antes tinham
+				que ser agregadas por aplicação. Além das bibliotecas fundamentais associadas ao paradigma de orientação de objetos e ao modelo da JVM e da Linguagem Java, 
+				a SE conta ainda com suporte a várias técnicas, tecnologias, protocolos, acesso a rede, distribuição de objetos, acesso a sistemas gerenciadores de bancos de dados,
+				apresentação de telas em sistemas desktop e criação de applets para internet, sempre primando pela segurança e acessibilidade.
+				
+				A  Java SE, ou JSE, conta ainda com a possibilidade das suas funcionalidades serem estendidas além do limite da portabilidade, sendo possível acessar
+				a bibliotecas escritas em linguagens nativas por meio da Java Native Interface. Este sacrifício pode ser necessário em certa ocasiões muito particulares, 
+				e foram necessárias nos primeiros tempos da plataforma Java. Hoje em dia não há muitas razões para querer utilizar esta capacidade da tecnologia,
+				mas ainda restam alguns campos onde ela é útil como, por exemplo, o acesso a sistemas legados e a periféricos específicos.
+				
+			Uma implementação da Java Virtual Machine (que como vimos existem várias, dependendo de fornecedores e sistemas operacionais alvo) e uma implementação
+			da Java Standard Edition aliadas com o suporte a tecnologia de distribuição de aplicações formam o conjunto básico para que possa ser possível executar uma aplicação
+			Java. Este conjunto chama-se Ambiente de Execução Java (Java Runtime Environment - JRE), e é o que precisa instalar na sua máquina se quiser executar o software Java
+			já desenvolvido por outros. Se além disso, quer também desenvolver software Java, então irá precisa do kit de desenvolvimento.
+			
+[h3]JDK - Java Development Kit[/h3]
+			Se estiver interessado em desenvolver seu próprio software com Java, então irá precisar também das ferramentas de compilação
+			e manipulação de código-fonte. Este kit de desenvolvimento contém um ambiente de execução para que possa testar suas aplicações.
+			
+			A versão do JDK acompanha a versão da JSE, de forma que sempre exista compatibilidade. Além disso, todos os softwares 
+			desenvolvidos com versões anteriores da tecnologia funcionam nas versões mais recentes, ganhando todos os avanços tecnológicos
+			desde que foram criados, de maneira simples e descomplicada, sem alterar uma vírgula no código (que podem bem nem existir mais).
+			
+[h2]As outras Edições[/h2]
+		Além da Edição Standard, a JSE, a tecnologia Java conta com outras edições utilizadas para aplicações especificas.
+		 
+		A Edição Empresarial, a JEE (Java Enterprise Edition), adiciona um conjunto de API às já existentes na edição básica e 
+		permite criar aplicações distribuídas desenhadas para Escalabilidade e suporte a transações distribuídas. Ideal para 
+		as aplicações comerciais de grande porte.
+		
+		A JME - Java Micro Edition - é um edição com suporte à execução da plataforma em aparelhos com capacidades de processamento
+		e/ou memória limitadas. Na realidade, em qualquer aparelho que tenha menos capacidades que um desktop comum. Isto inclui
+		celulares, PDA, e sistemas embarcados em automóveis, aviões e até em sondas espaciais. Está ainda presente
+		em eletrodomésticos e diversos outros aparelhos eletrônicos com a adição recente dos tocadores de Blu-Ray e da Televisão Interativa.
+		
+		Java Card é uma edição mais limitada ainda que a JME, e é utilizada para a programação de smartcard, aqueles chips que estão
+		no seu cartão de crédito. 
+		
+		JavaFX é uma edição particular. Ela não utiliza a linguagem Java utilizada pelas outras edições e marca a evolução
+		da plataforma Java para o uso de várias linguagens diferentes. A JavaFX é especializada em criar interfaces gráficas
+		para interação humana, cheias de efeitos especiais e animações. Na web, esta aposta promete rivalizar com a tecnologia Flash
+		e enriquicer ainda mais a experiência do internauta. Nos aparelhos portáteis, como celulares e smartfones, promete 
+		trazer uma nova perspectiva alternativa às telas chatas e enfadonhas que temos hoje.
+		

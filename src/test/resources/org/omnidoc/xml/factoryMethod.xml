@@ -1,0 +1,168 @@
+<document>
+
+<properties>
+	<title>Factory Method</title>
+	<created>2012-06-15</created>
+</properties>
+
+	<related-patterns>
+		<name>Factory</name>
+		<name>Factory Method</name>
+		<name>Static Factory Method</name>
+		<name>Iterator</name>
+		<name>Prototype</name>
+		<name>Builder</name>
+	</related-patterns>
+	
+	<references>
+		<ref id="1" >
+			<title>Design Patterns: Elements of Reusable Object-Oriented Software</title>
+			<book>gof-design-patterns</book>
+		</ref>
+		<ref id="2" >
+			<title>Effective Java</title>
+			<book>effective-java</book>
+		</ref>
+	</references>
+	
+<body>
+<section name="Objetivo" >
+<p>
+Encapsular a criação de um objeto em um método.
+</p>
+</section>
+
+<section name="Propósito" >
+<p>
+<pattern>Factory Method</pattern>(Método de Fábrica[ção]) é um padrão de projeto que visa encapsular a criação de um objeto em um método <ref id="1" />.
+<pattern>Factory Method</pattern> é provavelmente um dos padrões mais utilizados porque ele é muito natural. Ele é usado, muitas vezes, sem consciência de que está sendo usado um padrão.
+</p>
+<p>
+Algumas razões existem para que queria encapsular a criação de um objeto em um método.
+A mais simples e óbvia é esconder o uso de <keyword>new</keyword>. A segunda, é poder escolher qual implementação realmente utilizar.
+Outras razões passam pelo controle de exceções o uso de técnicas de cache transparente e o acesso privilegiado ao estado de outros objetos.
+</p>
+</section>
+<section name="Implementação">
+<p>
+A implementação de <pattern>Factory Method</pattern> é, à partida, tão simples quanto fazer <keyword>new</keyword> dentro de um método. Não existe nenhum secreto.
+Por outro lado, é quando encapsulamos a construção em um método em vez de um construtor, que ganhamos a capacidade de não apenas fazer <keyword>new</keyword>. 
+</p>
+<source language="java" ><![CDATA[
+
+	public interface Matrix {
+	
+		// outros método omitidos
+		
+		public double get(int linha, int coluna);
+	
+		public Matrix transpose();
+	}
+
+	public class DenseMatrix {
+
+		// outros método omitidos
+		
+		
+		public Matrix transpose(){
+			return new MatrixTransposta(this);
+		}
+		
+	}
+	
+	public class MatrixTransposta {
+	
+		Matrix original;
+	
+		public MatrixTransposta(Matrix original){
+			this.original = original;
+		}
+		
+		// outros método omitidos
+		
+		public Matrix transpose(){
+			return original;
+		}
+
+		public double get(int linha, int coluna){
+			return original.get(coluna, linha); // simplesmente trocamos a ordem.
+		}
+		
+	
+	}
+
+]]></source>
+<p>
+Neste exemplo queremos obter um objeto to tipo <code>Matrix</code> a partir de outro objeto <code>Matrix</code> que represente a sua transposta. Uma matrix transposta é igual à matrix original, mas trocando 
+os índices das linhas pelos das colunas e vice-versa.
+A matrix transposta da matrix transposta é a matrix original. O código acima utiliza o padrão <pattern>Factory Method</pattern> no método <code>transpose</code> em <code>DenseMatrix</code> criando um outro objeto que implementa 
+a interface <code>Matrix</code> e que compartilha o estado do objeto corrente. O código  utiliza novamente o padrão <pattern>Factory Method</pattern> no método <code>transpose</code> de <code>MatrixTransposta</code> em
+que o objeto original é retornado. Repare que aqui nenhum objeto foi realmente criado porque se usou um objeto a que já se tinha acesso.
+</p>
+</section>
+<section name="Discussão" >
+<p>
+Note-se que o método de fábrica não é estático. Esta é uma diferença sutil mas importante entre o padrão <pattern>Factory Method</pattern> e <pattern>Static Factory Method</pattern>.
+</p>
+<p>
+O uso de métodos permite  que o objeto seja criado conforme o estado do objeto criador. Este conceito é especialmente útil quando o objeto criado é um objeto "ajudante" cujo estado é na realidade 
+apoiado pelo estado do objeto criador. O exemplo clássico desta relação é na criação de iteradores.
+Embora o objeto retornado siga o padrão  <pattern>Iterator</pattern> o iterador irá percorrer objetos em uma sequência que faz parte do estado do objeto criador.
+</p>
+<p>
+É fácil confundir os padrões <pattern>Factory Method</pattern>, <pattern>Factory</pattern> e <pattern>Static Factory Method</pattern> já que embora o propósito seja o mesmo : criar um objeto,
+as implicações de cada um não são as mesmas.
+</p>
+<p>
+ <pattern>Static Factory Method</pattern> é usado como um substituto do uso de construtores e normalmente usado pela mesma classe que será retornada
+pelo método. O exemplo clássico seria o método <code>getCalendar</code> da classe <class>Calendar</class> ou <code>valueOf</code> da classe <class>Integer</class>.
+</p>
+<p>
+ <pattern>Factory</pattern> é usado como um encapsulamento da decisão da criação do objeto quando a decisão e/ou o objeto criado podem mudar no tempo ou conforme
+ algum outro estado ou circunstância. Não se trata apenas de substituir o construtor, mas poder definir diferentes estratégias de criação do objeto.
+</p>
+<p>
+ <pattern>Factory Method</pattern> é usado por um objeto cuja responsabilidade principal não é criar objetos , mas sim manter algum estado ou prover algum algoritmo.
+ O polimorfismo é possível, mas apenas se o objeto criador também for extendido de alguma forma. Ao contrário do objeto de fábrica de  <pattern>Factory</pattern> o objeto que contém 
+ um  <pattern>Factory Method</pattern> não existe para criar o objeto, mas ao contrário. O objeto criado é criado para ajudar o objeto criador a prover a sua funcionalidade.
+</p>
+</section>
+<section name="Exemplos na API padrão" >
+<p>
+O principal exemplo na API padrão de <pattern>Factory Method</pattern> é o método <code>iterator()</code> na interface <class>Collection</class>.
+Este método cria e retorna um objeto iterador seguindo o padrão <pattern>Iterator</pattern>. 
+</p>
+<p>
+Um outro exemplo do uso de <pattern>Factory Method</pattern> é o método  <code>matcher(CharSequence)</code> da classe <class>Pattern</class> que retorna um objeto <class>Matcher</class>.
+Aqui o objeto <class>Matcher</class> irá utiliza a expressão regular definida pelo objeto <class>Pattern</class> para analisar a sequência de caracteres passada como argumento. 
+Diferentemente do método  <code>iterator()</code> na interface <class>Collection</class> aqui é demonstrado como o objeto criado pode criar diferentes instância do objeto criado, inclusive com base em 
+dados externos ao objeto criador.
+</p>
+<p>
+A API padrão ainda conta com um uso de <pattern>Factory Method</pattern> através da interface <class>Clonable</class> que permite que qualquer objeto seja "clonado", ou seja, que um outro objeto seja criado
+com o estado exatamente igual ao objeto que o criou.
+</p>
+</section>
+<section name="Padrões Relacionados" >
+<p>
+O padrão <pattern>Factory Method</pattern> nasce da aplicação direta do Principio do Encapsulamento e se relaciona
+a muitos outros padrões. 
+</p>
+<p>
+O padrão <pattern>Factory</pattern> contém pelo menos uma aplicação do padrão <pattern>Factory Method</pattern> já que um método é usado pela fábrica para criar o objeto.
+</p>
+<p>
+O padrão <pattern>Static Factory Method</pattern> contém pelo menos uma aplicação do padrão <pattern>Factory Method</pattern> já que um método é usado para criar o objeto.
+Neste caso podemos pensar que <pattern>Static Factory Method</pattern> se trata de aplicar o padrão <pattern>Factory Method</pattern> onde o objeto criador é uma instância de <class>Class</class> e não 
+um objeto instanciado de uma classe.
+</p>
+<p>
+Como vimos antes o padrão <pattern>Factory Method</pattern> se relaciona ao padrão <pattern>Iterator</pattern> já que normalmente o iterador é criado com acesso ao estado do objeto sendo iterado.
+</p>
+<p>
+Finalmente o padrão <pattern>Factory Method</pattern> pode ser relacionado aos padrões <pattern>Builder</pattern> e  <pattern>Prototype</pattern> já que todas as implementações
+destes padrões  contam com algum método que realmente constrói o objeto pretendido e o devolve.
+</p>
+</section>
+</body>
+</document>

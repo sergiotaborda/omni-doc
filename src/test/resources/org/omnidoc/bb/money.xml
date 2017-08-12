@@ -1,0 +1,255 @@
+[*Money*]
+
+
+[h2]Objectivo[/h2]
+		Prover manipulação correta de quantidades monetárias.
+		
+[h2]Propósito[/h2]
+		Na maioria das aplicações comerciais é necessário trabalhar com valores 
+		monetários também conhecidos como dinheiro. As operações com dinheiro 
+		são um pouco diferentes das operações matemáticas habituais. 
+		Para começar não podemos somar dinheiro em moedas diferentes. 
+		Se o sistema usa moedas diferentes é fácil cometer este erro. 
+		
+		Depois, não é possível dividir dinheiro além da uma certa menor unidade (normalmente o centavo). 
+		Ou seja, não ha como dividir 0.01 dolares por várias pessoas porque 
+		é como tentar dividir uma moeda de um cêntimo. 
+		Além disso as operações de divisão têm que ser cuidadosamente verificadas para que 
+		não se destrua (ou crie) dinheiro por causa de arredondamentos.
+		
+		Do ponto de vista técnico ha muito tempo que é sabido que tipos numéricos
+		como double ou float não são suficientes para elaborar algoritmos que 
+		lidam com dinheiro e, em Java, nos vemos obrigados a usar [class]BigDecimal[/class] 
+		por ser o menos pior. Contudo a classe  [class]BigDecimal[/class] tem as suas peculiaridades 
+		que acabam atrapalhando  mais do que ajuda; como o respeito a numero significativos
+		e a não possibilidade de representar dizimas infinitas como um terço.
+		
+		Ao trabalhar com dinheiro é necessário seguir algumas diretrizes:
+		Dinheiro de moedas diferentes não pode ser somado ou subtraidoNão é possivel multiplicar quantidades de dinheiro por outras quantidades de dinheiro.Existe uma quantidade minima indivisível.A quantidade minima indivisivel não é a mesma para todas as moedas 
+		Isto deixa claro que para representar dinheiro corretamente ele tem que estar
+		associado a uma moeda.
+		
+		A proposta do padrão Money é portanto associar uma quantidade numérica
+		a uma moeda de forma a prover operações aritméticas corretas sobre 
+		as quantidades monetárias.
+		
+[h2]Implementação[/h2]
+[h3]Representação[/h3]
+		Na versão mais simples do padrão basta-nos associar um valor e uma 
+		representação de moeda. Sendo que este objeto irá representar um valor
+		ele deve seguir o padrão [pattern]Value Object[/pattern].
+		
+		A representação da moeda pode variar conforme as necessidades da aplicação.
+		Pode ser implicita se o sistema apenas utilizar uma moeda; e, neste caso, 
+		não existe realmente uma representação da moeda no objeto Money.
+		
+		Para a representação do valor poderiamos escolher [icode]double[/icode]
+		ou  [icode]float[/icode] mas estas representações têm problemas já que 
+		não conseguem representar potências negativas de 10 (como 0.1 e 0.01),
+		que são muito comuns quando se trabalha com dinheiro.
+		
+		Um melhor opção seria utilizar valores inteiros. Isto simplificaria 
+		os calculos poistodos eles serão com numeros inteiros não sendo 
+		necessários arredondamentos.
+		Mas para usar matemática de inteiros temos que reduzir o valor monetário
+		decimal à sua unidade mais pequena e indivisivel 
+		( por exemplo, 3.14 dolares seria representado como 314 cêntimos).
+		
+		O problema é que nem todas as moedas do planeta têm a mesma unidade indivisivel.
+		Isto obriga-nos a escolher entra usar um tipo decimal especial como [class]BigDecimal[/class]
+		ou ter acesso à informação da menor unidade da moeda reformulando a nossa representação
+		da moeda associada.
+		
+		Felizmente Java é uma plataforma preparada para a internacionalização e localização
+		de aplicações. Java conta com a classe [class]Currency[/class] que identifica
+		as moedas pelo padrão [url={@href}]ISO 4217[/url]
+		e permite conhecer a menor unidade através do método [icode]getDefaultFractionDigits()[/icode]
+		Portanto, uma implementação básica seria mais ou menos assim:
+		
+[code=java]
+
+public final class Money {
+
+    // métodos de criação
+	public static Money valueOf(String value,String currencyIsoCode){
+		return valueOf(new BigDecimal(value),currency)
+	}
+	
+	public static Money valueOf(BigDecimal value,String currencyIsoCode){
+		return valueOf(new BigDecimal(value),Currency.getInstance(currencyIsoCode))
+	}
+	
+	public static Money valueOf(BigDecimal value,Currency currency){
+		return new Money(toLongRepresentation(value,currency),currency);
+	}
+	
+	// métodos para redução de e para long
+	private static long toLongRepresentation(BigDecimal value,Currency currency){
+		return value.movePointRight(currency.getDefaultFractionDigits()).longValue();
+	}
+	
+	private static BigDecimal fromLongRepresentation(long amount,Currency currency){
+		BigDecimal value = new BigDecimal(amount);
+		return value.movePointLeft(currency.getDefaultFractionDigits());
+	}
+	
+	// contrutor privado
+	private Money (long value,Currency currency){
+		this.value = value;
+		this.currency = currency;
+	}
+	
+	private long value;
+	private Currency currency;
+	
+	public BigDecimal getAmount(){
+		return fromLongRepresentation(value, currency);
+	}
+	
+	public Currency getCurrency(){
+		return currency;
+	}
+	
+}		
+		
+[/code]
+	
+[h3]Operações[/h3]
+			Com dinheiro são possiveis operações de soma e subtração (desde que na mesma moeda), 
+			multiplicação por numeros decimais e divisão por inteiros. Notar que a divisão 
+			por numeros decimais é igual à multiplicação pelo inverso desse numero.
+			
+			As operações não precisam ser implementadas no objeto se ele não for utilizado
+			para calculo e apenas como representação, mas são implementadas na maiora das 
+			vezes por serem uma facilidade prática.
+			
+			Para as operações de soma e subtração é necessário testar se a moeda de ambas
+			as parcelas é a mesma. Caso isso não seja verdade uma exceção será lançada.
+			
+[code=java]
+
+public final class Money {
+   // o resto dos métodos
+   
+   
+   public Money plus(Money other){
+   		if (!other.currency.equals(this.currency)){
+   			throw new CurrencyMissmatchException(this.currency,other.currency);
+   		}
+   		
+   		// é a mesma moeda. Money é imutável. Cria outro com novo valor
+   		return new Money(this.value + other.value, this.currency);
+   
+   }
+
+   public Money subtract(Money other){
+   		if (!other.currency.equals(this.currency)){
+   			throw new CurrencyMissmatchException(this.currency,other.currency);
+   		}
+   		
+   		// é a mesma moeda. Money é imutável. Cria outro com novo valor
+   		return new Money(this.value - other.value, this.currency);
+   
+   }
+}		
+			
+[/code]
+	
+			A operação de multiplicação é um pouco mais delicada. Porque é possivel
+			multiplicar por uma quantidades decimal qualquer podemos criar um método
+			que aceite qualquer numero,ou, que aceite apenas [class]BigDecimal[/class].
+			Ás vezes por compatibilidade com API legadas ou frameworks é necessário 
+			utilizar [class]Double[/class].
+			
+[code=java]
+
+public final class Money {
+	// o resto dos métodos
+
+	public Money multiply (Number factor){
+		BigDecimal bigFactor;
+		if (factor instanceof BigDecimal){
+			bigFactor = (BigDecimal)factor;
+		} else { 
+			bigFactor = new BigDecimal(factor.toString());
+		}
+		
+		long result = bigFactor.multiply(new BigDecimal(this.value)).longValue();
+		
+		return new Money(result,currency);
+	}
+}			
+			
+[/code]
+	
+			Apenas o valor é multiplicado e os decimais são despresados.
+			
+			A operação de divisão é mais complexa porque tem que seguir a
+			regra de divisão inteira. Na realidade se trata de uma operação
+			de destribuição. Felizmente a class [class]BigInteger[/class] 
+			já contém essas operações.
+			
+[code=java]
+
+public final class Money {
+	// o resto dos métodos
+
+	public Money[] distribute (int n){
+		
+		BigInteger bigValue =  BigInteger.valueOf(this.value);
+		BigInteger[] result = bigValue.divideAndRemainder(BigInteger.valueOf(n))
+		
+		Money[] distribution = new Money[n];
+		
+		// todos os valores são iguais
+		Arrays.fill(distribution, result[0]);
+		
+		// adiciona o resto no primeiro 
+		// substituindo o valor atual nessa posição
+		distribution[0] = distribution[0].plus(new Money(result[1],this.currency));
+		
+		return distribution;
+	}
+}			
+			
+[/code]
+	
+			Este método produz [icode]n[/icode] parcelas cuja soma é igual ao valor original.
+			Isto é muito util em sistemas de venda que permitem parcelamento.
+			Note-se ainda que várias variações deste método são possiveis.Por exemplo,
+			um em que a distribuição não é equitativa.
+			
+[h2]Discussão[/h2]
+		Money  é um padrão que pretende ser o melhor tipo de dados para trabalhar com dinheiro. 
+		É uma especialização do padrão [pattern]Quantity[/pattern] que associa a um valor 
+		uma unidade permitindo controlar operações inválidas como somar valores em moedas
+		diferentes. 
+		
+		Em Java a principal característica da implementação do padrão é permitir que não se 
+		use [class]BigDecimal[/class] ou [icode]double[/icode] para guardar o valor monetário
+		fazendo calculos simples usando inteiros.
+		
+		Mesmo em sistema que trabalham apenas com uma moeda o uso de Money é prudente.
+		Primeiro porque fornece tipagem forte para um tipo especial (dinheiro) - seguindo 
+		a filosofia de Tiny Types. Segundo porque - se o sistema for bem desenhado - é facil 
+		extender o sistema para trabalhar em mais moedas.
+		
+[h2]Suporte da API padrão[/h2]
+		O padrão Money não é implementado na API padrão por ser um padrão de dominio
+		especialmente usado em aplicações relacionadas à manipulação de dinheiro ou de 
+		entidades liquidáveis. A essência do padrão não dependende da tecnologia em que é implementado.
+		 
+		Em Java, devido ao suporte dado pela classe [class]Currency[/class] à modelagem de 
+		moedas, é possivel simplificar a implementação do padrão para o uso de inteiros
+		e matemática de inteiros, conservando assim, directamente, as propriedades
+		esperadas dos calculos com dinheiro. 
+		
+[h2]Padrões associados[/h2][pattern]Money[/pattern] é um uso especifico do padrão [pattern]Quantity[/pattern]
+		que por sua vez é um uso especifico de [pattern]Value Object[/pattern].
+		[pattern]Money[/pattern] pode ser implementado conforme o padrão [pattern]Ratio[/pattern]
+		ou utilizar um objeto [pattern]Ratio[/pattern] internamente para manter a quantidade monetária.
+		
+		Um outro padrão relacionado a [pattern]Money[/pattern] é [pattern]MoneyBag[/pattern]
+		que permite trabalhar com dinheiro em moedas diferentes sem implicar na conversão
+		para uma moeda base.
+		

@@ -1,0 +1,538 @@
+<document>
+	<properties>
+		<title>Disparando eventos com Observer, Proxy e Generics</title>
+	</properties>
+	
+	<body>
+		<page>
+		<section name="Proposta">
+			<p>
+			Neste workshop veremos como utilizar o padrão <pattern>Proxy</pattern> e o seu suporte 
+			na JSE para criar um componente que facilita a implementação do padrão <pattern>Observer</pattern> 
+			muito utilizado em Java para implementar mecanismos orientados a eventos.
+			Veremos também como fazer a manipulação de exceções neste caso.
+			</p>
+		</section>
+		<section name="O padrão Observer" >
+			<p>
+			Em traços largos o padrão <pattern>Observer</pattern> em Java é utilizado para
+			prover funcionalidades de eventos e é composto de três peças. A primeira
+			é o objeto que gera o evento de interesse - o observado. A segunda é o contrato que
+			os interessados no evento - os observadores - tem que implementar. Finalmente,
+			a terceira peça é o evento em si que é criado pelo observado e enviado aos observadores.   
+			</p>
+			<p>
+			Na prática é criada uma interface que tem um método por cada tipo de evento que o observado
+			pode enviar. Vamos criar um exemplo simples de um observado que envia eventos. A nossa classe
+			simula uma lista que avisa quando objectos são adicionados e removidos. Vamos começar com a 
+			implementação sem os mecanismos do padrão Observer.
+			</p>
+			<p>
+			O tipo genérico T representa o tipo de objectos que serão adicionados/removidos, que podem ser quaisquer.
+			</p>
+			<source language="java" legend="Codigo simples da classe Bag">
+public class Bag&lt;T&gt; {
+
+	private List&lt;T&gt; list = new LinkedList&lt;T&gt;();
+
+	public Bag(){}
+	
+	public void add(T element){
+		list.add(element);
+	}
+
+	public void remove(T element){
+		list.remove(element);
+	}
+
+}			
+			</source>
+			<p>
+			Este nosso objeto Bag já funciona, mas queremos que ele tenha  dois eventos, adicionar e remover, 
+			que serão disparados quando um elemento for adicionado ou removido, respetivamente.
+			A nossa interface para os observadores precisa, então, de dois métodos que chamaremos <code>onAdd</code> e
+			<code>onRemove</code> e ambos terão como argumento um objeto de evento. O prefixo "on" é utilizado 
+			para designar chamadas que representam eventos, mas não é obrigatório. 
+			</p>
+			</section>
+			</page>
+			<page>
+			<section name="Criandos os Observadores" >
+			<p>
+			Os observadores são tradicionalmente chamados, no mundo Java, de "listener" (ouvinte).
+			OS listeners são sempre definidos por uma interface com métodos que correspondem aos eventos possiveis.
+			Normalmente, mas não obrigatoriamente, o método de evento recebe um objeto de contexto. Este objeto contém informações
+			relativas ao evento. 
+			</p>
+			<source language="java" legend="Interface para os listeners de Bag">
+public interface BagListener {
+
+	public void onAdd(BagEvent event);
+	public void onRemove(BagEvent event);
+}
+			</source>
+			<p>
+			Notar que o evento é representado pelo método, o objeto <code>BagEvent</code> serve apenas para 
+			passar os dados do evento. Outro ponto a notar é que os métodos do listener não retornam coisa alguma.
+			Isto é importante porque significa que eles não interferem com o mecanismo que gerencia a invocação dos métodos. 
+			</p>
+			<p>
+			Agora só falta associar os listeners ao objeto que gera os eventos, o nosso <code>Bag</code>.
+			Para isso, pelo padrão, são utilizados métodos de adição e remoção dos listeners. 
+			A forma como esse conjunto de observadores é guardado internamente ao objeto observado não é ditado pelo padrão
+			e podemos escolher a que mais acharmos conveniente. Contudo, o mecanismo de observação tem algumas propriedades
+			que podem nos guiar na escolha. A primeira é que adicionar o mesmo objeto ouvinte mais do que uma vez deve ser 
+			redundante, ou seja, o objeto deve receber o evento uma , e apenas uma, vez. Além disso, não existe uma ordem especifica 
+			em que os observadores devem ser informados. Estas caracteristicas apontam
+			para o uso de uma implementação de <class>Set</class>. Porque normalmente esta coleção será montada uma vez, mas
+			iterada muitas vezes durante o funcionamento do sistema, a escolha para a implementação
+			recai em <class>CopyOnWriteArraySet</class> que desenhada especialmente para isso.
+			</p>
+			<p>
+			Com estas informações vamos adicionar na classe <code>Bag</code> o mecanismo de registro dos listeners. 
+			</p>
+			<source language="java" legend="Adicionando o registro de listeners" highlight="4,16,19,20">
+public class Bag&lt;T&gt; {
+
+	private final List&lt;T&gt; list = new LinkedList&lt;T&gt;();
+	private final Set&lt;BagListener&gt; listeners = new CopyOnArraySet&lt;BagListener&gt;();
+	
+	public Bag(){}
+	
+	public void add(T element){
+		list.add(element);
+	}
+
+	public void remove(T element){
+		list.remove(element);
+	}
+	
+	public void addBagListener(BagListener listener){
+		this.listeners.add(listener);
+	}
+
+	public void removeBagListener(BagListener listener){
+		this.listeners.remove(listener);
+	}
+}			
+			</source>		
+			<p>
+			Até aqui tudo bem. Resta-nos o codigo que lança o evento quando os objetos são adicionados e/ou removidos.
+			Para isto é prática comum termos métodos privados começados com o prefixo <code>fire</code> seguidos do nome do evento.
+			Estes métodos disparadores (<estrang>trigger methods</estrang>) disparam o evento, disribuindo-o a todos os listeners registrados.
+			</p>
+			<source language="java" >
+public class Bag&lt;T&gt; {
+
+	private final List&lt;T&gt; list = new LinkedList&lt;T&gt;();
+	private final Set&lt;BagListener&gt; listeners = new CopyOnArraySet&lt;BagListener&gt;();
+	
+	public Bag(){}
+	
+	public void add(T element){
+		list.add(element);
+		fireOnAdd(element); // lança evento
+	}
+
+	public void remove(T element){
+		list.remove(element);
+		fireOnRemove(element); // lança evento
+	}
+	
+	private void fireOnAdd(T element){
+		BagEvent event = new BagEvent(element);
+		
+		for ( BagListener listener : listeners){
+			listener.onAdd(event);
+		} 
+	}
+	
+	private void fireOnRemove(T element){
+		BagEvent event = new BagEvent(element);
+		
+		for ( BagListener listener : listeners){
+			listener.onRemove(event);
+		} 
+	}
+	
+	// o resto dos métodos 
+}			
+			</source>			
+		<p>
+		Lançar um evento é algo muito simples em Java utilizando o padrão Observer pois resume-se a iterar
+		todos os listeners e a chamar o mesmo método em cada um.
+		</p>
+		</section>
+		</page>
+		<page>
+		<section name="Controlando as excepções">
+		<p>
+		Se você é uma pessoa atenta deve estar se interrogando onde está o tratamento de excepções. Pois é,
+		implementar o lançamento de eventos tem esse problema. Repare que não conhecemos nada da implementação
+		de cada listener pois estamos apenas utilizando interfaces, e estas não declaram nenhuma exceção. Até aqui tudo bem,
+		mas ao mesmo tempo isso significa que qualquer coisa pode acontecer. Qualquer exceção não verificada pode vir de dentro
+		do listener.
+		</p>
+		<p>
+		Existem várias formas de lidar com esta situação. A mais simples é tentar invocar todos os listeners 
+		mesmo que algum lance uma exceção. Após ter chamado todos os listeners se alguma exceção aconteceu, lançar essa exceção.
+		</p>
+		<p>
+		Como as unicas exceções que podemos receber são as não verificadas (já que a interface <code>BagListener</code> não declara nenhuma verificada)
+		basta-nos detectar esse tipo de exeção. Mostramos os exemplo para <code>fireOnAdd</code> mas o codigo é equivalente para os outros métodos.
+		</p>
+		<source language="java" >
+private void fireOnAdd(T element){
+		BagEvent event = new BagEvent(element);
+		
+		RuntimeException exception =null;
+		
+		for ( BagListener listener : listeners){
+			try{
+				listener.onAdd(event);
+			} catch (RuntimeException e){
+				if (exception==null){
+				  exception = e;
+				}
+			}
+		}
+		
+		if (exception != null){
+			throw exception;
+		} 
+}
+
+		</source>
+		<p>
+		O código de manipulação de exceções poderia ser bem mais complexo. Poderiamos encapsular
+		a exceção capturada em uma outra exceção e poderiamos editar o <estrang>stacktrace</estrang> para
+		remover o rastro de que a exceção foi enviada pela classe Bag, fazendo parecer que foi enviada pelo 
+		listeners. Afinal, foi isso mesmo que aconteceu. 
+		</p>
+		<p>
+		O ponto é que controlar o envio de eventos, com controle de execção e tudo mais obriga
+		a criar um certo código "mecânico" que é sempre o mesmo para todas as implementações 
+		do padrão Observer, com pequenos ajustes aqui e ali, principalmente nos tipos e nomes do métodos.
+		</p>
+		<p>
+		Se não podemos escapar de criar os métodos publicos que adicionam e removem (registram / desregistram) os observadores
+		pelo menos podemos tentar otimizar a implementação da parte interna. A ideia é fazer isto usando um proxy.
+		</p>
+		</section>
+		<page>
+		</page>
+		<section name="Entra o Proxy" >
+			<p>
+			O padrão <pattern>Proxy</pattern> serve, entre outras coisas, para manipular a implementação
+			de métodos. Em particular, se tratando de métodos definidos em interfaces é ainda mais fácil pois
+			podemos implementar um Proxy dinâmico, ou seja, podemos criar uma classe que irá se comportar como 
+			a implementação real de uma interface, mas sem termos que implementar todos os métodos dela.
+			</p>
+			<p>
+			No que isso nos ajuda ? Se repararmos bem no codigo dentro do métodos de disparo vemos
+			que um dos métodos da interface listener é feita dentro de uma repeticação. A ideia é criar uma implementação
+			do próprio listener que tem essa lógica internamente, mas de forma que funcione para qualquer tipo de evento 
+			e listener.
+			</p>
+			<p>
+			Comecemos com a ideia do listener especial. Criaremos uma classe FireListener
+			que implementa BagListener
+			</p>
+			<source language="java" >
+public class Bag&lt;T&gt; {
+
+	private final List&lt;T&gt; list = new LinkedList&lt;T&gt;();
+	
+	private final FireListener fireListener = new FireListener();
+	
+	public Bag(){}
+	
+	public void add(T element){
+		list.add(element);
+
+		fireListener.onAdd(new BagEvent(element)); // lança evento
+		
+	}
+
+	public void remove(T element){
+		list.remove(element);
+		
+		fireListener.onRemove(new BagEvent(element)); // lança evento
+
+	}
+	
+	public void addBagListener(BagListener listener){
+		fireListener.add(listener);
+	}
+
+	public void removeBagListener(BagListener listener){
+		fireListener.remove(listener);
+	}
+	
+}			
+
+public class FireListener implements BagListener {
+
+	private final Set&lt;BagListener&gt; listeners = new CopyOnArraySet&lt;BagListener&gt;();
+
+	public void addBagListener(BagListener listener){
+		this.listeners.add(listener);
+	}
+
+	public void removeBagListener(BagListener listener){
+		this.listeners.remove(listener);
+	}
+	
+	public void onAdd(BagEvent event){
+	
+		RuntimeException exception =null;
+		
+		for ( BagListener listener : listeners){
+			try{
+				listener.onAdd(event);
+			} catch (RuntimeException e){
+				if (exception==null){
+				  exception = e;
+				}
+			}
+		}
+		
+		if (exception != null){
+			throw exception;
+		} 
+	}
+	
+	public void onRemove(BagEvent event){
+	
+	RuntimeException exception =null;
+		
+		for ( BagListener listener : listeners){
+			try{
+				listener.onRemove(event);
+			} catch (RuntimeException e){
+				if (exception==null){
+				  exception = e;
+				}
+			}
+		}
+		
+		if (exception != null){
+			throw exception;
+		} 
+	}
+
+}
+			</source>
+			<p>
+			O código da class Bag ficou agora mais simples. tivemos que passar a coleção de listeners 
+			para dentro do objeto <code>FireListener</code> já que é ele quem vai iterar por cada um.
+			Além disso todo o controle de exceção está fora do objeto Bag e não temos mais os métodos
+			de disparo. A nossa classe <code>Bag</code> está agora mais enxuta.
+			</p>
+			<p>
+			Isto prova que a ideia funciona. O único problema é que assim ela só funciona para este tipo
+			de evento de observador. Se conseguirmos criar uma classe que implemente qualquer tipo de interface
+			e gerencie o disparo de qualquer tipo de evento teremos criado uma componente reutilizável para utilizarmos
+			sempre que for necessário implementar o padrão Observer.
+			</p>
+		</section>
+		</page>
+		<page>
+		<section name="O disparador genérico" >
+			<p>
+			Uma classe que seja um disparador genérico terá que funcionar para qualquer interface de listener. Como
+			não conhecemos esta interface vamos representá-la por L. Além disso a classe teria que implementar L.
+			Bom, isso infelizmente não é possivel, nem desejável. É melhor que a nossa classe crie uma outra classe
+			que implemente L. Como L é uma interface e queremos gerá-la dinamicamente, o padrão Proxy na sua vertente dinâmica
+			cai que nem uma luva.
+			</p>
+			<p>
+			A nossa classe ainda terá que gerenciar a coleção de listeners e depois a iteração das chamadas.
+			Comecemos por ai.
+			</p>
+			<source language="java">
+public EventTrigger&lt;L&gt;{
+
+	 private final Set&lt;L&gt; listeners = new CopyOnWriteArraySet&lt;L&gt;();
+
+  	 public void addListener ( L listener){
+         listeners.add(listener);
+     }
+        
+     public void removeListener(L listener) {
+         listeners.remove(listener);
+     }
+}		
+			</source>
+			<p>
+			Até nada de especial, apenas generalizamos o tipo da interface do listener para L. Para utilizarmos
+			o padrão proxy dinamico teremos que usar mecanismos de introspecção e para isso precisamos
+			do tipo real de L. Além disso, o objeto <code>EventTrigger</code> só pode ser criado se tivermos
+			com a informação do tipo real. Para forçar isto, utilizaremos o padrão <pattern>Static Method Factory</pattern>
+			para criar objetos de <code>EventTrigger</code>. Fazemos isto facilmente com mais um método estático e um construtor
+			privado.
+			</p>
+			<source language="java">
+public EventTrigger&lt;L&gt;{
+
+	 private final Set&lt;L&gt; listeners = new CopyOnWriteArraySet&lt;L&gt;();
+
+	 public static &lt;T&gt; EventTrigger&lt;T&gt; newInstance(Class&lt;T&gt; type){
+	 	return new EventTrigger&lt;T&gt;(type);
+	 }
+	 
+	 private final Class&lt;L&gt; type;
+	 private EventTrigger(Class&lt;L&gt; type){
+	 	this.type = type;
+	 }
+	 
+
+  	 public void addListener ( L listener){
+         listeners.add(listener);
+     }
+        
+     public void removeListener(L listener) {
+         listeners.remove(listener);
+     }
+}		
+			</source>
+			<p>
+			O uso de T em vez de L é porque métodos estáticos não "veêm" tipos genéricos definidos na classe.
+			então para questão de legebilidade é melhor usar outra letra. Mas repare que ela só é usada no método estático.
+			</p>
+			<p>
+			No construtor, em vez de guardar o tipo do listener podemos logo criar o proxy dinamico utilziando a classe 
+			<class>Proxy</class> do Java padrão. A manipulação dos métodos é implementada no método <code>invoke</code> do interface 
+			<class>InvocationHandler</class>.
+			</p>
+			<p>
+			A invocação dinamica do proxy funciona de forma que, quando um método qualquer da interface é chamado
+			o método invoke é chamado sendo que o primeiro argumento é o objeto que recebeu a chamada. Este é
+			o objeto proxy em si, gerado tecnomágicamente pela classe <code>Proxy</code>. O segundo parametro é o método
+			que foi chamado e o terceiro o array com os argumentos que foram passados ao método. Uma das coisas
+			interessantes do objeto <class>Method</class> é que ele não só representa o método, mas ele permite
+			invocar o método dinamicamente. Além disso, ele não está vinculado a nenhum objeto em particular 
+			e sim à classe. Portanto, embora o método que nos seja passado diga respeito a uma invocação a 
+			uma classe que nem sabemos qual é, sabemos que ele pertence à classe de L e portanto, pode ser invocado 
+			em qualquer L. O pulo do gato é, portanto, invocar qualquer método que seja chamado, em todos os listeners
+			registrados.
+			</p>
+			
+			<source language="java">
+public EventTrigger&lt;L&gt;{
+
+	 private final Set&lt;L&gt; listeners = new CopyOnWriteArraySet&lt;L&gt;();
+
+	 public static &lt;T&gt; EventTrigger&lt;T&gt; newInstance(Class&lt;T&gt; type){
+	 	return new EventTrigger&lt;T&gt;(type);
+	 }
+	 
+	 private final L proxy;
+	 private EventTrigger(Class&lt;L&gt; type){
+	 	this.proxy = type.cast(Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{type}, new InvocationHandler(){
+
+			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+				
+					for ( L listener : listeners){
+						try{
+							 method.invoke(listener, args);
+						} catch (RuntimeException e){
+							if (exception==null){
+							  exception = e;
+							}
+						}
+					}
+				
+					if (exception != null){
+						throw exception;
+					} 
+					
+                 	return null;
+			}
+			
+		}));
+	 }
+	 
+	 public L fire(){
+	 	return proxy;
+	 }
+
+  	 public void addListener ( L listener){
+         listeners.add(listener);
+     }
+        
+     public void removeListener(L listener) {
+         listeners.remove(listener);
+     }
+}		
+			</source>
+			<p>
+			O método <code>fire()</code> nos dá acesso ao proxy que tem a mesma assinatura que o listener L.
+			Isto possibilita ajuda de ferramentas através de <estrang>code complition</estrang> mantendo a 
+			mesma tipagem forte que existia antes.
+			</p>
+			</section>
+			</page>
+			<page>
+			<section name="O resultado final" >
+			<p>
+			Agora temos um controle de exceção centralizado e não precisamos nunca mais nos preocupar com isso,
+			desde que usemos a nossa nova classe EventTrigger.  A class Bag ficaria assim:
+			</p>
+		<source language="java">
+public class Bag&lt;T&gt; {
+
+	private final List&lt;T&gt; list = new LinkedList&lt;T&gt;();
+	
+	private final EventTrigger&lt;BagListener&gt; trigger = EventTrigger.newInstance(BagListener.class);
+	
+	public Bag(){}
+	
+	public void add(T element){
+		list.add(element);
+
+		trigger.fire().onAdd(new BagEvent(element)); // lança evento
+		
+	}
+
+	public void remove(T element){
+		list.remove(element);
+		
+		trigger.fire().onRemove(new BagEvent(element)); // lança evento
+
+	}
+	
+	public void addBagListener(BagListener listener){
+		trigger.addListener(listener);
+	}
+
+	public void removeBagListener(BagListener listener){
+		trigger.removeListener(listener);
+	}
+	
+}	
+		</source>
+		<p>
+		A nossa classe <code>Bag</code> não mudou quase nada , mas ganhámos um componente que podermos
+		utilizar em qualquer classe que implemente o padrão Observer.
+		</p>
+		</section>
+		<section name="Últimas considerações" >
+			<p>
+			No <code>EventTrigger</code> utilizamos uma classe interna declarada directamente no construtor. Se este tipo
+			de construção o confunde pode criar um objeto à parte. Lembre-se apenas, que, ele deve implementar
+			<class>InvocationHandler</class> e ter acesso à coleção de listeners para poder iterar. Considere a alteração
+			um exercicio para entender o que falámos aqui e o uso de classes aninhadas anónimas (anonym inner class). 
+			</p>
+		</section>
+		<section name="Resumo">
+			<p>
+			Vimos como é implementado o padrão Observer seguindo as práticas comuns. Depois verificámos que
+			poderiamos implementar o mecanismo de disparo dentro de um objeto especial que têm a mesma interface.
+			Finalmente utilizámos o padrão proxy e generics para conseguir generalizar esse objeto especial
+			de forma a podê-lo utilizar em qualquer classe observada e com qualquer tipo de observador.
+			</p>
+		</section>
+		</page>
+	</body>
+</document>

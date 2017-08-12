@@ -1,0 +1,414 @@
+[*Criando sua API de validação*]
+
+
+[h2]Proposta[h2]
+			Neste workshop veremos como criar, passo a passo, sua própria API de validação. 
+			Para isso definiremos primeiro as propriedades de uma API deste tipo e
+			utilizaremos o padrão [pattern]Composite Object[/pattern] para aumentar a reutilização 
+			da API.
+			
+[h2]O que é Validar ?[h2]
+			Validar significa testar que algo é o que deveria ser. Normalmente significa verificar 
+			que um dado valor é diferente de algum valor fixo ou está em um intervalo de valores.
+			
+			O resultado de uma validação não é a apenas a indicação de que o valor está valido ou não,
+			mas principalmente a razão de porquê não está válido. Isto significa que nossos validadores
+			não podem simplesmente retornar "sim" ou "não" mas terão que retornar um objeto que informe 
+			porque o valor é invalido. Se for válido, obviamente não precisamos informar mais nada.
+			
+[h2]O modelo[h2]
+			O nosso modelo é bem simples. Definimos um validador como uma interface a ser implementada
+			conforme a lógica de validação. O validador têm um método [icode]validate[/icode] que recebe o objeto a ser validado
+			e retorna o resultado da validação no objeto [icode]ValidationResult[/icode].
+			
+			Faremos o validador aceitar um objeto genérico qualquer fortemente tipados. Veremos depois a utilidade
+			desta funcionalidade e o porquê de não usar [icode]Object[/icode] directamente.
+			
+[code=java]
+
+public interface Validator<T> {
+		public ValidationResult validate(T object);	
+}
+			
+[/code]
+	
+			Como vimos, apenas precisamos de informar as razões de porquê o valor não é válido.
+			Precisamos apenas acrescentar um objeto [icode]InvalidationReason[/icode] ao resultado, tornando o objeto
+			[icode]ValidationResult[/icode] uma coleção de [icode]InvalidationReason[/icode]
+[code=java]
+
+public class ValidationResult implements Iterable<InvalidationReason> {
+	private final List<InvalidationReason> reasons = new LinkedList<InvalidationReason>();
+
+	public Iterator<InvalidationReason> getIterator(){
+	    return reasons.iterator();
+	}
+	
+	public void addReason(InvalidationReason reason){
+	  reasons.add(reason);
+	}
+	
+	public void removeReason(InvalidationReason reason){
+	  reasons.remove(reason);
+	}
+}			
+			
+[/code]
+	
+			Contudo, apenas a razão não é suficiente. Imaginemos uma situação em que o validador não consegue
+			decidir se o valor é válido ou não. Por exemplo, um validador de email tenta connectar-se a um servidor
+			DNS para verificar que o dominio do email existe. Se o validador não poder fazer essa ligação, ele não 
+			pode dizer que o email é válido, mas também não pode dizer que não é. Nesta circunstância o validador precisa
+			informar a duvida. A forma de fazer isso é definir um grau de severidade para a razão de invalidação.
+			
+[code=java]
+
+public interface InvalidationReason {
+
+      public InvalidationSeverity getSeverity();
+      public String getMessage();
+      public Object[] getParams();
+}			
+			
+[/code]
+	
+[code=java]
+
+public enum InvalidationSeverity {
+	SEVERE,
+	WARNING
+}			
+			
+[/code]
+	
+			Definimos [icode]InvalidationReason[/icode] como uma interface para termos o máximo de flexibilidade na implementação. 
+			O método [icode]getMessage()[/icode] retorna uma mensagem e um método [icode]getParams[/icode] os parametros da mensagem.
+			Isto serve para podermos criar mensagem corretamente internacionalizadas e deixa a UI se preocupar com o texto real
+			e sua apresentação. 
+			
+			Faltou apenas decidir como sabemos que o valor está válido ou não. Sabemos que ele não está válido se existir uma razão
+			severa para a invalidação. Então, em vez deverificarmos isso a todo o momento, vamos criar um método, [icode]isValid()[/icode], que faz esse trabalho.
+			
+[code=java]
+
+public class ValidationResult implements Iterable<InvalidationReason> {
+	private final List<InvalidationReason> reasons = new LinkedList<InvalidationReason>();
+
+	// o mesmo codigo de antes
+	
+	public boolean isValid(){
+		for (InvalidationReason reason : reasons){
+			if (reason.getSeverity().equals(InvalidationSeverity.SEVERE){
+			  return false;
+			}
+		}
+	   return true; 
+	}
+}
+			
+[/code]
+	
+			Este método obriga a iterar todas as razões para verificar se existe alguma com severidade [icode]SEVERE[/icode]. Não é muito 
+			eficaz. Se tivessemos um [icode]Map[/icode] seria bem mais facil...
+			
+[h2]Refactorando para EnumMap[h2]
+			Refactoremos então nossa classe [icode]ValidationResult[/icode] para utilizar um [icode]Map[/icode] de enumerações. Felizmente
+			a API padrão nos oferece [icode]EnumMap[/icode] já pronto para esse uso. A ideia é termos um mapa onde a chave é a severidade
+			e o valor do mapa é a lista das razões.
+			
+[code=java]
+
+public class ValidationResult implements Iterable<InvalidationReason> {
+	private final EnumMap<InvalidationSeverity, List<InvalidationReason>>  reasons 
+		= new EnumMap<InvalidationSeverity, List<InvalidationReason>>(InvalidationReason.class);
+
+
+	private List<InvalidationReason> getReasonsList(InvalidationSeverity severity){
+		List<InvalidationReason> list = reasons.get(severity);
+		if (list == null){
+		   list = new LinkedList<InvalidationReason>();
+		   reasons.put(severity,list);
+		}
+		return list;
+	}
+	
+	public Iterator<InvalidationReason> getIterator(){
+	    return getAllReasons().iterator();
+	}
+	
+	public List<InvalidationReason> getSevereReasons(){
+		return Collections.unmodifiableList(getReasonsList(InvalidationSeverity.SEVERE));
+	}
+	
+	public List<InvalidationReason> getWarningReasons(){
+		return Collections.unmodifiableList(getReasonsList(InvalidationSeverity.WARNING));
+	}
+	
+	public List<InvalidationReason> getAllReasons(){
+		List<InvalidationReason> all = new ArrayList<InvalidationReason>();
+		all.addAll(getReasonsList(InvalidationSeverity.SEVERE));
+		all.addAll(getReasonsList(InvalidationSeverity.WARNING));
+		return all;
+	}
+	
+	
+	public void addReason(InvalidationReason reason){
+	   getReasonList(reason.getSeverity()).add(reason);
+	}
+	
+	public void removeReason(InvalidationReason reason){
+	   getReasonList(reason.getSeverity()).remove(reason);
+	}
+	
+	public boolean isValid(){
+		return getReasonsList(InvalidationSeverity.SEVERE).isEmpty();
+	}
+	
+	public boolean hasReasons(){
+		return !(getReasonsList(InvalidationSeverity.SEVERE).isEmpty() 
+		&& getReasonsList(InvalidationSeverity.WARNING).isEmpty());
+	}
+}			
+			
+[/code]
+	
+			Com esta alteração precisamos de um método auxiliar [icode]getReasonsList[/icode] que pesquisa a lista de razões para
+			a severidade correta. Adicionamos também métodos que buscam apenas as razões de uma dada severidade, mas não permitimos
+			que essas listas sejam manipuladas directamente. Os métodos [icode]addReason[/icode] e [icode]removeReason[/icode] devem ser usados para isso.
+			
+			O método [icode]isValid[/icode] é agora mais rápido. Adicionamos também o método [icode]hasReasons[/icode] para testar
+			se existe alguma razão de invalidação no resultado. 
+			
+[h2]Primeiro validador[h2]
+			Temos todas as peças para tentarmos implementar um validador. Implementaremos um validadro para [icode]String[/icode]s que valida se a string não está vazia.
+			A string não está vazia se for diferente de [icode]null[/icode] e tiver tiver pelo menos um caracter diferente de espaço.
+			
+[code=java]
+
+			public class EmptyValidator implements Validator<String>{
+			
+				public ValidationResult validate(String object){
+					ValidationResult result = new ValidationResult();
+					if (object == null || object.trim().isEmpty()){
+					   // invalido
+					  result.addReason(new StringInvalidationReason(InvalidationSeverity.SEVERE, "string.isEmpty"));
+					}
+					return result;
+				}
+			}
+			
+[/code]
+	
+			A lógica é simples. Precisamos criar um objeto para o resultado da validação.
+			Fazemos um teste usando [icode]if[/icode] que deteta que o valor não é válido e retornamos o resultado. 
+			Criamos uma razão de invalidação e a adicionamos ao resultado. A classe [icode]StringInvalidationReason[/icode] é a simples
+			implementação da interface [icode]InvalidationReason[/icode]. Deixo sua implementação à sua responsabilidade como exercicio.
+			
+[h2]Próximo Validador[h2]
+	    	Com este mecanismo básico você pode implementar validadores para os tipos que quiser com as validações que quiser, como o famoso validador
+	    	de CPF ou de CNPJ. 
+	    	
+	    	Um tipo de validador mais interessante é aquele que precisa de parametros. Um exemplo clássico seria verificar se um numero ou uma data
+	    	está em determinado intervalo, para isso precisamos informar os limites desse intervalo. Eis como poderiamos fazer isso para
+	    	a validação de datas
+	    	
+[code=java]
+
+public class DateIntervalValidator implements Validator<Date>{
+
+	private final Date minDate;
+	private final Date maxDate;
+	
+	public DateIntervalValidator(Date minDate, Date maxDate){
+		this.minDate = minDate;
+		this.maxDate = maxDate;
+	}
+	public ValidationResult validate(Date date){
+		
+	
+		ValidationResult result = new ValidationResult();
+		if (date==null || date.before(minDate)){
+		    result.addReason(new StringInvalidationReason( InvalidationSeverity.SEVERE, "date.outofrange.min", minDate ));
+		}
+		
+		if (date==null ||date.after(maxDate) ){
+		    result.addReason(new StringInvalidationReason( InvalidationSeverity.SEVERE, "date.outofrange.max", maxDate ));
+		}
+	
+		return result;
+	}
+}	    	
+	    	
+[/code]
+	
+	    	Este exemplo mostra como utilizar parametros para a validação e como validar mais do que um teste. Repare que o teste 
+	    	dá como invalida uma data que seja [icode]null[/icode] e nesta situação ambas a razões serão adicionadas ao resultado.
+	    	Caberá à UI decidir qual escolher e apresentar a mensagem, ou executar um outro validador antes para verificar que a data não é nula.
+	    	
+[h2]Validador Composto[h2]
+	    	Vimos como criar validadores que testam uma única regra. Contudo, a maior parte das vezes precisamos validar o mesmo valor
+	    	com diferentes regras. Poderiamos criar um validador com imensas regras lá dentro, mas seria muito imprático de usar. Fora 
+	    	que se quiseremos validar apenas uma regras simples, esse validador seria um monstro.
+	    	
+	    	A opção é criar um validador que agrupa outros validadores. Para isso seguiremos o padrão [pattern]Composite Object[/pattern].
+	    	A validação do validador composto resume-se apenas a executar a validação dos seus validadores "filhos".
+	    	
+[code=java]
+
+public class CompositeValidator<T> implements Validator<T>{
+	
+	private final List<Validator<T>> validators = new LinkedList<Validator<T>>();
+
+	public CompositeValidator(){}
+	
+	public CompositeValidator<T> add(Validator<T> validator){
+		validators.add(validator);
+		return this;
+	} 
+
+	public CompositeValidator<T> remove(Validator<T> validator){
+		validators.remove(validator);
+		return this;
+	} 
+	
+	public ValidationResult validate(T object){
+		ValidationResult finalResult = new ValidationResult();
+		for (Iterator<Validator<T>> it = validators.iterator(); finalResult.isValid() && it.hasNext();){
+			Validator<T> validator = it.next();
+			ValidationResult result = validator.validate(object);
+			finalResult.addResult(result);
+		}
+		return finalResult;
+	}
+} 	    		
+	    	
+[/code]
+	
+	    	Basta que o validador composto itere os validadores internos até encontrar uma razão de invalidação. Contudo,
+	    	se você preferir pode deixá-lo executar todos os validadores. O método [icode]addResult[/icode] foi adicionado
+	    	em [icode]ValidationResult[/icode] para permitir juntar a um resultado as mensagens de outro. A implementação é 
+	    	a simples copia dos objetos entre as coleções internas. Fica também como exercicio.
+	    	
+	    	Outro ponto a ressaltar é o uso do padrão [pattern]Method Channing[/pattern] nos métodos [icode]add[/icode] e [icode]remove[/icode] 
+	    	para facilitar a montagem do validador composto.
+	    	
+[h2]Validador de Beans[h2]
+	    	Vimos como criar validadores que testam um valor, e vimos como agrupar vários validadores. Contudo, o que seria realmente util
+	    	seria validar todos as propriedades de um bean (ver padrão [pattern]PropertyBag[/pattern]).
+	    	
+	    	Para isso teremos que definir qual validador valida qual propriedade. Evidentemente teremos que utilizar de algumas funcionalidades
+	    	de introspeção para podermos ler os valores das propriedades. Seguindo o padrão cada propriedade deve ter pelo menos um método acessor (meétodo [icode]get[/icode]).
+	    	
+	    	A implementação é semelhante ao do validador composto; afinal o validador de beans também é composto de validadores, 
+	    	a diferença é que precisamos associar um nome ao validador.
+	    	
+[code=java]
+
+public class BeanValidator<T> implements Validator<T> {
+
+	private final Map<String, Validator<T>> validators = new HashMap<String, Validator<T>>();
+	
+	public BeanValidator addPropertyValidator(String propertyName, Validator<?> validator){
+		validator.put(propertyName, validator);
+		return this;
+	}
+
+	public BeanValidator removePropertyValidator(String propertyName){
+		validator.remove(propertyName);
+		return this;
+	}
+	
+	public ValidationResult validate (T bean){
+		ValidationResult finalResult = new ValidationResult();
+		for (Iterator<Map.Entry<String,Validator;>> it = validators.entrySet().iterator(); it.hasNext();){
+			Map.Entry<String,Validator> entry = it.next();
+			
+			Object value = readProperty(entry.getKey(), bean); 
+			ValidationResult result = entry.getValue().validate(value);
+			finalResult.addResult(result);
+		}
+		return finalResult;
+	
+	}
+}	    	
+
+private Object readProperty (String propertyName, Object bean){
+	try {
+		Method method = bean.getClass().getMethod("get" + propertyName );
+		return method.invoke(bean);
+	} catch(Exception e){
+		throw new RuntimeException(e);
+	}
+}
+	    	
+[/code]
+	
+	    	A validação se resume a iterar todos os pares propriedade-validador. O método [icode]readProperty[/icode] é uma método
+	    	auxiliar para ler o valor da propriedade a partir do bean usando introspeção.
+	    	
+			Esta é uma implementação simples de um validador de bean. Poderiamos incrementar usando anotações, por exemplo, de forma 
+			a definir os validadores automáticamente a partir de anotações como [icode]@NotNull[/icode], [icode]@InRange[/icode], etc...
+			
+[h2]Pondo tudo junto[h2]
+	    	Finalmente temos todas as peças de uma API de validação básica. O Validador, a razão da invalização, o resultado da validação, o validador
+	    	composto para agruparmos validadores e o validador de bean. Agora que entendeu o mecanismo vamos ver um exemplo de uso.
+	    	
+[code=java]
+
+BeanValidator pessoaValidator = new BeanValidator<Pessoa>()
+			.addPropertyValidator("nome", new CompositeValidator() // nome
+			.add(new EmptyValidator()) // não pode ser vazio
+			.add(new MaxLengthValidator(100)) // nem maior que 100 caracteres
+			).addPropertyValidator("cpf", new CompositeValidator() // cpf
+			.add(new NullValidator()) // não pode ser nulo
+			.add(new CpfValidator()) // e tem que respeitar as regras de digito verificador
+			).addPropertyValidator("nascimento", new CompositeValidator() // data de nascimento
+			.add(new NullValidator()) // não pode ser nula
+			.add(new InRangeValidator(null, new Date())) // e tem que ser menor que hoje
+			)		
+			
+			Pessoa p = new Pessoa();
+			
+			if( pessoaValidator.validate(p).isValid() ){
+			   System.out.println("Valido");
+			} else {
+				System.out.println("Inválido");
+			}	  	
+	    	
+[/code]
+	
+	    	O código acima resulta em inválido pois nenhum campo foi preenchido. Ele mostra apenas como montar o validador e executá-lo.
+	    	
+[h2]Últimas considerações[h2]
+	    	A esta hora é mais obvio porque um mecanismo usando anotations é preferido, contudo nem sempre queremos encher nossos 
+	    	beans com um monte de anotações. Além disso poderiamos desenvolver um objeto [pattern]Builder[/pattern] para simplificar 
+	    	o processo de definição dos validadores. Algo como:
+	    	
+[code=java]
+
+	    	Validator <Pessoa> pessoaValidator = ValidatorBuilder.forBean(Pessoa.class)
+	    	.validate("nome").notNull().and().maxLength(100)
+	    	.validate("cpf").notNull().and().validateWith(new CpfValidator())
+	    	.validate("nascimento").notNull().and().lt(new Date())
+	    	.build();
+	    	
+	    	Pessoa p = new Pessoa();
+			
+			if( pessoaValidator.validate(p).isValid() ){
+			   System.out.println("Valido");
+			} else {
+				System.out.println("Inválido");
+			}	  
+	    	
+[/code]
+	
+[h2]Resumo[h2]
+			Vimos como é implementada uma API de validação. Vimos que preciamos de um objeto que contém a regra de validação ([icode]Validator[/icode]),
+			um que é resultado do processo de validação ([icode]ValidationResult[/icode]) e um objeto que represente as razões para a invalidação ([icode]InvalidationReason[/icode]).
+			
+			Depois contruimos um validador que permite compor vários validadores tirando partido das regras já escritas e permitindo montar validadores mais complexos.
+			Finalmente criámos um validador simples capaz de validar beans.
+			
+			Muito mais pode ser feito para melhorar a API, como por exemplo, ter validadores no bean validator que testam todo o bean depois que todos os campos foram validados.
+			Um outro tipo de validador possivel é um que valide coleções validando relações entre os elementos. 
+			

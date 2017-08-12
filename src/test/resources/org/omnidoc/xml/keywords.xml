@@ -1,0 +1,283 @@
+<document>
+	<properties>
+		<title>Palavras Reservadas</title>
+		<keywords>reserved word, keyword, palavra chave, palavra reservada</keywords>
+		<created>2012-06-15</created>
+	</properties>
+	
+	<references>
+		<ref id="1" >
+			<title>Java Reserved Words</title>
+			<url>http://java.sun.com/docs/books/tutorial/java/nutsandbolts/_keywords.html</url>	
+		</ref>
+	</references>
+	<body>
+		<section name="Introdução">
+			<p>
+			Uma palavra reservada é uma palavra que não pode ser usada como nome de variáveis, métodos ou classes. Uma das principais características da linguagem java é que tem um pequeno conjunto de palavras reservadas. 
+			</p>
+			<p>
+			A palavra reservada não é necessariamente uma palavra-chave, ou seja, uma palavra com significado especial na linguagem. Todas as palavras-chave são palavras reservadas, mas o inverso não é verdade.
+			</p>
+			<p>
+			Até à versão 7 existem 53 palavras reservadas, das quais apenas 51 são realmente utilizadas na prática. Só como exemplo, o C# (versão 4.0) tem 78 palavras reservadas, 
+			o C++ (versão C++11) tem 86 palavras reservadas de base e Scala tem apenas 40.
+			</p>
+			
+			<p>
+			As palavras chave se dividem em categorias conforme o seu propósito. Algumas palavras são usadas em mais de um cenário. O significa da palavra depende do contexto onde é usado. A isso se chamada : carga semântica.
+			Java, por ter poucas palavras chave e propositalmente reaproveitar as palavras sempre que possível tem um carga semântica bastante maior que outras linguagens. Contudo, na prática não é possível confundir os vários
+			significados.
+			</p>
+		</section>
+		<section name="A lista">	
+			<p>
+			Esta é a lista de palavras reservadas definidas até a versão 7 da linguagem.
+			</p>
+			<table>
+				<tr>
+					<td>package</td>
+					<td>import</td>
+					<td>new</td>
+					<td>class</td>
+					<td>interface</td>
+					<td>enum</td>
+					<td>abstract</td>
+					<td>final</td>
+				</tr>
+				<tr>
+					<td>implements</td>
+					<td>extends</td>
+					<td>instanceof</td>
+					<td>public</td>
+					<td>private</td>
+					<td>protected</td>
+					<td>super</td>
+					<td>this</td>
+				</tr>
+				<tr>
+					<td>throw</td>
+					<td>throws</td>
+					<td>try</td>
+					<td>catch</td>
+					<td>finally</td>
+					<td>if</td>
+					<td>else</td>
+					<td>for</td>
+				</tr>
+				<tr>
+					<td>do</td>
+					<td>while</td>
+					<td>switch</td>
+					<td>case</td>
+					<td>default</td>
+					<td>break</td>
+					<td>continue</td>
+					<td>return</td>
+
+				</tr>
+				<tr>
+					<td>boolean</td>
+					<td>byte</td>
+					<td>short</td>
+					<td>int</td>
+					<td>long</td>
+					<td>double</td>
+					<td>float</td>
+					<td>char</td>
+				</tr>
+				<tr>
+					<td>void</td>
+					<td>strictfp</td>
+					<td>transient</td>
+					<td>volatile</td>
+					<td>synchronized</td>
+					<td>native</td>
+					<td>assert</td>
+					<td>static</td>
+					
+				</tr>
+				<tr>
+					<td>goto</td>
+					<td>const</td>
+					<td>true</td>
+					<td>false</td>
+					<td>null</td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+			</table>
+		</section>
+		<section name="Organização">
+			<p>
+			Os arquivos fonte da linguagem são organizados em pacotes através da palavras <keyword>package</keyword> e classes em pacotes diferentes são referenciadas com <keyword>import</keyword>.
+			</p>
+		</section>
+		<section name="Classes, Interfaces , Anotações e Enums">
+			<p>
+			Os arquivos fonte da linguagem representam principalmente classes de objetos através de <keyword>class</keyword> mas podem também representam 
+			interfaces com <keyword>interface</keyword> enumerações com <keyword>enum</keyword> ou anotações com @<keyword>interface</keyword>. Note como a palavra <keyword>interface</keyword>
+			tem dois significados conforme é precedida ou não de @.
+			</p>
+			<p>
+			O palavra <keyword>class</keyword> também é usada em conjunto com o nome da classes para definir o literal da classe. Por exemplo <code>String.class</code> é um objeto instância da classe <code>Class</code> de String.
+			</p>
+			<p>
+			Classes podem ser abstratas se classificadas com <keyword>abstract</keyword>. O mesmo vale para métodos dentro da classe. Classes podem ser declaras inextensíveis se 
+			classificadas com <keyword>final</keyword>. O mesmo vale para métodos dentro da classe. Classes e métodos podem ainda ser considerados estáticos quanto 
+			classificados com <keyword>static</keyword>.
+			</p>
+			<p>
+			Classes podem herdar de outras classes com <keyword>extends</keyword> e implementar interfaces com <keyword>implements</keyword>
+			</p>
+			<p>
+			Interfaces podem extender outras interfaces com <keyword>extends</keyword>.
+			</p>
+			<p>
+			O operador  <keyword>instanceof</keyword> pode ser usado para verificar se um objeto representa uma instância de uma certa classe, interface, anotação ou enum.
+			</p>
+		</section>
+		<section name="Controle de Visibilidade">
+			<p>
+			A visibilidade pode ser controlada para atributos, métodos e tipos (classes, anotações, interfaces, enum) com <keyword>public</keyword>(visível a todos), 
+			<keyword>protected</keyword> (visível apenas dentro do mesmo pacote e/ou via herança) e <keyword>private</keyword> (invisível a todos os outros).
+			</p>
+		</section>
+		<section name="Modificadores de escopo">
+			<p>
+			Por padrão todos os métodos e atributos são resolvidos no escopo mais próximo. Contudo é por vezes necessário explicitar o escopo da classe com <keyword>this</keyword> ao da sua super classes imediatamente superior com super.
+			</p>
+			<p>
+			As palavras <keyword>super</keyword> e <keyword>this</keyword> ainda podem ser usadas em construtores para referenciar um outro construtor da mesma classe ou da classe sendo extendida.
+			</p>
+		</section>
+		<section name="Controle de Exceções">
+			<p>
+			Exceções podem ser lançadas com <keyword>throw</keyword>e o método pode declarar quais exceções pode lançar com <keyword>throws</keyword>.
+			</p>
+			<p>
+			Exceções podem ser controladas com <keyword>try</keyword> em conjunção com <keyword>catch</keyword> e <keyword>finally</keyword>
+			</p>
+		</section>
+		<section name="Estruturas de Decisão">
+			<p>
+			O fluxo do código pode ser controlado por decisões com <keyword>if</keyword> e alternativas com <keyword>try</keyword>. Repetições podem ser conseguidas com <keyword>for</keyword>, <keyword>while</keyword> ou <keyword>do</keyword>-<keyword>while</keyword>.
+			</p>
+			<p>
+			Decisões podem ainda ser feitas utilizando a construção de chaveamento <keyword>switch</keyword> onde se especificam os casos possíveis com <keyword>case</keyword>. Um caso padrão é identificado com <keyword>default</keyword>.
+			</p>
+			<p>
+			Fluxo de repetição e chaveamento podem ser interrompidos com <keyword>break</keyword>. Fluxos de repetição podem pular para a próxima iteração com <keyword>continue</keyword>.
+			</p>
+			<p>
+			Fluxos de código que produzem valores podem comandar que o retorno seja executado com <keyword>return</keyword>
+			</p>
+		</section>
+		<section name="Tipos primitivos">
+			<p>
+			Java suporta tipos de dados que não são objetos chamados de tipos primitivos. Cada um deles identificado com uma palavra reservada para o nome do tipo: <keyword>byte</keyword>, <keyword>short</keyword>, <keyword>int</keyword>,
+			<keyword>long</keyword>, <keyword>double</keyword>, <keyword>float</keyword>, <keyword>char</keyword> e <keyword>boolean</keyword>. Um tipo primitivo especial é usado quando não há retorno do método <keyword>void</keyword>, embora não seja 
+			válido declarar variáveis do tipo <keyword>void</keyword>
+			</p>
+		</section>
+		<section name="Reserva Especial">
+			<p>
+			Duas palavras são reservadas por motivos históricos e usá-las em código irá criar erros de compilação: <keyword>goto</keyword> e <keyword>const</keyword>.
+			<keyword>goto</keyword> é reservado exatamente para que ninguém use. <keyword>const</keyword> era utilizado para definir constantes em versões iniciais do java (pré lançamento ao publico). No modelo atual constantes são definidas
+			com uma conjunção de palavras, especificamente <keyword>static</keyword> e <keyword>final</keyword> em sequência
+			</p>
+		</section>
+		<section name="conceitos Avançados">
+			<p>
+			Java provê controle muito crú de threads. Ao trabalhar com threads é importante controlar o acesso sincronizado e isso é conseguido com <keyword>synchronized</keyword>. Também no âmbito do uso de threads pode ser útil
+			libertar atributos para serem consultados por diferentes threads, embora esperando coerência na leitura. Isso é conseguido com <keyword>volatile</keyword>.
+			</p>
+			<p>
+			Java provê um mecanismo intrínseco de serialização de objetos para stream de bytes e vice-versa. Por padrão todos os atributos são serializados. Para indicar que um atributo não deve ser serializado é utilizada a palavra 
+			<keyword>transient</keyword>.
+			</p>
+			<p>
+			Java provê um mecanismo intrínseco de extensão de funcionalidade onde a implementação real é realizada em código em outra linguagem. Por exemplo C++. Para conseguir isso o método é classificado com
+			<keyword>native</keyword>.
+			</p>
+			<p>
+			Java provê um mecanismo intrínseco de controle de calculo em ponto flutuante e à semelhança de outras linguagens não garante que o mesmo calculo feito em diferentes JVM e diferente máquinas reais dê o mesmo resultado.
+			Contudo é possível forçar que a JVM imponha regras que garantem que o resultado é reprodutível de forma portável. Para isso o método é marcado com <keyword>strictfp</keyword>.
+			</p>
+			<p>
+			Java provê um mecanismo intrínseco de asertivas. Este mecanismo é controlado pela JVM e pode ser ligado e desligado. Para que o programador possa criar uma assertiva é usada a palavra <keyword>assert</keyword>.
+			</p>
+		</section>
+		<section name="true, false e null">
+			<p>
+			As palavras <code>true</code> , <code>false</code> e <code>null</code> não são consideradas palavras chave porque são na realidade valores literais, contudo, sendo que não podem ser usados como nome de classe, 
+			variável ou método, são consideradas palavras reservadas.
+			</p>
+		</section>
+		<section name="Uma por uma">
+			<p>	
+			Lista de palavras reservadas e seus significados
+			<ul>	
+				<li><a name="abstract">abstract</a> - usado para definir que um tipo ou método é abstrato. No caso de métodos, alguma classe na hierarquia descendente terá que prover uma implementação. No caso da classe, significa que não possível 
+				invocar <keyword>new</keyword> nessa classe e produzir um objeto</li>
+				<li><a name="assert">assert</a> - usado para declarar uma assertiva no código que pode ser ligada ou desligada pela JVM</li>
+				<li><a name="break">break</a> - usado para interromper um fluxo de repetição ou de escolha.</li>
+				<li><a name="boolean">boolean</a> - usado para declarar uma variável ou atributo primitivo do tipo lógico</li>
+				<li><a name="byte">byte</a> - usado para declarar uma variável, ou atributo, primitivo do tipo numérico inteiro com sinal de 8 bits</li>
+				<li><a name="case">case</a> - usado para declarar uma opção dentro da escolha declarada por <keyword>switch</keyword> </li>
+				<li><a name="catch">catch</a> - usado para declarar o escopo de tratamento de exceção, ou exceções, especificas</li>
+				<li><a name="char">char</a> - usado para declarar uma variável, ou atributo, primitivo do tipo numérico inteiro, sem sinal, de 16 bits</li>
+				<li><a name="class">class</a> - usado para definir uma classe ou para se referenciar ao literal que representa essa classe</li>
+				<li><a name="continue">continue</a> - usado para avançar um fluxo de repetição para a próxima iteração</li>
+				<li><a name="const">const</a> - não é usado. A palavra é reservada que não tem qualquer significado semântico. Simplesmente não é possível usar essa palavra no código. O compilador acusará um erro de sintaxe.</li>
+				<li><a name="default">default</a> - usado para declarar uma opção padrão dentro da escolha declarada por <keyword>switch</keyword> que será usada caso nenhuma outra opção seja escolhida.</li>
+				<li><a name="double">double</a> - usado para declarar uma variável, ou atributo, primitivo do tipo numérico de ponto flutuante de precisão dupla</li>
+				<li><a name="do">do</a> - usado em conjunção com  <keyword>while</keyword>  para declarar uma repetição de execução de um certo código sendo que a cada fim de execução uma expressão será validada para saber se o código anterior será
+				novamente executado</li>
+				<li><a name="else">else</a> - usado para declarar uma alternativa de decisão que deve ser tomada e o código a ser executado caso a expressão de avaliação seja falsa. Também utilizado para poder encadear outro if com uma nova expressão de decisão</li>
+				<li><a name="enum">enum</a> - usado para definir uma enumeração</li>
+				<li><a name="extends">extends</a> - usado para indicar que uma interface deverá extender a funcionalidade de outra interface, ou usada para indicar que uma classe deverá extender a funcionalidade de outra classe. Também
+				é usada na declaração de <estrang>generics</estrang> para indicar que o tipo genérico deve extender um certo tipo</li>
+				<li><a name="false">false</a> - representa o valor lógico literal para FALSO </li>
+				<li><a name="final">final</a> - usado para definir que um tipo ou método, classe atributo ou variável não podem ser redefinidos. A partir da versão 7 é usado dentro de uma estrutura <keyword>cacth</keyword> para indicar que a exceção poderá ser relançada</li>
+				<li><a name="finally">finally</a> - usado para declarar o escopo de execução que sempre será executado tenha havido ou não um exceção</li>
+				<li><a name="float">float</a> - usado para declarar uma variável, ou atributo, primitivo do tipo numérico de ponto flutuante de precisão simples</li>
+				<li><a name="for">for</a> - usado para declarar uma repetição de execução de um certo código sendo que irá acontecer uma inicialização, um teste e um incremento de uma certa variável ou conjunto de variáveis</li>
+				<li><a name="goto">goto</a> - não é usado. A palavra é reservada apenas para não ser possível utilizar esta palavra no código. Não existe funcionalidade de goto em Java.  O compilador acusará um erro de sintaxe.</li>
+				<li><a name="if">if</a> - usado para declarar uma decisão que deve ser tomada e o código a ser executado caso a expressão de avaliação seja verdadeira</li>
+				<li><a name="implements">implements</a> - usado para indicar que uma interface deverá ser implementa pela classe ou enumeração</li>
+				<li><a name="import">import</a> - usado para estabelecer de quais pacotes estão sendo usadas as classes que aparecem no corpo do arquivo de fonte</li>
+				<li><a name="instanceof">instanceof</a> - operador usado para auferir se um objeto é de um certo tipo (classe, interface, enum, anotação), considerando toda a sua hierarquia</li>
+				<li><a name="int">int</a> - usado para declarar uma variável, ou atributo, primitivo do tipo numérico inteiro com sinal de 32 bits</li>
+				<li><a name="interface">interface</a> - usado para definir uma interface ou para se definir uma anotação quando precedido de @</li>
+				<li><a name="long">long</a> - usado para declarar uma variável, ou atributo, primitivo do tipo numérico inteiro com sinal de 64 bits</li>
+				<li><a name="native">native</a> - usado para declarar que a implementação do método será realizada em outra linguagem, e uma chamada nativa ao OS será usada para executar esse código</li>
+				<li><a name="new">new</a> - operador usado para criar um objeto, instância de uma classe.</li>
+				<li><a name="null">null</a> - representa o valor literal de "ausência de objeto" em uma variável ou atributo de objeto</li>
+				<li><a name="package">package</a> - usado para estabelecer a qual pacote o arquivo de fonte, e por conseqüência os seus tipos públicos, pertencem</li>
+				<li><a name="private">private</a> - usado para indicar que uma tipo ou método não é visível senão a si mesmo ou ao seu tipo imediato</li>
+				<li><a name="protected">protected</a> - usado para indicar que uma tipo ou método é visível apenas aos tipos do mesmo pacote ou a tipo que herdem do tipo corrente.</li>
+				<li><a name="public">public</a> - usado para indicar que uma tipo ou método é visível a qualquer outro tipo ou método e pode por ele ser invocado</li>
+				<li><a name="return">return</a> - usado para forçar o retorno de um método, devolvendo ao método chamador um valor ou não</li>
+				<li><a name="short">short</a> - usado para declarar uma variável, ou atributo, primitivo do tipo numérico inteiro com sinal de 16 bits</li>
+				<li><a name="static">static</a> - usado para indicar que o método ou tipo definido a seguir não pertence ao escopo do objeto, mas sim ao escopo da classe em si mesma </li>
+				<li><a name="strictfp">strictfp</a> - usado para declarar que o método deve ser executado levando em consideração regras estritas de reprodutibilidade de calculo</li>
+				<li><a name="super">super</a> - usado para indicar que o escopo pretendido para a invocação de um método ou acesso a um atributo é o da classe mãe.Também utilizado para fazer referencia a um outro construtor da classe imediatamente superior na hierarquia de herança.</li>
+				<li><a name="switch">switch</a> - usado para declarar uma escolha entre várias opções de execução</li>
+				<li><a name="synchronized">synchronized</a> - usado para declarar que um certo escopo de código deve ser protegido de acesso concorrente de threads diferentes</li>
+				<li><a name="this">this</a> - usado para indicar que o escopo pretendido para a invocação de um método ou acesso a um atributo é o do próprio objeto corrente. Também utilizado para fazer referencia a um outro construtor da mesma classe. É usando 
+				ainda como forma de referir a instância que encapsula a instância corrente quando em uma classe aninhada</li>
+				<li><a name="throw">throw</a> - usado para lançar uma exceção</li>
+				<li><a name="throws">throws</a> - usado para declarar quais exceções são possíveis de serem lançadas por um método</li>
+				<li><a name="transient">transient</a> - usado para declarar que o atributo não será incluído na serialização do objeto</li>
+				<li><a name="true">true</a> - representa o valor lógico literal para VERDADEIRO </li>
+				<li><a name="try">try</a> - usado para declarar o escopo de captura de exceções</li>
+				<li><a name="void">void</a>void - usado para declarar que o método não terá retorno</li>
+				<li><a name="volatile">volatile</a>volatile - usado para declarar que é seguro o atributo ser acessado por threads diferentes de forma concorrente</li>
+				<li><a name="while">while</a>while - usado para declarar uma repetição de execução de um certo código sendo que a cada inicio de execução uma expressão será validada para saber se o código seguinte será executado</li>	
+			</ul>
+			</p>
+		</section>
+	</body>
+</document>

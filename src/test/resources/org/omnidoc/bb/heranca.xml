@@ -1,0 +1,82 @@
+[*Herança*]
+
+
+[h2]Herança[/h2]
+No paradigma de Programação Orientada a Objetos, Herança é uma capacidade que 
+permite que novas classes possam tirar proveito da estrutura de classes já existentes. 
+Estas novas classes são chamadas classes derivadas e a classe preexistente é conhecida 
+como classe base . Juntas, elas formam a Hierarquia de Herança.
+
+As classes derivadas têm acesso privilegiado aos membros da classe preexistente, tomando-os 
+(herdando-os) para si como se fossem seus. Outras classes não sabem deste acesso 
+privilegiado e não sabem diferenciar os membros da classe base daqueles que existem 
+apenas da classe derivada.
+
+O principal objetivo da Herança é possibilitar o uso da Categorização .
+Isso permite agrupar objetos (instâncias das classes) em categorias. 
+O agrupamento, por sua vez, permite organizar melhor o código e o modelo por
+detrás do código. Além disso, permite construir algoritmos mais genéricos baseados 
+nos membros que uma categoria de objetos tem, ao invés dos membros que cada elemento 
+da categoria tem.
+
+É comum afirmar que Herança possibilita a reutilização de código. Isso é verdade, mas esse 
+é apenas um efeito secundário do poder da categorização que a herança introduz nos modelos 
+orientados a objetos (O.O.). Esse não é o objetivo do uso da Herança.
+
+[h2]Modelos, Herança e Filosofia[/h2]
+	O paradigma O.O. permite a existência de um conjunto novo de operações que não estão 
+	disponíveis em paradigmas procedurais (orientados a processos). 
+	Ele permite criar modelos que relacionam classes e categorias de objetos. 
+	A categorização é uma das capacidades mais inerentes ao ser humano e à forma como ele pensa.
+	A herança nos permite transportar para o modelo de objetos ( e posteriormente para o código) essa forma de pensar. Isso torna o programa muito mais próximo de como um humano pensa e mais longe de como uma máquina reage, facilitando a construção de programas poderosos com pouco esforço.
+	Modelos Orientados a Objetos são freqüentemente mais fascinantes do que aqueles em outros 
+	paradigmas. Esse fascínio se deve ao uso da herança. A Herança é realmente uma ferramenta 
+	poderosa, em verdade, demasiado poderosa. Ela tem que ser utilizada corretamente e com cuidado
+	 pois a probabilidade do seu uso indevido destruir o modelo é muito grande.
+ 
+[h2]Herança em Java[/h2]
+Java prima pela sua sintaxe simples e enxuta enquanto ao mesmo tempo possibilita o 
+uso de conceitos/ferramentas de Orientação a Objetos como a Herança.
+
+Existem dois tipos em Java: classes e interfaces. Classes são modelos de objetos enquanto 
+interfaces são especificações de assinaturas de métodos (contratos). O mecanismo de herança 
+é aplicável a ambos, mas com uma ressalva: a Herança de classes em Java não é múltipla. 
+Ou seja, em Java, as classes só podem ter privilégios de herança a partir de uma única classe 
+base. Esta classe é comumente chamada de classe mãe usando a analogia baseada no fato 
+biológico de que nunca há duvida de quem é a mãe de alguém ( embora possa haver de quem é o pai). 
+
+A Herança singular, simples, do Java a torna um recurso escasso. Você só a pode usar uma 
+vez para cada classe, então é bom pensar bem em como a usar. Aqui vale a máxima de que 
+se um recurso é escasso ele é poderoso e se é poderoso deve ser escasso.
+
+[h2]Herança e Polimorfismo[/h2]
+A Herança nos dá uma forma de categorizar as classes e por conseqüência as suas instâncias. 
+A principal conseqüência prática disso é nos encontrarmos muitas vezes com a necessidade 
+de manipular instâncias definidas apenas através de um categoria.
+
+O recurso de Polimorfismo – em particular o de variáveis polimórficas – permite manipular 
+todas possíveis instâncias de objetos de uma certa categoria de forma simples.
+Às vezes o recurso de Polimorfismo é confundido com o de Herança, em particular em linguagens
+O.O. como Java. Eles se completam, é verdade, mas são conceitos distintos com propósitos 
+distintos já que  o polimorfismo permite manipular diferentes formas como se fossem uma, enquanto herança
+permite definir essas formas.
+
+[h2]Más Práticas usando Herança[/h2]
+Herança é um recurso poderoso e perigoso. Você só pode usar uma vez, e se usar errado, não há retorno. 
+É comum ficar com a idéia que a herança é um mero artifício programático que permite agrupar 
+coisas comuns em uma classe "acima". Herança causa esse efeito, mas não é para isso que ela 
+serve. Ela serve para categorizar os objetos. Usar a herança pelos motivos errados pode 
+atrapalhar o seu modelo sem que você se aperceba. Você pode estar categorizando o objeto de 
+uma forma que não útil. Isso é muito fácil de fazer e resistir a essa tentação implica uma 
+concentração e uma preocupação com o detalhe.
+
+Alguns autores chegam ao ponto de propor que o mecanismo de Herança é um erro. 
+Que não deveria ser dada essa possibilidade aos programadores. Essa afirmação é feita com a 
+mesma força que se condena hoje o uso da instrução [icode]goto[/icode] de outras linguagens. 
+Isso é um pouco extremo. Não podemos culpar as ferramentas pelo uso que é feito delas, 
+apenas temos que chamar a atenção para o seu uso perigoso. Martelos, chaves-de-fendas ou 
+moto-serras podem ser usadas para matar pessoas, mas não é por isso que vamos deixar de as 
+usar para a finalidade para que foram criadas. O mesmo acontece com herança.
+
+Use o recurso de herança de forma responsável. Ele é escasso e poderoso o suficiente 
+para ser manipulado com atenção.

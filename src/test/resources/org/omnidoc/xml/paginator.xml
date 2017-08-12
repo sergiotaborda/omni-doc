@@ -1,0 +1,202 @@
+<document>
+
+	<properties>
+		<title>Paginator</title>
+		
+	</properties>
+	
+	<pattern-catalogs>
+	
+	</pattern-catalogs>
+		
+	<related-patterns>
+		<name>DAO</name>
+		<name>Query Object</name>
+		<name>Interpreter</name>
+		<name>Repository</name>
+		<name>Fastlane Reader</name>
+	</related-patterns>
+	
+	<body>
+	<page>
+		<section name="Objetivo">
+			<p>
+			Separar o conteúdo em grupos de itens (páginas) e controlar a navegação entre as páginas.
+			</p>
+		</section>
+		<section name="Propósito" >
+			<p>
+			É comum em diversos diversos tipos de aplicações apresentarmos ao usuário uma lista de alguma entidade.
+			Em sistemas orientados a cadastro é comum listarmos todos as instancias já cadastradas (normalmente com possibilidade de filtro),
+			em sistemas de e-commerce é normal apresentar a lista de produtos. Rápidamente nos damos conta que estas listas podem ser muitas vezes ser gigantes. Mesmo utilizando filtros
+			o usuário pode ser bombardeado com milhares de resultados para visualização. Processar esta quantidade de informação se torna rápidamente onorosa para o sistema
+			e a performance diminui drásticamente.
+			</p>
+			<p>
+			A ideia do padrão Paginator é agregar os itens encontrados em conjuntos: páginas. Cada página contém um numero limitado de itens e apenas uma página é carregada
+			por vez. Desta forma o sistema irá apenas processar uma quantidade limitada de itens em cada tela e nunca terá que ler todos os itens de uma só vez. 
+			</p>
+			<p>
+			A paginação não se limita apenas a facilitar a apresentação das nossas listagens, ela pode ser usada como acelerador em processos <estrang>batch</estrang> em que não queremos ler cada itens por vez, 
+			e também não queremos ler todos os itens de existe de uma só vez. Queremos ler os itens em pacotes (<estrang>batch</estrang>), e páginas são uma forma de empacotar os itens.
+			</p>
+		</section>
+		</page>
+		<page>
+		<section name="Implementação" >
+			<p>
+			Não existe um padrão para a implementação de um paginador devido ao problema da fonte de dados. Às vezes queremos paginar de uma lista, outras queremos paginar diretamente do banco e 
+			outras queremos paginar utilizando um serviço externo como um web service REST, por exemplo. A implementação seguinte começa por encapsulas o problema de obter a fonte de dados 
+			usando uma interface de modelo de dados. 
+			</p>
+			<source language="java" >
+public interface PaginatorModel&lt;T&gt; {
+
+	public long totalCount(); 
+	
+	public Collection&lt;T&gt; readRange(int startAt, int itemsPerPage);
+}			
+			</source>
+			<p>
+			O método <code>totalCount</code> nos dirá quantos itens existem na fonte de dados. Esta informação é vital para calcular quantas páginas existem.
+			O método <code>readRange</code> irá ler os itens começando em uma posição <code>startAt</code> e obtendo no máximo uma quantidade de <code>itemsPerPage</code> que será 
+			retornada em uma coleção dos objetos pretendidos &lt;T&gt;.
+			Podemos passar agora ao objeto Paginator em si.
+			</p>
+			<source language="java" >
+public class Paginator&lt;T&gt; 			
+	
+	private final PaginatorModel&lt;T&gt; model;
+	private final int itemsPerPage;
+	
+	private int currentPageIndex = -1;
+	
+	public Paginator(PaginatorModel&lt;T&gt; model, int itemsPerPage){
+		this.model = model;
+		this.itemsPerPage = itemsPerPage;
+	}
+	
+	public int getPageCount(){
+		final long count = model.totalCount();
+		return (int)(count / itemsPerPage + (count % itemsPerPage == 0 ? 0: 1));
+	}
+	
+	public int getCurrentPageIndex(){
+		return currentPageIndex;
+	}
+	
+	public void setCurrentPageIndex(int currentPageIndex){
+		this.currentPageIndex = currentPageIndex;
+	}
+	
+	public Collection&lt;T&gt; getPageItens(){
+		if (currentPageIndex &lt; 1 || currentPageIndex &gt; this.getPageCount() + 1 ) {
+			return Collections.emptySet();
+		}
+		int startAt = (this.currentPageIndex-1) * this.itemsPerPage;
+		
+		return model.getRange(startAt, itemsPerPage);
+	}
+	...
+}
+				
+</source>
+			<p>
+			A classe Paginador recebe o <code>PaginatorModel</code> que serve como ponte para os dados reais, e a quantidade de items por página.
+			O método <code>getPageCount</code> calcula a quantidade máxima de páginas. Fazemos isto em um método que usaremos bastante e de forma dinamica 
+			(i.e. não gravamos o resultado em um campo) porque a quantidade de itens total retornada por <code>model.totalCount</code> pode mudar.
+			</p>
+			<p>
+			Estabelecemos que a página corrente é sempre um página inexistente (<code>currentPageIndex = -1</code>) de forma semelhante a <class>java.sql.ResultSet</class>.
+			e permitimos que o utilizador da classe escolha que página pretende usar. É o uso de <code>setCurrentPageIndex</code> que realmente pagina os itens. 
+			Estabelecemos que a primeira página terá um index <code>1</code>.
+			</p>
+			<p>
+			Para obter os dados utilizamos <code>getPageItens</code> que calcula o ponto inicial da pesquisa e delega ao modelo para obter os dados realmente.
+			Se estivermos posicionados em um página que não existe, o resultado é simplesmente uma coleção vazia. Este comportamento pode ser adquado às suas necessidades, lançado uma exceção, por exemplo.
+			</p>
+			<p>
+			Este é o mecanismo básico, mas realmente ser util o objeto paginator tem que prover modo de navegar entre as páginas. Para isso, adicionamos os seguintes métodos:
+			</p>
+			<source language="java">
+	public boolean hasNextPage(){
+		return this.currentPageIndex &lt; this.getPageCount();
+	}
+	
+	public boolean hasPreviousPage(){
+		return this.currentPageIndex &gt; 1;
+	}
+	
+	public boolean isFirstPage(){
+		return this.currentPageIndex == 1;
+	}
+	
+	public boolean isLastPage(){
+		return this.getPageCount()==0 || this.currentPageIndex == this.getPageCount();
+	}
+	
+	public void moveToFirstPage(){
+		this.moveToPage(1);
+	}
+	
+	public void moveToLastPage(){
+		this.moveToPage(this.getPageCount());
+	}
+	
+	public void moveToNextPage(){
+		int count = this.getPageCount();
+		
+		this.moveToPage(this.currentPageIndex == count ? count : this.currentPageIndex +1);
+	}
+	
+	public void moveToPreviousPage(){
+		this.moveToPage(this.currentPageIndex == 1 ? 1 : this.currentPageIndex -1);
+	}
+	
+	public void moveToPage(int pageIndex){
+		this.currentPageIndex = pageIndex;
+
+	}
+			</source>
+			<p>
+			Esta é apenas uma implementação possivel, existirão muitas outras conforme os constragimentos que o seu projeto estiver sujeito. 
+			A implementação mostrada aqui tenta separar a responsabilidade de controlar a paginação da responsabilidade de obter os dados para a página.
+			</p>
+		</section>
+		</page>
+		<page>
+		<section name="Discussão">
+			<p>
+			Separar o controle de paginação da leitura dos dados é realmente a parte mais dificil da implementação do padrão. Implementar  <code>PaginatorModel</code>
+			com base em um <code>List</code> é trivial e o próprio <code>List</code> inclui métodos como <code>subList</code> e <code>size</code> que mapeiam facilmente para 
+			os métodos em <code>PaginatorModel</code>. Por outro lado, implementar a mesma interface para acessar um banco de dados não é tão simples.
+			</p>
+			<p> Para utilizar um banco de dados
+			primeiro o banco de dados, ele proprio, tem que suportar paginação, pois senão não haverá ganho real. Para ter suporte completo o banco precisa ter uma funcionalidade
+			que permite escolher a partir de uma posição especifica (<estrang>offset</estrang>) e um função que permita limitar o bloco que linhas retornada. Alguns bancos nao têm capacidade
+			de offset (SQL Server, por exemplo) o que significa que embora possamos escolher os 10 primeiro elementos das terceira página, somos obrigados a carregar e a despresar os primeiros 20 elementos. 
+			</p>
+			<p>
+			Além disso as instruções de limite e offset são incluidas na frase SQL, o que significa que a frase será ligeiramente diferente a cada invocação.
+			Aqui existem algumas opções trazidas pela orientação a objetos construindo a frase com objetos compostos em vez de <class>String</class> usando padrões como
+			<pattern>Query Object</pattern> e <pattern>Intepreter</pattern>. Contudo, dependendo das sua arquitetura tecnicas para injetar dinamicamente o limite e o offset podem ser um desafio.
+			</p>
+		</section>
+		<section name="Padrões associados">
+			<p>
+			Como já falamos <pattern>Query Object</pattern> e <pattern>Intepreter</pattern> são boas maneiras de encapsular a frase de consulta para poder injetar 
+			os limites e offsets. Uma outra possivel de driblar o problema é fazer com que o <pattern>DAO</pattern> retorne um objeto <code>Paginator</code> em vez do normal <code>List</code>
+			desta forma postergando realizar a query efetivamente e esperando até que sejam sabidos os limites da primeira pagina. A mesma tecnica de postergação de pesquisa pode ser usada
+			como <pattern>Repository</pattern>. Esta tecnica pode-se tornar complexa em ambiente distribuido mas é funciona excelentemente em ambiente em que tudo acontece em uma unica máquina virtual,
+			como é o caso de muitas aplicações web. 
+			</p>
+			<p>
+			A paginação é uma tecnica que está interessada em ler poucos dados de uma vez e raramente lê todos os dados. O padrão <pattern>Fast Lane Reader</pattern>
+			pode ser aplicado para aumentar ainda mais a eficiencia da leitura diminuindo a memória necessária e práticamente trazendo o <class>java.sql.ResultSet</class> até
+			à camada de apresentação de forma encapsulada.
+			</p>
+		</section>
+		</page>
+	</body>
+
+</document>

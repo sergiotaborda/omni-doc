@@ -1,0 +1,174 @@
+<document>
+
+<properties>
+	<title>Query Object</title>
+</properties>
+
+	<related-patterns>
+		<name>Interpreter</name>
+		<name>Specification</name>
+		<name>Domain Store</name>
+		<name>DAO</name>
+		<name>Repository</name>
+		<name>Builder</name>
+		<name>Chained Builder</name>
+	</related-patterns>
+	
+<references>
+	<ref id="1" >
+		<title>Patterns of Entreprise Application Architecture</title>
+		<book>patterns-of-entreprise-application-architecture</book>
+	</ref>
+	<ref id="2" >
+		<title>Design Patterns: Elements of Reusable Object-Oriented Software</title>
+		<book>design-patterns-elements-of-reusable-object-oriented-software</book>
+	</ref>
+</references>
+
+<body>
+	<section name="Objectivo">
+		<p>
+			Permite estabelecer um critério de pesquisa de forma orientada a objetos.
+		</p>
+	</section>
+	<section name="Propóstio">
+		<p>
+		Query Object(Objeto de Pesquisa) é um padrão de projeto que visa libertar o 
+		programador de conhecer e/ou usar uma linguagem de pesquisa de dados como SQL. 
+		</p>
+		<p>
+		Você tem um mecanismo de pesquisa de dados: um banco relacional, por exemplo. Você envia comandos para esse mecanismo através de uma linguagem própria (SQL) ou uma API própria. Você não quer que o seu sistema dependa dessa linguagem ou você não quer usar essa linguagem para especificar os parametros da pesquisa. Você pode não ter, ou querer, uma equipe que entenda ou domine essa linguagem. Ela pode ser muito complexa ou repetitiva destruindo a sua produtividade. A construção da frase pode ser dinâmica ou depender de condições que tornam a sua escrita desconexa. Os motivos podem ser vários.
+		</p>
+		<p>
+		O padrão propõe que se utilize um objecto para conter todos os detalhes (parametros) necessários a construir a frase. A sintaxe da linguagem é deixada a um Interpreter. Um Interpreter é um objeto que interpretará o Query Objet e o transformará na frase da linguagem ou executrá mecanismos da API subjacente como se fosse utilizada diretamente.
+		</p>
+		<p>
+		O Query Objet funciona como uma especificação desacoplada da linguagem final. Isto permite que a mesma especificação seja usada por interpretadores diferentes para atuar em contextos diferentes. Por exemplo, o mesmo objeto de pesquisa poderia ser traduzido numa frase SQL, numa frase EQL ou numa frase XPath. O mesmo objeto poderia ser utilizado como filtro de uma coleção em memória transformando-o num objeto que processe uma Collection.
+O detalhe de um objeto de pesquisa no mundo OO e relacional resume-se a especificar uma relação entre o valor presente num campo e um valor passado. A relação é normalmente de 2 tipos:
+Comparação – operações de igualdade ou relação de ordenação. As operações que comparam valores null são também comuns
+Inclusão – operações que determinam se o valor está contido numa lista de valores. Esta lista pode ser fixa ou ela propria resulta de uma pesquisa
+Mais tipos podem ser adicionados como operações de agregação (somas) ou de determinação de extremos ( maximo, minimo). As operaçõas sobre valores podem operar sobre valores fixos ou dinamicos ( resultantes de outras pesquisas) ou ainda sobre valores contidos em entidades que têm uma relação com a entidade pesquisada (join).
+Conforme a complexidade das operações necessárias o objeto de pesquisa tem que ser mais, ou menos, inteligente. Vários objetos podem ser criados conforme necessário. Isso representaria um mapeamento entre um objeto de pesquisa e um comando de pesquisa. Ou, um só objeto pode ser criado com a sua estrutura dependente de um conjunto de metadados. Neste caso além do interpretador é necessário um dicionário de metadados onde o objeto de pesquisa ( e até o proprio interprestador) possam consultar informações. Esta capacidade generica do Query Objet é a mais atraente mas também a mais complexa.
+		</p>
+	</section>	
+	<section name="Implementação">
+		<p>
+		Idealmente o Query Object é auto-suficiente para representar os parametros de uma pesquisa num conjunto de dados mas na prática 
+		a implementação de um Query Object pode depender do interpretador associado ou do mecanismo de dicionário de metadados. 
+		</p>
+		<p>
+		A complexidade da implementação depende principalmente da complexidade que queremos abstrair. Quanto mais coisas quisermos abstrair, 
+		mais rico tem que ser o seu Query Object e mais inteligentes têm que ser os seus interpretadores.
+		</p>
+		<p>
+		Duas coisas que não podem faltar no Query Object : o critério de pesquisa e o alvo da pesquisa ( ou seja, o tipo de objeto a retornar ). 
+		É facil entender que os critérios de pesquisa podem ser conjugados com condições logicas ( E e OU) para formarem critérios mais complexos. 
+		Se este tipo de construção genérica - que simula a condição where do SQL - for necessária o padrão <pattern>Composite Object</pattern> 
+		pode ajudar. Critérios simples podem ser implementados em classes especificas que implementam uma interface comun ( por exemplo Criterion) 
+		e as operações logicas são composições desses objetos às quais é adicionado um operador logico.
+		</p>
+		<script language="java" >
+class Criteria {
+ 
+ Class targetClass;
+ LogicCriterion root = new LogicCriterion ( LogicOperator.AND ) ;
+ 
+ public void add ( Criterion r ){
+ 	root.add ( r ) ;
+ }
+}
+
+
+interface Criterion {}
+
+ class LogicCriterion implements Criterion {
+ 
+ List children = new LinkedList () ;
+ LogicOperator operator = LogicOperator.AND;
+
+ public void add ( Criterion r ){
+	 children.add ( r ) ;
+ } 
+ 
+} 
+
+class FieldCriterion implements Criterion {
+ 
+ String fieldName;
+ Object value;
+ Operator operator;
+}
+
+
+ Enum Operator {
+ 
+ EQUALS,
+ GREATER_THEN, 
+ LESS_THEN, 
+ EQUAL_OR_LESS_THAN, 
+ EQUAL_OR_GREATER_THEN;
+ 
+}
+</script>
+<p>
+O resto da implementação são métodos utilitários para que a construção do critério seja o mais fluente possivel. 
+Um cuidado a ter com a implementação é não reverter o problema. Ou seja, inventar uma linguagem para escrever objetos de pesquisa 
+que serão traduzidos para uma outra linguagem. (EQL e HQL são exemplos disto).Lembre-se que o objetivo do padrão é usar objetos como critérios. Não palavras.
+Se revertemos a implementação para usar textos como especificações estamos caindo no mesmo problema que originalmente queremos resolver. 
+</p>
+<p>
+Outras pessoas tentarão escrever Query Object e interpretadores para abstrair a nossa nova linguagem. Isto é um ciclo viciado que só é quebrado 
+quando deixarmos o objeto de pesquisa como elemento principal. Implementar uma linguagem em cima de um Query Object é um anti-padrão. 
+Cuidado com isso.
+</p>
+</section>
+<section name="Discussão">
+	<p>
+		Martin Flowler[1] define Query Object como uma especialização do padrão <pattern>Interpreter</pattern> [2] 
+		que constroi frases SQL de pesquisa com base numa estrutura de objetos. 
+		Exemplo de implementação deste conceito são os Criteria do Hibernate. 
+		Por este motivo este padrão é também chamado de Criteria (Criteria é o plural de Criterion que significa critério).
+	</p>
+	<p>
+		Limitar o Query Object a um Interpreter de SQL pode ser contra-producente já que tem potencialidade para muito mais.
+		A definição apresentada aqui é um pouco mais genérica que a apresentada por Fowler.
+	</p>
+	<p>
+		Montar um Query Object é normalmente complexo e usar um  <pattern>Builder</pattern> pode simplificar bastante
+		esse trabalho para o programador, especialmente na sua vertente <pattern>Chained Builder</pattern>.
+		</p>
+		<p>
+		Ao usar o padrão <pattern>Builder</pattern> apresentam-se ainda mais hipoteses para 
+		o uso de Query Object já que o builder não tem necessáriamente que ser montado via 
+		codigo. Pode ser populado via XML, por exemplo, ou qualquer outra forma de persistencia de informação.
+		Com isto poderemos retirar ao máximo a dependencia entre o codigo e o critério de pesquisa. Contudo esta tecnica resultará no anti-padrão 
+descutido antes. Uma linguagem (xml) será usada para criar um Query Object que será usado
+ para criar expressões numa outra linguagem. Em tese importar de um arquivo o criterio pode
+  ser util, mas na prática, usar o compilador como verificador do correto uso do objeto é 
+  muito melhor. Sem falar de ferramentas de refractoring. 
+  Enfim, use Builder com cuidado. Perfira uma interface fluente para o seu objeto de pesquisa.
+		</p>
+	</section>
+
+<section name="Exemplos na API padrão">
+<p>
+
+</p>
+</section>
+<section name="Padrões Associados">
+<p>
+Já vimos que o Query Object se relaciona com outros padrões como <pattern>Interpreter</pattern> ou <pattern>Composite Object</pattern>. 
+Ele pode ainda ser visto como uma especialização de <pattern>Specification</pattern>.
+O padrão Query Object é também especialmente útil em conjunção com implementações de <pattern>Domain Store</pattern> 
+ou <pattern>DAO</pattern> ( quando não queremos um método para cada consulta). Nestes casos o papel do interpretador é feito por esses outros objetos. 
+Por exemplo, cada DAO pode usar os dados contidos no Query Object para produzir pesquisas 
+conforme a sua tecnologia inerente.
+</p>
+<p>
+Se a construção do critério é muito complexa ou tem muitas opções o padrão <pattern>Builder</pattern> poder ser util, especialmente na sua variante 
+<pattern>Chained Builder</pattern>. 
+</p> 
+</section>
+</body>
+
+</document>

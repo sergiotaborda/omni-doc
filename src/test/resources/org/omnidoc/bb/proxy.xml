@@ -1,0 +1,177 @@
+[*Proxy*]
+
+
+[h2]Objetivo[/h2]
+			Representar um objeto complexo, por um objeto mais simples.
+			
+[h2]Propósito[/h2]
+			A palavra [i]Proxy[/i] significa em inglês [i]Representante[/i], [i]Procurador[/i], ou seja,
+			algo ou alguem que se apresenta em nome de outrem com poder e autoridade de agir em seu nome ou por ele. Este conceito
+			é essencial para entender o padrão Proxy e porque ele é tão utilizado ao ponto de ter suporte na API padrão.
+			
+			O próposito do Proxy é representar um objeto mais [i]complexo[/i] através de um objeto mais simples. 
+			Um objeto pode ser [i]complexo[/i] por várias razões. Para cada uma delas temos um tipo de Proxy. 
+			
+[h3]Dificil de Criar[/h3]
+				Um objeto pode ser complexo por é dificil de criar. Pode ser porque consome muitos recursos,
+				porque consome recursos que não estão disponiveis no momento ou porque dependende de vários
+				outros objetos. Eventualmente ele pode ser dificil de criar porque ainda não definimos as suas
+				responsabilidades ou o seu funcionamento.
+				
+				Neste caso podemos criar um objeto no padrão Proxy, um proxy. Neste caso o proxy é um objeto que
+				não tem implementação interna, ou tem uma muito simples apenas para poder ser usado em vez do objeto real.
+				Estes tipos de proxy são chamados [i]stub[/i], que signfica [i]ponta[/i], [i]raiz[/i] ou [i]toco[/i]
+				no sentido que é apenas "um pedaço de algo maior".
+[h3]Pesado de Criar[/h3]
+				O objeto que queremos é complexo porque ele é uma coleção ou algum tipo de agregado de outros objetos
+				e criá-lo significa ter que carregar todos esses outros objetos. Neste caso queremos protelar a criação
+				deste objeto até que seja realmente necessário. Este processo é conhecido por [e]lazy loading[/e]
+				e o proxy como um [i]lazy proxy[/i].
+				
+				O mecanismo de lazy loading permite que objetos com muitas relações a outros objetos possam ser usados sem consumir
+				demasiada memoria ou outro tipo de recursos do ambiente. Este tipo de proxy se tornou famoso em API como o Hibernate
+				e mais tarde a JPA que protelam o carregamento de relações "um para muitos" ou "muitos para muitos" 
+				do objeto persistido.   
+				
+[h3]Presença remota[/h3]
+				Frequentementeo objeto que precisamos usar não está disponivel no nosso
+				ambiente e precisamos acessá-lo remotamente através de algum protocolo. 
+				Isto é comum hoje em dia no ambiente de Web Services mas começou com o conceito
+				de objetos distribuidos em CORBA e depois EJB.
+				
+				Neste caso falamos em proxy remoto ou em stub remoto. A implementação deste tipo
+				de proxy acaba sendo um desafio em si mesmo pois temos que abstrair o uso de um procolo de comunicação
+				a partir de um unico objecto.
+				
+[h3]Imutabilidade[/h3]
+				Temos um objeto ao qual queremos dar acesso publico, mas não queremos que o estado desse objeto seja alterado.
+				Básciamente queremos um mecanismo que garanta que o estado é lido, mas não alterado (read only).
+				Um proxy pode ser criado de forma a representar o objeto real, mas que intercepta todas as chamadas que possam
+				alterar o estado do objeto real.   
+				
+[h3]Alteração dinâmica de funcionalidade[/h3]
+				Um proxy , especialmente um proxy dinamico, pode ser utilizado para adicionar funcionalidade ao objeto base.
+				Todas as invocações aos métodos do objeto real são interceptadas. O proxy decide então se realmente delega ao objeto real
+				a invocação do método, ou não. Além disso o proxy pode decidir executar codigo antes, depois ou inves de executar o método
+				do objeto real. Esta tecnica é a base da chamada Programação Orientada a Aspetos (AOP). O Proxy é criado em volta do objeto real. 
+				
+[h2]Implementação[/h2]
+			A implementação do padrão Proxy depende do tipo do objeto que queremos representar. Se esse objeto é 
+			na realidade uma implementação de uma interface a implementação do proxy passar por implementar essa interface novamente.
+			Esta nova implementação pode ser estática ou dinâmica. Na implementação estática o programador explicitamente
+			programa uma nova classe que implementa a interface de interesse. Na implementação dinâmica usamos uma API que permite
+			que a classe seja implementada em [e]runtime[/e] e o controle seja feito atravez de um protocolo especial.
+			
+			Se o objeto que queremos representar é a instancia de uma classe a técnica não é muito diferente. Implementamos uma nova classe
+			que herda da primeira - implementação estática - ou utilizamos uma API para fazer isso dinamicamente. O problema aqui é que nem sempre
+			a classe pode ser herdada. Por isto classes finais como [icode]String[/icode] não podem ter proxies. Classes que não têm construtores publicos
+			ou, pelo menos, protegidos, também não podem já que não é possivel estabelecer uma relação de herança nessas condições.
+			
+[h3]Proxy Diâmicos de Interface[/h3]
+				Um proxy dinamico de interface é interessante quando não sabemos a interface base para o Proxy.
+				
+				A API padrão nos oferece a classe [icode]java.lang.reflect.Proxy[/icode] que contém toda a tecnologia necessária para
+				a criação do proxy. De fato, a criação de um proxy dinamico involve a manipulação de bytecode que não é possivel através
+				de comandos java explicitos. Esse mecanismo é o que a classe  [icode]java.lang.reflect.Proxy[/icode]  esconde.
+				
+				Para definirmos o proxy dinâmico precisamos de duas coisas: saber qual a classe da qual queremos um proxy e de um 
+				[icode]java.lang.reflect.InvocationHandler[/icode]. Esta é a classe que nos permite controlar o que acontece no proxy.
+				Para demonstrar isto vamos criar um proxy que calcula e escreve na tela o tempo que cada método demora a executar.
+				Primeiro criamos uma classe que cria os Proxy em volta de objetos reais, utilizaremos a interface Collection como exemplo. 
+				
+[code=java]
+
+public class ChronometerProxyFactory {
+
+       public Collection createChronometedColecctionFrom ( Collection realCollection){
+       		ChronometerInvocationHandler h = new ChronometerInvocationHandler(realCollection); 
+ 			return Proxy.newProxyInstance(realCollection.getClass().getClassLoader(), new Class[]{Collection.class, h});      
+       
+       }
+
+}
+	
+[/code]
+	
+	Repare que ,primeiro, criamos um objeto do tipo [icode]ChronometerInvocationHandler[/icode] esta será a nossa classe de controle
+	onde escreveremos a logica do proxy. Depois usamos a classe [icode]java.lang.reflect.Proxy[/icode] para criar o proxy. 
+	Veja que para criar o proxy temos que fornecer um [icode]ClassLoader[/icode], isto é porque, como foi dito, o proxy é criado pela manipulação de
+	bytecode que é carregado directamente pelo [icode]ClassLoader[/icode] fornecido. 
+	
+	Outra coisa interessante é que podemos definir mais do que uma interface para o proxy. Isto corresponde a criar uma classe que implementa
+	várias interfaces. O mesmo [icode]InvocationHandler[/icode] seria responsável por responder a todas as invocaçãos de métodos de qualquer uma 
+	dessas interfaces.
+	
+	Vejamos como é o objeto [icode]ChronometerInvocationHandler[/icode].
+	
+[code=java]
+
+public class ChronometerInvocationHandler implements  InvocationHandler {
+
+   private Collection realCollection;
+   public ChronometerInvocationHandler(Collection realCollection){
+   	this.realCollection = realCollection;
+   }
+   
+   public Object invoke(Object proxy, Method method, Object[] args) {
+   		long timeStamp = System.nanoTime();
+   		
+   		Object result = method.invoke(realCollection, args); // invocamos o método 
+   		
+   		long elapsed = System.nanoTime() - timeStamp; // tempo que demorou
+   		
+   		System.out.println("O método " + method.getName() + " demorou " + elapsed + " ns a executar");
+   		return result;
+   }
+   
+}
+	
+[/code]
+	
+	Primeiro forçamos que a coleção real seja passada no construtor. Depois, implementamos o método [icode]invoke[/icode] de [icode]java.lang.reflect.InvocationHandler[/icode].
+	Os argumentos deste método são simples de entender. O argumento [i]proxy[/i]  é o objeto proxy que foi criado dinamicamente por [icode]java.lang.reflect.Proxy[/icode].
+	O argumento [i]method[/i] é o método que foi chamado e [i]args[/i] os argumentos que foram passados ao método.
+	Repare que tanto o método [icode]invoke[/icode] de [icode]InvocationHandler[/icode] quando o de [icode]Method[/icode] retornam um objeto, isto é assim mesmo
+	que originalmente o método tenha sido declarado como [keyword]void[/keyword].  
+	
+	O que estamos fazendo é, antes de invocar o método no objeto real memorizar o tempo atual em nano segundos. Depois invocamos o método.
+	Por fim calculamos quando tempo passou e impimimos isso para o console.  Repare que na invocação do método ela é feita sobre o objeto real que temos como atributo.
+	Não podemos invocar sobre o objeto proxy que recebemos como parametro, pois isso iria chamar de novo o método invoke e entrar num ciclo de chamadas recursivas que 
+	acabariam num [icode]StackOverflowError[/icode].
+	
+[h2]Discussão[/h2]
+			A implementação de um proxy depende do objetivo do proxy e do tipo de hierarquia a que pertece o objeto que queremos representar.
+			A criação de proxies de forma dinâmica implica na criação de bytecode em [e]runtime[/e].
+			Para objetos que pertecem a uma hierarquia de interfaces a tarefa de criar proxies dinamicos é possivel através pela própria API padrão java.
+			Para objetos que pertecem a uma hierarquia de classe a tarefa é mais complexa e não ha suporte padrão para ela ainda. Nesse caso podemos fazer uso de bibliotecas
+			de manipulação de bytecode como ASM, CGLib ou Javaassist que permitem criar proxies de classes.
+			
+			A implementação de proxies de forma estática implica criar uma classe que herda ou implementa o mesmo tipo da classe do objeto que queremos representar e
+			implementar o código de cada método explicitamente. Embora dê muito mais trabalho, não temos que manipular bytecode e portanto podemos usar essa tecnica
+			para quando o objeto é definido através de uma classe. Esta forma de implementação é muito semelhante à de um [pattern]Decorator[/pattern] ou de um
+			[pattern]Adapter[/pattern].
+			
+[h2]Exemplos na API padrão[/h2]
+			Na API padrão não temos exemplos de proxies dinâmicos (afinal eles são dinâmicos), mas temos a classe  [icode]java.lang.reflect.Proxy[/icode] 
+			que nos permite criar proxies dinâmicos baseados em interfaces de forma simples. 
+			
+			Podemos encontrar na API padrão exemplos de proxies estáticos na classe [icode]java.util.Collections[/icode]. A familia de métodos 
+			[icode]Collections.unmodifiableXXX()[/icode] envolve o objeto real que passamos como argumento num proxy que impede que o objeto real
+			seja alterado lança uma exceção. Outro exemplo é a familia de métodos [icode]Collections.singletonXXX()[/icode] que cria um proxy de um tipo de coleção
+			onde só existe um elemento. Os objetos retornados por estes métodos pertencem a classes internas da classe [icode]Collection[/icode] que simplesmente são
+			instanciadas. 
+			
+[h2]Padrões associados[/h2]
+			O padrão Proxy é facilmente associado ao padrão [pattern]Adapter[/pattern] e ao padrão [pattern]Decorator[/pattern] e muito facilmente confundidos com eles.
+			O objeto proxy atua como [pattern]Adapter[/pattern] quando ele representa um objeto com um contrato diferente fazendo um trabalho
+			de tradução (pense em um seu representante legal que tem que falar em francês em vez de português).
+			O objecto proxy atua como [pattern]Decorator[/pattern] quando adiciona novas funcionalidades ao objeto representado (pense num seu representante legal
+			que sabe responder perguntas sobre leis , que você não saberia). O padrão [pattern]Decorator[/pattern] é ainda importante porque 
+			a mesma tecnica de programação é usada tanto para implementar [pattern]Decorator[/pattern] quando para implementar um objeto proxy sendo origem de muita confusão
+			sobre a diferença entre eles.  
+			
+			Porque o padrão Proxy nos permite simular um objeto e fornecer mecanismos de lazy loading, podemos pensar nele como uma forma do padrão [pattern]Flyweight[/pattern]. 
+			
+			Para criar os proxies normalmente usamos um objeto no padrão [pattern]Factory[/pattern] e como vimos, o controle do proxy dinamico é feito normalmente por um
+			mecanismo no padrão [pattern]Template Method[/pattern].
+			

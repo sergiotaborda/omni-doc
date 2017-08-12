@@ -1,0 +1,185 @@
+<document>
+
+	<properties>
+		<title>Static Factory Method</title>
+	</properties>
+		
+	<related-patterns>
+		<name>Factory</name>
+		<name>Factory Method</name>
+		<name>Value Object</name>
+		<name>Singleton</name>
+	</related-patterns>
+
+	<references>
+		<ref id="1">
+			<title>Effetive Java</title>
+			<book>effective-java</book>
+		</ref>
+		<ref id="2">
+			<title>Java Tip #2: Static factory methods vs. constructors</title>
+			<url>http://blog.codefront.net/2003/06/21/java-tip-2-static-factory-methods-vs-constructors/</url>
+		</ref>
+	</references>
+	
+	<body>
+		<section name="Objetivo">
+			<p>
+			Documentar e/ou simplificar a criação de um objeto substituindo o uso do construtor por um método estático explicito.
+			</p>
+		</section>
+		<section name="Propósito" >
+			<p>
+			Quando usamos um construtor diretamente no código, perdemos a semântica do significado dos parâmetros e perdemos 
+			controle sobre a inicialização do objeto. Isso tem implicações na nomenclatura e na documentação do código porque
+			sempre que o programador se depara com um construtor tem que consultar o javadoc para saber o significado de cada
+			parâmetros.
+			</p>
+			<p>
+			Criar um , ou mais, métodos estáticos que têm nomes claros, especificam o que os parâmetros significam e encapsulam
+			a real criação do objeto é uma forma simples de ganhar muita produtividade, diminuir acoplamento e aumentar a legibilidade<ref id="1"/>.
+			</p>
+		</section>
+		<section name="Implementação" >
+			<p>
+			A implementação deste padrão é muito simples. Basta declarar o construtor privado e criar um método ou mais métodos estáticos
+			que realmente criam o objeto.
+			</p>
+			<source language="java" ><![CDATA[
+public class Complex {
+
+
+	public static Complex real(double real){
+		return complex(real,0.0);
+	}
+	
+	public static Complex imaginary(double imaginary){
+		return complex(0.0,imaginary);
+	}
+	
+	public static Complex complex(double real, double imaginary){
+		return new Complex(real,imaginary);
+	}
+	
+	public static Complex polar(double amplitude, double phase){
+		double real = amplitude * Math.cos(phase);
+		double imaginary = amplitude * Math.sin(phase);
+		
+		return new Complex(real,imaginary);
+	}
+	
+	private static Complex ONE = return new Complex(1,0); 
+	private static Complex ZERO = return new Complex(0,0); 
+	private static Complex I = return new Complex(0,0); 
+	
+	public static Complex one(){
+		return ONE;
+	}
+	
+	public static Complex zero(){
+		return ZERO;
+	}
+	
+	public static Complex i(){
+		return I;
+	}
+	
+	private Complex(double real, double imaginary){
+		this.real = real;
+		this.imaginary = imaginary;
+	}
+	
+	// resto dos métodos da classe
+	
+}			
+			]]></source>
+			<p>
+			Para cria um número complexo são precisos dois valores. Um para parte real e outro para a parte imaginária.
+			Contudo esses valores podem ser dados em forma geométrica ou em forma polar. Apenas usando construtores seria 
+			impossível determinar qual a forma que o programador está usado. Além de que não é possível criar dois construtores 
+			com o mesmo numero e tipo de parâmetros.
+			</p>
+			<source language="java" legend="Código impossível"><![CDATA[
+// atenção: este código não compila
+public class Complex{
+   
+     public Complex(double real, double imaginary){
+     	//constroi de um jeito 
+     	...
+     }
+	
+	 public Complex(double angle, double phase){
+	 	// constrói de outro
+		...
+	 }
+}
+			]]></source>
+			<p>
+			O uso de <pattern>Static Factory Method</pattern> possibilita ainda poder fazer cache dos valores ou retornar
+			valores constantes. Podemos ver esta técnica sendo usada com <code>ONE</code>, <code>ZERO</code> e <code>I</code>.
+			</p>
+			<p>
+			Note ainda que os métodos de construção podem ter ou não ter parâmetros.
+			</p>
+		</section>
+		<section name="Discussão">
+			<p>
+			O padrão <pattern>Static Factory Method</pattern> é, em geral, uma alternativa melhor ao uso de construtores. Permite
+			criar os objetos sem expor a forma de criação ou carecer do uso do operador <keyword>new</keyword>.
+			</p>
+			<p>
+			Além disso permite que modifiquemos a forma de criação ou incluamos mecanismos de <emph>cache</emph>.
+			</p>
+		</section>
+		<section name="Exemplos na API padrão" >
+			<p>
+			Existem muitos exemplos na API padrão do uso de <pattern>Static Factory Method</pattern> principalmente
+			nos objetos <estrang>wrapper</estrang> como <class name="java.lang.Integer">Integer</class> e <class name="java.lang.BigDecimal">BigDecimal</class>
+			nos métodos <code>valueOf</code>. No caso de <class>Integer</class> existe até um mecanismo de <emph>cache</emph> de valores
+			que auxiliar a aumentar a performance das operações de <estrang>auto-boxing</estrang>.  
+			</p>
+			<p>
+			As classes <class name="java.util.Calendar" >Calendar</class> e <class name="java.util.Locale">Locale</class>
+			também fazem uso de <pattern>Static Factory Method</pattern> nos métodos <code>getInstance</code>.
+			</p>
+			<p>
+			A partir do Java 5 foi incluída a funcionalidade de Enumerações. Todas as enumerações contam com métodos
+			<code>valueOf()</code> que são implementações de <pattern>Static Factory Method</pattern>.
+			</p>
+			<p>
+			Finalmente, um caso mais interessante do uso de <pattern>Static Factory Method</pattern> é o método <code>valueOf</code>
+			da classe <class name="java.lang.Boolean">Boolean</class>. Este método apenas retorna <code>Boolean.TRUE</code> ou 
+			<code>Boolean.TRUE</code> e a única coisa que ele faz é decidir qual, algo assim:
+			</p>
+			<source language="java">
+			public Boolean valueOf(boolean value){
+				return value ? Boolean.TRUE : Boolean.FALSE;
+			}
+			</source>
+			<p>
+			Este método parece que vai criar um objeto, mas na realidade não o faz. Utilizar este método em vez de <code>new Boolean(value)</code>
+			preserva a JVM de ficar criando e destruindo um monte de objetos iguais melhorando a performance da aplicação e demonstra perfeitamente
+			que o uso de <pattern>Static Factory Method</pattern> não está apenas vinculado ao ato de criar, mas principalmente ao ato de simular
+			a criação.
+			</p>
+			<p>
+			O  uso de <pattern>Static Factory Method</pattern> nas classes <emph>wrapper</emph> na biblioteca padrão foram adicionados vários anos depois da criação
+			original das classes. Isto significa que nunca poderemos tornar os construtores privados e força o deixa possível que os métodos criadores que contém otimizações
+			de performance e <estrang>cache</estrang> não sejam usados. Este é um exemplo de porquê devemos sempre presar pelo encapsulamento de decisões, especialmente a decisão 
+			de instanciação. 
+			</p>
+		</section>
+		<section name="Padrões associados">
+			<p>
+			Como o próprio nome indica <pattern>Static Factory Method</pattern> é uma derivação do padrão <pattern>Factory Method</pattern> onde o fator
+			da herança e polimorfismo das fábricas é removido.
+			</p>
+			<p>
+			<pattern>Static Factory Method</pattern> pode ser associada a qualquer tipo de objeto, mas é normalmente mais usual vê-lo associado a
+			objetos que também são instâncias de <pattern>Value Object</pattern> ou <pattern>Singleton</pattern>.
+			</p>
+			
+		</section>
+	</body>
+
+</document>

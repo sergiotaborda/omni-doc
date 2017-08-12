@@ -1,0 +1,148 @@
+[*Service Locator*]
+
+
+[h2]Objetivo[/h2]
+			Localizar a implementação de um serviço.
+			
+[h2]Propósito[/h2]
+			Em aplicações orientadas a serviços ou que de outra forma utilizam o padrão [pattern]Service[/pattern] é necessários encontrarmos a implementação de 
+			um determinado contrato. Especialmente quando a implementação desse serviço existe remotamente.
+			
+			Nos primórdios da tecnologia JEE, antes da versão EJB 3.0 que inclui a Injeção de Dependência era necessário localizar a implementação de um
+			serviço manualmente. Como isto era comum, nasceu o padrão Service Locator. Hoje em dia ele é menos utilizado esplicitamente, mas ainda é muito usado
+			em código de infa-estrutura. 
+			
+			O objetivo principal é encapsular a localização fisica do so serviço real que implementa o contrato (interface) que queremos. Se o processo de procura
+			for demorado, muitas vezes o service locator tem também um papel de cache. O service locator não apenas esconde a localização fisica como a tecnologia 
+			de implementação sendo comum o uso do padrão [pattern]Proxy[/pattern] para implementar serviços remotos. 
+			
+[h2]Implementação[/h2]
+			O objecto service locator é simples e vem em dois sabores. O primeiro é o service locator especifico. Cada método deste objeto
+			serve para encontrar um serviço diferente.
+			
+[code=java]
+
+
+public class ServiceLocator {
+
+	public AccountTransferService revolveAccountTransferService(){
+		...
+	}
+	
+	public TaxCalculationService revolveTaxCalculationService() {
+		...
+	}
+	
+	public OrderService revolveOrderService() {
+		...
+	}
+
+	...
+}		
+			
+[/code]
+	
+			Esta forma de implementação é direta e estabelece que cada serviço terá um método "resolve" associado. É possivel usar o prefixo "get", mas deve ser evitado
+			já que o Service Locator não é um [pattern=property-bag]Bean[/pattern]. Esta forma é fortemente tipada e era ideal na era pré-generics já que a alternativa 
+			era usar [e]cast[/e] explicito toda a vez que fizessemos a chamada.
+			
+			A outra forma de implementação, mais comum, passa por entender que sempre existe uma interface associada ao serviço. Em Java isso significa que existe sempre uma
+			interface associada. Então podemos usar a própria classe como chave para encontrar a implementação. Com o uso de generics, isso fica ainda mais fácil.
+			
+[code=java]
+
+
+public class ServiceLocator {
+
+	public <I> I revolveService(Class<I> serviceContratInterface){
+		...
+	}
+	
+}		
+			
+[/code]
+	
+			É possivel incrementar este mecanismo estabelecendo que a interface deve implementar alguma outra interface padrão (normalmente chamada [icode]Service[/icode])
+			para que não seja possivel usar qualquer tipo de interface Java. Imagine a confusão ao tentar usa [icode]CharSequence[/icode], ou até mesmo [class]java.sql.Connection[/class] como interface.
+			
+			Mas como o Service Locator realmente localiza a implementação ? Depende do contexto em que estiver aplicando o padrão e de onde estiverem as implementações reais.
+			Seja como for, o serviço está localizado em algum tipo de registro (padrão [pattern]Registry[/pattern]).
+			No mundo JEE é comum que a implementação esteja registrada usando JNDI, que é uma forma de Naming Directory. Mas um simples [icode]Map[/icode] pode ser suficiente.
+			
+[code=java]
+
+
+public class MapServiceLocator {
+
+	Map<String, Object > services = new HashMap<String, Object>();
+	
+	public <I> I revolveService(Class<I> serviceContratInterface){
+		
+		Object service = services.get(serviceContratInterface.getName());
+		
+		if (service == null){
+			throw new ServiceNotFoundException(serviceContratInterface);
+		}
+		
+		return serviceContratInterface.cast(service);
+	}
+	
+	public void addService(Class<I> serviceContratInterface , I implementation){
+		
+		services.put(serviceContratInterface.getName(), implementation);
+		
+	}
+	
+}		
+			
+[/code]
+	
+			Adicionamos um método em que possamos registrar o serviço. Neste caso, "fazer o registro" significa colocar o nome da interface e o objeto em um mapa. Não é recomendável colocar um objeto [icode]Class[/icode]
+			como chave de um Map, por isso usamos o nome completamente qualificado da classe, que é único. A recuperação do serviço é simples, basta consultar no mapa. Pode não parece à primeira vista, mas este é o mecanismo
+			básico por detrás de qualquer mecanismo de auto-injeção de dependencias. 
+			
+[h2]Localizando com parametros[/h2]
+			Normalmente um service locator que se baseia unicamente no contrato do serviço é suficiente para muitas aplicações e casos, contudo, não é suficiente em geral. Porque existem muitas implementações possiveis 
+			para o mesmo contrato e porque cada uma delas terá alguma vantagem ou caracteristica especifica em que estamos interessados, pode ser necessário utilizarmos algums parametros na nossa pesquisa. A interface 
+			do Service Locator seria então, algo como :
+			
+[code=java]
+
+
+public class ServiceLocator {
+
+	public <I> I revolveService(Class<I> serviceContratInterface, Map<String, String> params){
+		...
+	}
+	
+}		
+			
+[/code]
+	
+			Imagine que queriamos encontrar a implementação de [icode]GeoLocalizationService[/icode] que é um serviço que descobre as coordenadas geográficas dado um endereço, e vice-versa. Várias implementações
+			são possiveis. Algumas usarão serviços de terceiros que poderão ser pagos. Falando de geolocalização um parametro importante é a precisão. Além disso podemos querer saber a altitude ou apenas a longitude e latitude.
+			Para um mesmo contrato temos parametros para a implementação custo, precisão e o uso da altitude. Poderiamos usar um serviço grátis com menos precisão e que não nos dá a altitude para a maioria das aplicações,
+			mas provavelmente teriamos alguns erros nas entregas e talvez valessem investir em um serviço pago quando estivermos trabalhando em areas mais densamente populadas.
+			
+			Veja que este parametros que estamos passando ao locator não servem para o uso do serviço em si mesmo, mas para localizar o serviço. Poderiamos usar esta mesma tecnica para destinguir entre implementações 
+			locais ou remotas ou entre usar JNDI ou Webservices. A implementação deste tipo de localizadores é um pouco mais complexa, porque além de registar as propriedades das implementações, temos que criar algorimos de pesquisa
+			que não simples mapas chave-valor.
+			
+[h2]Discussão[/h2]
+			O padrão Service Locator é realmente muito utilizado e assume um papel centrar sempre que falamos em serviços ou implementações do padrão [pattern]Service[/pattern]. 
+			Este padrão desempenhou um papel essencial nos sistemas JEE de antigamente e desempenha um papel fundamental nos motores de injeção de hoje em dia. Mesmo debaixo dos panos, ele está ainda presente.
+			Ele é presente também API da JME onde várias implementações são possiveies para o mesmo serviço ( o serviço de localização é um exemplo).
+			
+			A localização com parametro é a implementação completa do padrão e é usada em tencologias como Jini (um mecanismo distribuido de serviços) e na Print API da JSE. A localização com parametros
+			está também presente na implementação de motores de injeção e torna possivel qualificar as implementações com propriedade ligeiramente diferentes e depois especificar qual delas queremos injetar. 
+			
+[h2]Exemplos na API padrão[/h2]
+			A Java Print Service API (JPS) define a classe [class]PrintServiceLookup[/class] que permite localizar implementações de [class]PrintService[/class]. Este é um exemplo direto do uso de um Service Locator que permite 
+			localizar por parametros. No caso da JPS os parametros são um objeto [class]DocFlavor[/class] e um objeto [class]PrintRequestAttributeSet[/class].
+			
+[h2]Padrões relacionados[/h2]
+			Obviamente o padrão Service Locator está relacionado ao padrão [pattern]Service[/pattern] já que serve essencialmente para fazer a ponte entre o contrato publico e a implementação particular.
+			Esté relacionado ao padrão [pattern]Registry[/pattern] que pode ser usado como forma centralizada de registrar os serviços e usado pelo serviço locator para encontrar qual implementação vai com qual interface.
+			O padrão [pattern]Proxy[/pattern] pode ser usado para conectar com implementações remotas ou para criar implementações especiais que mudam de servidor ou de implementação do serviço. Por exemplo, implementações que 
+			delegam as chamadas a pontos remotos diferentes com base em estado de rede ou outras métricas ou que mudarm de servidor quando o servidor que estava sendo usado deixou de responder.
+			

@@ -1,0 +1,243 @@
+[*MoneyBag*]
+
+
+[h2]Objetivo[/h2]
+			Permitir manipular quantidades monetárias em diversas moedas sem recorrer a conversão.
+			
+[h2]Propósito[/h2]
+			O padrão Money Bag (Bolsa de dinheiro) é uma extensão do padrão [pattern]Money[/pattern] (Dinheiro). 
+			O padrão Money é principalmente útil quando trabalhamos com uma única moeda ou 
+			multiplas moedas mas elas não podem interagir directamente. Por exemplo, não 
+			podemos somar euros com dollars. Contudo em certas circunstâncias é mais simples 
+			permitir que haja esse agrupamento porque não queremos converter para uma moeda única.
+			
+			A aplicação trabalha intensamente com valores monetários e é necessário operar 
+			sobre valores expressos em moedas diferentes. Usar o padrão [pattern]Money[/pattern] ajuda, mas 
+			obriga a converter tudo para uma certa moeda base antes de prosseguir. Isto implica em
+			obter uma taxa de conversão e perder os valores originais em cada moeda. No caso
+			em que não podemos, ou não queremos, fazer a conversão, mas mesmo assim queremos ter
+			apenas um objeto contento todo o valor monetário, temos um problema.
+			
+			A solução passa por usar um objeto do mesmo tipo que [pattern]Money[/pattern] que possa comportar 
+			vários valores em moedas diferentes. Para usar Money Bag é necessário que se use o 
+			padrão [pattern]Money[/pattern] para começar já que todos os [icode]Money Bag[/icode] são também [pattern]Money[/pattern].
+			
+			Criamos uma classe do tipo [class]MoneyBag[/class] e fazemos uma implementação 
+			equivalente à de [pattern]Money[/pattern]. A diferença é que nas operações 
+			aritméticas deixaremos que a operação de soma e subtração aconteça mesmo quandos 
+			os objetos não têm a mesma moeda.Teremos, então, duas classes: Money que guarda apenas um valor e uma moeda e MoneyBag que guarda vários valores e várias moedas.
+			
+			MoneyBag usará, internamente, objetos implementado o padrão [pattern]Money[/pattern] para manter
+			referencia aos valores em cada moeda.
+			
+[h2]Implementação[/h2]
+			A implementação é relativamente simples. Fazemos [class]MoneyBag[/class] herdar 
+			[class]Money[/class] e alteramos as operações aritméticas de soma e subtração. 
+			Teremos que adicionar um método simplify() para que possamos reduzir um 
+			MoneyBag a um Money quando isso for possivel, ou seja, quando MoneyBag contiver o 
+			valor de apenas uma moeda.
+			
+			A implementação a seguir de [icode]Money[/icode] mostra apenas as alterações que seriam necessárias
+			à classe [icode]Money[/icode] exemplificada no padrão [pattern]Money[/pattern]. Note-se
+			que escolhemos modificar a forma como as operações são feitas de forma que haja integração
+			entre [icode]Money[/icode] e [icode]MoneyBag[/icode].
+			
+[code=java]
+
+public class Money {
+
+	protected Money (){
+	
+	}
+	
+	public Money plus ( Money other ){
+		// usamos o mecanismo de moneyBag porque é generico. Isso evita usar ifs
+		return new MoneyBag ().plus( this ).plus ( other ).simplify () ;
+	}
+
+	public Money subtract ( Money other ){
+		return new MoneyBag () .plus ( this ) .subtract ( other ) .simplify () ;
+	}
+
+	public Money negate (){
+		return new Money ( -amount, currency ) ;
+	}
+	
+		// nivel de pacote
+	Money getAmount ( Currency currency ){
+		if ( currency.equals ( this.currency )){
+			return this;
+		}
+	 	return new Money(0, currency) ;
+	}
+
+	public Money simplify (){
+		return this ;
+	}
+}
+
+[/code]
+	
+[code=java]
+
+public class MoneyBag extends Money {
+
+	private Map< Currency, Money > bag = new HashMap< Currency, Money >();
+	
+	private MoneyBag copy(MoneyBag other){
+		MoneyBag m = new MoneyBag();
+		m.bag.putAll(other.bag);
+		return m; 
+	}
+	
+	public Money plus ( Money other ){
+		Money bagAmount = this.getAmount ( other.getCurrency ()) ;
+		Money otherAmount = other.getAmount ( other.getCurrency ()) ;
+		Money total = bagAmount.plus(otherAmount);
+		
+		MoneyBag result = MoneyBag.copy(this);
+		result.bag.put ( other.getCurrency () ,  total ) ;
+		
+	}
+
+	public Money subtract ( Money other ){
+		return this.plus ( other.negate ()) ;
+	}
+
+	Money getAmount ( Currency c ){
+		Money amount = bag.get ( other.getCurrency ()) ;
+		if ( amount == null ){
+			return new Money(0, c) ;
+		}
+		
+		return amount;
+	}
+	
+	public Currency getCurrency(){
+		if ( bag.size () > 1 ){
+			return new MultipleCurrency(bag.keySet());
+		} else {
+			return bag.keySet().iterator().next();
+		}
+	}
+
+	public Money simplify (){
+		if ( bag.size () == 1 ){
+			Map.Entry entry = ( Map.Entry ) bag.entrySet () .iterator.next () ;
+			return new Money ( entry.getValue () , entry.getKey ()) ;
+		} else {
+			return this ;
+		}
+	}
+}
+
+[/code]
+	
+Esta é uma das muitas implementações possiveis. Escolhemos fazer moneyBag um objeto imutável
+o que significa que a cada alteração temos que criar um objeto novo. Assim mantemos a coerencia 
+com a imutabilidade da implementação padrão de [icode]Money[/icode].O ponto importante aqui é 
+que MoneyBar contenha um conjunto de pares moeda-valor. 
+
+O objeto [icode]MoneyBag[/icode] é na realidade um objeto [icode]Money[/icode] também. Isto implica
+que [icode]MoneyBag[/icode] tem uma moeda associada. Mas na realidade ele tem várias. Por isso, ele retorna
+uma instancia de [icode]MultipleCurrency[/icode] sendo que só retorna uma única moeda quando apenas uma existe.
+Vejamos como seria a implementação desta classe:
+
+[code=java]
+
+public class MultipleCurrency extends Currency {
+
+   private Set<Currency< currencies;
+   private int hashCode;
+   
+   public MultipleCurrency(Set<Currency< currencies){
+   		this.currencies = currencies;
+   		this.hashCode = Hash.hash(currencies);
+   }
+
+   public boolean equals(Object other){
+   	  return other instanceof MultipleCurrency && equalsMultipleCurrency((MultipleCurrency)other);
+   } 
+   
+    public boolean equals(MultipleCurrency other){
+   	  return CollectionUtils.isContentEqual(this.currencies, other.currencies);
+   } 
+   
+   public int hashCode(){
+   	 return hashCode;
+   }
+   
+}
+
+[/code]
+	
+Usamos os objetos auxiliares [icode]Hash[/icode] que calcula o hash de uma coleção 
+e [icode]CollectionUtils[/icode] que verifica se os objetos dentro do [icode]Set[/icode]
+são iguais independentemente da ordem. O [icode]hashCode[/icode] é calculado apenas uma vez, já que
+a coleção de moedas não será modificada.
+
+Repare que nunca uma [icode]MultipleCurrency[/icode] será igual a uma outra [icode]Currency[/icode].
+
+[h3]Conversões[/h3]
+				Se estamos trabalhando com várias moedas provávelmente estamos trabalhando 
+				também com conversões. Se existir um serviço de conversão disponivel podemos 
+				implementar um método [icode]reduce()[/icode] que força que as conversões 
+				aconteçam e seja retornado um único valor numa única moeda.
+				
+				Este método pode ser usado no final dos calculos ou quando não podemos continuar os
+				calculos sem fazer a conversão.
+				
+[code=java]
+
+public Money reduce ( Date date, ConvertionService converter, Currency currency ){
+
+	Money res = Money.valueOf ( "0.00", currency ) ;
+	
+	for ( Map.Entry entry : bag ){
+		Money money = entry.getValue ()) ;
+		res = res.plus ( converter.convert ( date, money, currency )) ;
+	}
+	return res;
+
+}
+				
+[/code]
+	
+[h2]Discussão[/h2]
+			Em termos práticos fazer MoneyBag herdar directamente de Money pode ser um problema.
+			Algumas operações de [icode]Money[/icode] como a distribuição são complexa se implementadas
+			com MoneyBag e realmente não fazem muito sentido para este tipo de objeto.
+			
+			Precisamos manter uma certa compabilidade com [icode]Money[/icode] sem forçar
+			que [icode]MoneyBag[/icode] implemente todos os seus métodos.O padrão [pattern]Composite Object[/pattern]
+			pode ajudar.
+			 
+			Usado [pattern]Composite Object[/pattern]  podemos modelar uma interface comum 
+			aos dois tipos de objeto e construir implementações independentes mando comuns apenas
+			as operações comuns.
+			
+[code=java]
+
+public interface MoneyValue {
+
+	public MoneyValue plus ( MoneyValue other ) ;
+	public MoneyValue subtract ( MoneyValue other ) ;
+	public MoneyValue negate () ;
+	public MoneyValue simplify () ;
+	public Money reduce ( Date date, ConvertionService converter, Currency currency ) ;
+}
+			
+[/code]
+	
+			No  método [icode]reduce()[/icode] o retorno é concerteza de um só tipo de moeda. 
+			Por isso o retorno é garantidamente do tipo [icode]Money[/icode]. 
+			
+			Uma outra opção menos complexa é não estabelecer nenhuma relação entre as classes 
+			[icode]MoneyBag[/icode] e [icode]Money[/icode] deixando o programador escolher entre usar um 
+			ou outro. 
+			
+[h2]Padrões associados[/h2]
+			O padrão [pattern]MoneyBag[/pattern] está associado ao padrão [pattern]Money[/pattern]
+			e ao padrão [pattern]Composite Object[/pattern] pois ele é, basicamente, a composição de objetos [pattern]Money[/pattern]
+			de moedas diferentes.
+			

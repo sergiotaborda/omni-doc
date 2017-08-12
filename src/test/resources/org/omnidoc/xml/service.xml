@@ -1,0 +1,133 @@
+<document>
+
+	<properties>
+		<title>Service</title>
+		
+	</properties>
+	
+	<pattern-catalogs>
+	
+	</pattern-catalogs>
+		
+	<related-patterns>
+		<name>DAO</name>
+		<name>Service Locator</name>
+		<name>Registry</name>
+		<name>Proxy</name>
+	</related-patterns>
+	
+	<body>
+		<section name="Objetivo">
+			<p>
+			Estabelecer um contrato implementável de diferentes formas.
+			</p>
+		</section>
+		<section name="Propósito" >
+			<p>
+			Em uma aplicação é comum centralizarmos as mecanicas que são aplicadas aos dados de forma independente dos dados. 
+			No passado fizemos isto com rotinas, procedimentos e funções. Passamos alguns parametros e esperamos algum resultado; explicita (funções) 
+			ou implicitamente (rotinas). Nos dias de hoje com a Orientação a Objetos fazemos o mesmo utilizando métodos.  
+			</p>
+			<p>
+			Tradicionalmente os métodos produzem resultados sobre os dados do objeto a que estão associados, mas nem sempre assim é.
+			Um método que calcule a soma de dois numeros irá retornar um resultado em que nada altera os numeros originais. Diferenciamos o que chamamos de 
+			objeto sem estado (<estrang>stateless</estrang>) e objeto com estado (<estrang>statefull</estrang>).
+			</p>
+			<p>
+			Serviços são objetos que produzem resultados (como calculos) ou mudanças no estado da aplicação, por exemplo guardando dados em um banco de dados.
+			Contudo um serviço é um pouco mais que simples métodos que fazem coisas. Serviços , como no mundo real, sao definidos através de contratos assinados 
+			por duas ou mais partes.
+			</p>
+			<p>
+			O propósito do padrão Service é definir separadamente o contrato do serviço e o provedor do serviço ( a implementação). Desta forma, diveros e diferentes 
+			formas de prover o mesmo serviço podem ser realizadas sem modificar o contrato. Com isto, o implementador pode modificar a sua implementação
+			sem que o cliente (que usa o serviço) tenha que modificar as suas invocações.
+			</p>
+		</section>
+
+		<section name="Implementação" >
+			<figure legend="Ilustração 1: Diagrama UML representativo do padrão Service" >
+				<img src="service.png" />
+			</figure>
+			<p>
+			A implementação de um serviço tem duas fases. A primeira é definir o contrato. A segunda, definir a implementação.
+			A primeira fase passa por definir uma simples interfaces. O quê o serviço pode fazer, quais argumentos necessita
+			e quais resultados produz e que exceções podem acontecer. Em java isto é conseguido com uma interface java onde são declarados os métodos
+			que é possivel invocar no serviço. A interface passa a ser um documento formal, onde inclusive a informação contida no javadoc deve ser seguida 
+			à risca.
+			</p>
+			<p>
+			A segunda fase é implementar a interface. Para isso basta criar um classe que implemente a interface e implemente cada método da forma acordada na interface.
+			Multiplas implementações do mesmo serviço podem ser feitas, com propositos diferentes para acomudar diferentes necessidades. Por exemplo, podemos pensar em um serviço de cache
+			com uma implementação que mantém tudo em memoria e uma outra é suficiente esperta para passivar (mover da memoria para o disco) os dados quando necessário.
+			</p>
+		</section>
+		<section name="Web Services">
+			<p>
+			A parte mais importante de um Serviço é que ele possa ser acessado pelo seu contrato. Em teoria não importaria com que tecnologia esse contrato
+			é implementado. É claro, que na prática, isso é uma limitação. Estabelecer o contrato com uma interface Java significa que nenhuma outra tecnologia pode
+			ter acesso a ele, já que uma interface java só funciona em uma JVM. 
+			</p>
+			<p>
+			O assunto de prover contratos "universais" é antigo e várias soluções foram encontradas ao longo dos anos. Tecnologias como CORBA e SOAP são duas expressões
+			das tentativas de desacoplar a definição do contrato, da representação fisica do contrato. Atualmente o padrão de web services que se utiliza do protocolo HTTP
+			para prover comunicação fisica e de um segundo padrão de dados como XML ou JSON para prover a logica entre dois extremos do servico é a mais bem sucessida e amplamente utilizada.
+			</p>
+			<p>
+			Com a facilidade de uso de Serviços e a facilidade de compor serviços utilizando serviços "menores", trouxe a ideia de arquitaturas orientadas a serviços (SOA).
+			SOA não é sobre usar web services com SOAP e XML é sobre usar serviços com contratos agnósticos em que se inclui aqueles definidos com SOAP e XML , mas também os definidos com 
+			interfaces java ou .net ou qualquer outra tecnologia. 
+			</p>
+		</section>
+		<section name="EJB" >
+			<p>
+			No mundo java, não precisamos ir muito longe para encontra exemplos do uso de serviços e SOA. Toda a especificação EJB é baseada em serviços.
+			Os chamados <estrang>Stateless Enterprise Java Beans</estrang> e <estrang>Statefull Enterprise Java Beans</estrang> são exemplos claros de serviços em java
+			e a especificação JEE nada mais é do que um sabor especifico de SOA. 
+			</p>
+			<p>
+			EJB Statless de serviço criados em ambiente JEE podem ser fácilmente publicados como web services SOAP e portanto utilizados por outras plataformas.
+			</p>
+		</section>
+		<section name="DAO" >
+			<p>
+			O padrão <pattern>DAO</pattern>(Data Acess Object) é também uma especialização do padrão Service fornecendo mecanismos para encontrar dados em algum repositorio de 
+			dados. É por isso que uma DAO sempre é criado por meio de uma interface + uma implementação.
+			</p>
+		</section>
+		<section name="Discussão">
+			<p>
+			Service é um dos padrões mais utilizamos no dia-a-dias de aplicações comerciais , escritas, ou não, para JEE, mas do que somos menos conscientes.
+			Entender o conceito do padrão Service é fundamental para entender arquitetura de sistemas corporativos e de larga escala, já que os serviços são 
+			os componentes essenciais destas arquiteturas. Entender este conceito é também o primeiro passo para entender a importancia de padrões como <pattern>Proxy</pattern>
+			e tecnicas como AOP (Aspect Oriented Programming).
+			</p>
+			<p>
+			Por outro lado, não é toda a implementação com uma interface que é um serviço. Um componente vital para que algo seja considerado um serviço é o contrato, 
+			e o contrato tem que ser formal para que interface+implementação sejam instancias de um serviço.
+			</p>
+		</section>
+		<section name="Padrões associados">
+			<p>
+			Service se relaciona a muitos outros padrões. O primeiro passo para usar um serviço é encontrar um implementação que possamos usar, isso nos remete para
+			o padrão <pattern>Service Locator</pattern> que permite encapsular a logica de procura da implementação. A opção de encontrar a implementação do serviço
+			em uma máquina diferente daquela onde o queremos usar é muito grande e isso nos leva ao uso do padrão <pattern>Proxy</pattern> que permite esconder
+			todos os truques tecnicos para invocar o serviço remotamente ( com ou sem web services).
+			</p>
+			<p>
+			As implementações do serviço são normalmente registradas em algum ponto centralizado onde o <pattern>Service Locator</pattern> as possa encontrar. Isto nos remete
+			ao uso de <pattern>Registry</pattern>.
+			</p>
+			<p>
+			É possivel criar serviços compondo outros serviços já previamentes existentes. Isso é normalmente feito com um serviço que simplifica as chamadas e 
+			trata o fluxo de invocar os diferentes serviços compostos. O padrão <pattern ref="service-facade">Service Façade</pattern> ( mais conhecido apena como Façade) é utilizado para esta composição.
+			</p>
+			<p>
+			Finalmente, o padrão Service é o padrão por detrás da origem dos famosos <pattern>DAO</pattern>s. Um DAO nada mais é que um serviço especializado
+			em trabalhar com dados. As mesmas regras que se aplicam a serviços se aplicam a DAOs, contudo, por motivos historicos e de tradição algumas restrições são feitas
+			como por exemplo o uso remoto. 
+			</p>
+		</section>
+	</body>
+
+</document>

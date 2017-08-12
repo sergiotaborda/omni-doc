@@ -1,0 +1,326 @@
+[*Trabalhando com datas em Java*]
+
+
+[h2]Introdução[h2]
+			A forma padrão de trabalhar com datas em Java pode parecer complexa. Existem vários detalhes que 
+			fogem ao entendimento e ao dia-a-dia da maioria dos desenvolvedores. Mas estes detalhes estão relacionados ao domínio 
+			do problema que é trabalhar com datas.
+			
+[h3]O que é tempo ?[/h3]
+				A definição de Tempo não é simples, mas uma definição operacional de tempo seria: 
+				a duração da repetição de um numero finito de ciclos de um evento. O conceito está intimamente
+				conectado ao conceito de ciclo e não é possível defini-lo sem ele, contudo, podemos também 
+				entendemos o tempo como a sucessão linear de eventos.
+				
+				Sendo o tempo a sucessão linear de eventos, gostaríamos que poder ordenar esses eventos
+				conforma a ordem em que se sucedem. Para isso inventá-mos o conceito de tempo de referencia 
+				e unidade temporal ( como o segundo). Porque todas as medições que podemos fazer são apenas de intervalos
+				precisamos considerar um evento comum com o qual comparar todos os intervalos. Este evento marca uma época,
+				e várias épocas são apenas formas diferentes de referencia para os intervalos de tempo. Contudo, valores
+				de intervalos são absolutos e iguais em todas as épocas.
+				
+				Toda a medição do tempo do passar do tempo é delegada a um relógio e em computação não poderia ser diferente.
+				Todos os computadores modernos têm um relógio interno que conta o passar do tempo mesmo quando o computador 
+				está desligado e á forma de sabermos que horas são. Note-se que este relógio é um relógio universal, ou seja, 
+				ele acumula intervalos de tempo a partir de uma certa época (conhecida pelo fabricante do relógio).
+				
+[h3]O que é uma data ?[/h3]
+				Para entender o que é uma data, precisamos primeiro entender o que é um calendário. 
+				Um calendário é um conjunto de regras que determinam como as datas mudam e como nomear as datas.
+				em particular os calendários permitem converter tempo universal para datas e horas nesse calendário.
+				Uma data é um marca no calendário para um evento. 
+				
+				Datas podem apenas, portanto, ser definidas com base em um calendário. Várias culturas definiram seus calendários e
+				muitos deles persistem até hoje. Para evitar confusão e permitir que pessoas com culturas diferentes cheguem a um acordo
+				sobre quanto se encontrar para um evento, a norma ISO estabelece um calendário especial baseado no [wiki={@lang};{@key}]Calendário Gregoriano[/wiki]. 
+				que define a época numa data hipotética para o nascimento de Cristo calculada a partir de eventos astronômicos e uma matemática 
+				avançada que leva em consideração os períodos de translação da lua e da terra.
+				
+				Uma data é normalmente um conjunto de três números ordinais: o dia, o mês e o ano. Porque são números ordinais nenhum deles é nunca zero.
+				A data 1/1/1970 representa o primeiro dia, do primeiro mês do milésimo nono-centésimo septuagésimo dia do calendário.
+				
+				As regras de como esses números aumentam não é igual para todos os calendários. Normalmente o ordinal do dia é ligado ao passar de um dia e uma noite, ou seja
+				a rotação completa da Terra em torno do seu eixo. O ordinal do mês aumenta quando o numero de dias do mês anterior chega num certo máximo. O numero de ano aumenta
+				quando o numero de dias do ultimo mês aumenta além de um certo máximo. No calendário Gregoriano existem 12 meses com números de dias variando entre 28 e 31.
+				No [wiki={@lang};{@key}]Calendário Hebraico[/wiki], por exemplo, o numero de meses é variável podendo chegar a 13. 
+				
+				Em java o objeto [class]Calendar[/class] define o calendário a ser usado. O calendário a ser usado é determinado conforme
+				a localização da JVM (ver [class]Locale[/class]), ou seja, depende do pais para o qual a JVM está configurada.
+				Java conta ainda com a classe [class]Date[/class] que foi originalmente usada para trabalha com datas e converter datas de e para [icode]String[/icode]
+				Contudo esta classe não foi desenhada num modelo internacionalizável (não tem o conceito de calendário) servindo hoje apenas como um [pattern]Value Object[/pattern], ou tipo forte
+				para datas.  
+				
+[h2]Tempo universal[h2]
+				Em java, o valor do relógio interno do computador pode ser acessado pelo método [icode]System.currentTimeMillis()[/icode]
+				que retorna num tipo [icode]long[/icode] o número de milisegundos contados a partir de 1 de Janeiro de 1970. 
+				Esta data é o ponto de referencia para a época usada pelo java, que é a mesma usada pelo Linux. 
+				
+				O valor em milisegundos se deve à exatidão com que o relógio interno funciona. Alguns sistemas funcionam adicionado 
+				10 centésimos de segundo a cada ciclo, enquanto outros têm ciclos maiores ou menores. Isto significa que invocar o método
+				[icode]System.currentTimeMillis()[/icode] em sequência pode fornecer o mesmo valor, dando a impressão que nenhum tempo passou, o que 
+				obviamente não é verdade.
+				
+				O valor dado por [icode]System.currentTimeMillis()[/icode] é o tempo universal passado desde 1 de Janeiro de 1970 à meia-noite. Isto
+				significa que é o tempo equivalente a aquele medido por um relógio que estivesse sobre o meridiano de Greenwich. 
+				Tempos medidos por relógios  nestas condições são chamados tempos GMT (Greenwich  Mean Time) ou Tempo Médio de Greenwich. 
+				Sendo que Greenwich é uma localização na Inglaterra, um padrão subsequente da ISO modificou o nome para UT (Universal Time). 
+				É apenas uma alteração de nome já que a forma de medida é a mesma. Contudo, esta forma de medição do passar do tempo é baseada em eventos astronômicos.  
+				
+				Quando se decidiu medir o tempo por relógios atômicos houve a necessidade de criar um novo padrão de mensuração chamado UTC,Tempo Universal Coordenado.
+				A diferença é que de vez em quando é necessário acrescentar um segundo aos relógio UT para que marquem o tempo correto igual aos relógios UTC.
+				
+				Os computadores contam o tempo em Tempo Universal contado na época Java (/Linux) que começa a 1 de Janeiro de 1970. Isto significa que todos
+				os computadores contam o mesmo tempo independentemente de onde estão.
+				
+[h2]Fuso horário[h2]
+				O Tempo Universal está relacionado com o movimento de rotação da terra, em particular relacionado ao movimento de rotação do meridiano de Greenwich.
+				Neste sistema, se for meio-dia em Greenwich todos os relógios em todo globo apontariam meio-dia. Obviamente este não é um sistema prático. Seria 
+				interessante se pudéssemos relacionar  meio-dia à elevação local do sol, e não à elevação do sol em Greenwich. Para isso se inventou o conceito de Fuso Horário.
+				
+				O Fuso Horário é um valor em horas que é adicionado à hora universal marcado por um relógio em Greenwich para obter a hora local.
+				Existem várias razões de por que usar um fuso horário: localização geográfica, razões políticas e razões econômicas.
+				
+[h3]Fuso Horario Geográfico[/h3]
+					O fuso horário geográfico é definido trignométricamente definindo que a Terra tem 360 graus que correspondem a 24h. Isso equivale a 15 graus por hora.
+					portanto, a cada 15 graus de latitude é formado um novo fuso horário. 
+					
+					O fuso horário geográfico não tem implicações na vida civil e é mais utilizado para observações astronômicas e náuticas.
+					
+					O fuso horário geográfico é escrito como a diferença horária em relação ao horário em Greenwich. O fuso horário geográfico em Greenwich é GMT+00h00 , o fuso horário a 15 graus dai seria GMT+01h00 a leste e 
+					GMT-01h00 a oeste de Greenwich.
+					
+[h3]Fuso Horario Politico[/h3]
+					Idealmente um mesmo pais está apenas sob um fuso horário. Isso significa que mesmo geograficamente afastado um certo território utiliza o fuso horário 
+					politicamente imposto que não é igual ao Fuso Horário Geográfico. Isso implica em observações bastante diferentes da altura do Sol à mesma hora 
+					apontada pelo relógio em pontos diferentes do território. 
+					
+					O Fuso Horário Politico é imposto apenas pela lei com o fim de demonstrar soberania num território. 
+					
+					O Fuso Horário Politico é designado pelo par continente/cidade em que normalmente a cidade é uma capital, Por exemplo America/Los_Angeles, America/Sao_Paulo ou Europe/Paris.
+					O Fuso Horário Politico pode ainda ser comum a uma região e nesse caso um sigla é usada para resignar essa região, como por exemplo CST, PST e AST. Contudo estas siglas são ambíguas
+					e não devem ser utilizadas.Por exemplo CST pode ser Central Standard Time, usado nos E.U.A, ou China Standard Time, usado na China.
+					
+[h3]Fuso Horario Económico e o Horário de Verão[/h3]
+					O Fuso Horario Económico é estabelecido por razões econômicas, normalmente relacionadas com o consumo de energia. Ao modificar o Fuso Horario Politico
+					para uma hora diferente num certo período do ano, o pais pode poupar a energia que seria utilizada nesse período. Este efeito é conseguido alterando o horário
+					de forma que o maior numero de horas de sol pode ser utilizado no dia-a-dia dos habitantes de forma a diminuir o consumo de energia elétrica.
+					
+					O novo horário é normalmente diferente do fuso horário político por um valor de uma hora a mais ou a mesmos e é estabelecido normalmente no Verão. Por esta razão ganhou o nome de Horário de Verão, contudo esta nomenclatura não é comum a todos os países.
+					Em inglês é conhecido como "Daylight saving time" (Período de economia de luz do dia). 
+					
+					O horário de verão não tem que ser imposto em todo o território do país e é imposto por lei, 
+					o que o torna um tipo especial do fuso horário político. 
+					
+					Porque o mecanismo de horário de verão está ligado ao Fuso Horario Politico não existe uma representação especial para ele.
+					
+				O Fuso Horario vigente em determinado período em determinado local é uma informação dinâmica já que é estabelecido com base em leis políticas.
+				Em java o fuso horário é controlado com base na classe [icode]TimeZone[/icode]. O java contém uma lista de fusos horários e suas validades
+				que é atualizadas durante as atualizações da plataforma ou através da [url={@href}]ferramenta de atualização[/url].				 
+				
+[h2]Cálculos com datas e tempos[h2]
+				Em java todos os calculos de datas e tempos devem ser mediados por [icode]Calendar[/icode], isto porque não podemos assumir nenhuma regra de calculo de forma explicita.
+				[icode]Calendar[/icode] é utilizada de forma semelhante a uma calculadora que encapsula como são feitos os cálculos. 
+				[icode]Calendar[/icode] é uma classe abstrata porque existem diferentes calendários que diferem em diversas formas e são usados por diferentes culturas
+				para diferentes objetivos. Além disso as classes [icode]Calendar[/icode] são mutáveis o que significa que temos que ter cuidado para não corromper dados alterando
+				o valor corrente do objeto.
+				
+				Os cálculos são simples e baseados no método [icode]add[/icode]. Este método tem dois parâmetros, o campo que queremos alterar, e o valor da alteração.
+				Este método é usado para aumentar o diminuir qualquer campo de uma data de forma coerente com o calendário.Eis alguns exemplos:
+				
+[code=java]
+
+Calendar now  = Calendar.getCalendar();// usamos o calendário local, seja ele qual for
+
+Calendar calendar =(Calendar) now.clone(); // cria uma copia para poder ser modificado
+
+calendar.add(Calendar.DATE, 1);// aumenta um dia				
+calendar.add(Calendar.MONTH, 2);// aumenta dois meses
+calendar.add(Calendar.HOUR_OF_DAY, 10);// aumenta dez horas		
+				
+[/code]
+	
+				Embora a classe [icode]Calendar[/icode] seja usada para cálculos ela não deve ser usada para transportar os valores de data e hora. A classe [icode]Date[/icode]
+				deve ser usada para isso. A justificação não está relacionada à mutabilidade - já que ambas são mutáveis, embora os métodos modificadores de [icode]Date[/icode] tenham
+				sido descontinuados ([e]deprecated[/e]). A justificação está no fato que [icode]Date[/icode] guarda o tempo no referencial universal, UT, enquanto que
+				[icode]Calendar[/icode] guarda num mecanismo dependente do calendário que por consequência depende da localização da JVM. Isso trás vários problemas, por exemplo, ao gravar num banco de dados.
+				
+				Se devemos usar a classe [icode]Date[/icode] para trafegar informações de data, mas temos que usar [icode]Calendar[/icode] para os cálculos se percebe que o modelo da API Java padrão para
+				datas deixa muito a desejar. Cabe a nós completar as lacunas.
+				
+				A opção mais correta é implementar o padrão [pattern]Value Object[/pattern] de uma forma coerente e desacoplada do calculador (do calendário). Esta abordagem foi seguida por API como a
+				Joda Time, Time e está sendo seguida pela especificação JSR-310 Date and Time API que é uma nova API de tempos e datas.
+				Contudo, veremos aqui como implementar uma classe de cálculos conceitualmente semelhante a [class]Math[/class]. 
+				
+[code=java]
+
+public class DateMath {
+
+   private DateMath(){} // classes utilitárias não são instanciáveis.
+
+   private static Calendar referenceCalendar = Calendar.getCalendar();
+	
+   public static void setReferenceCalendar(Calendar calendar){
+   		referenceCalendar = calendar;
+   } 
+	
+   public static Date today(){
+   		return new Date();
+   }
+   
+   public static Date tomorrow(){
+   		return nextDayAfter(today());
+   }
+   
+   public static Date yesterday(){
+   		return nextDayBefore(today());
+   }
+
+   public Date nextDayAfter(Date date){
+		return daysAfter(date, 1);
+   }
+   
+   public Date nextDayBefore(Date date){
+		return daysBefore(date, 1);
+   }
+   
+   public Date daysAfter(Date date, int numberOfDays){
+   		return calculateRelativeDateAfter(date, numberOfDays);
+   }
+   
+   public Date daysBefore(Date date, int numberOfDays){
+   		return calculateRelativeDateAfter(date, -numberOfDays);
+   }
+   
+   public boolean isBetween (Date date, Date start, Date end){
+   		return date.compareTo(start) >=0 || date.compareTo(end) <=0;
+   }
+   
+   public Date min (Date a, Date b){
+   		if (a.compareTo(b) > 0){
+   			return b;
+   		}
+   		
+   		return a;
+   }
+   
+   public Date max (Date a, Date b){
+   		if (a.compareTo(b) < 0){
+   			return b;
+   		}
+   		
+   		return a;
+   }
+   
+   public Date toDateOnly(Date date){
+   		// ignora informação de horas
+   		Calendar calendar = (Calendar) referenceCalendar.clone();
+   		calendar.setTime(date);
+   		
+   		calendar.clear(Calendar.HOUR_OF_DAY);
+   		calendar.clear(Calendar.MINUTE);
+   		calendar.clear(Calendar.SECOND);
+   		calendar.clear(Calendar.MILLISECOND);
+   		
+   		return calendar.getTime();
+   } 
+   
+   /**
+   * Calcula o número de dias entre duas datas. 
+   */
+   public int daysBetween(Date start, Date end){
+   
+   		if (start.compareTo(end) < 0){
+   			throw new IllegalArgumentException("Data inicial tem que ser maior ou igual à final");
+   		} else if (start.compareTo(end)==0){
+   			return 0; // É o mesmo dia. 
+   		}
+   		
+   		Calendar calendar = (Calendar) referenceCalendar.clone();
+   		calendar.setTime(toDateOnly(start));
+   		
+   		Date endDate = toDateOnly(end);
+   		
+   		int count =0;
+   		while (calendar.getTime().compareTo(endDate)!=0){
+   			calendar.add(Calendar.DATE, 1);
+   			count++;
+   		}
+   		
+   		return count;
+   }
+   
+   
+   private Date calculateRelativeDateAfter(Date date, int numberOfDays){
+   		if( numberOfDays ==0 ){
+   			return date;
+   		}
+   		
+   		Calendar calendar = (Calendar) referenceCalendar.clone();
+   		
+   		calendar.setTime(date);
+   		calendar.add(Calendar.DATE, numberOfDays);
+   		
+   		return calendar.getTime();
+   }
+   
+}
+				
+[/code]
+	
+				Esta classe pode ser melhorada e mais métodos podem ser acrescentados. Repare que isso torna esta classe muito pouco coesa.
+				É por isso que uma API dedicada é muito mais aconcelhável.
+				
+[h2]Formatando datas e horas[h2]
+				Um dos problemas mais comuns quando trabalhamos com datas e tempos é passar da representação em texto (String)
+				para a representação temporal (Date), ou seja, formatar datas. A forma padrão de fazer isto é usar um objeto 
+				da classe [class]Format[/class]
+				em particular um que derive de [class]DateFormat[/class],
+				 nomeadamente o [class]SimpleDateFormat[/class].
+				
+				Utilizar o [icode]SimpleDateFormat[/icode] é simples. Vemos a seguir alguns exemplos:
+				
+[code=java]
+
+SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+
+Date natalDe2012 = format.parse("25/12/2012"); 				
+Date inicioEpocaJava = format.parse("1/1/1970"); 	
+				
+System.out.println(format.format(natalDe2012)); // imprime 25/12/2010
+System.out.println(format.format(inicioEpocaJava)); // imprime 25/12/2010
+				
+[/code]
+	
+				O método [icode]parse[/icode] transforma objetos [icode]String[/icode]s em objetos [icode]Date[/icode] e o método [icode]format[/icode]
+				transforma objetos [icode]Date[/icode] em objetos[icode]String[/icode].
+				
+				O construtor de [icode]SimpleDateFormat[/icode] requer um template de como será o formato. As strings passadas ao formatador têm que estar neste padrão
+				ou uma exceção será lançada. Verifique a informação no javadoc de [icode]SimpleDateFormat[/icode] para mais detalhes sobre como criar esse template.
+				Este formatador permite também formatar horas e data com horas. 
+				
+[h2]Persistindo Datas e Horas com JDBC[h2]
+				O objeto [class]Date[/class] sempre contém informação correspondente a dia e hora. Não é possível apenas conter informação 
+				relativa ao dia sem a hora ou à hora sem o dia. Contudo, ao preservar a informação em banco de dados podemos estar interessados
+				em preservar apenas o dia, a hora ou ambos. Além disso bancos de dados têm uma exatidão diferente para campos de data e tempo.
+				
+				Para resolver o problema a API JDBC define três classes que derivam de [class]Date[/class]: [class]java.sql.Date[/class] para informações de dia,
+				[class]java.sql.Time[/class] para informações horárias e [class]java.sql.Timestamp[/class] para conter ambas.
+				
+				Ao persistir este tipo de dados usando a API JDBC é necessário converter os objetos [class]Date[/class] em um daqueles tipos de objeto
+				conforme a informação que queremos guardar. Para converter entre tipos, utilizamos o valor do tempo universal contido nelas, assim:
+				
+[code=java]
+
+java.util.Date dataEHora = new Date();
+
+//apenas a data
+java.sql.Date data = new java.sql.Date(dataEHora.getTime());
+
+//apenas a hora
+java.sql.Time data = new java.sql.Time(dataEHora.getTime());
+
+//ambos
+java.sql.Timestamp data = new java.sql.Timestamp(dataEHora.getTime());
+				
+[/code]
+	

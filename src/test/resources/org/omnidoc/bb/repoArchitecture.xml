@@ -1,0 +1,438 @@
+[*Arquitetura com DomainStore, Repositório e Query Object*]
+
+
+[h2]Introdução[h2]
+		Esta arquitetura é desenhada através do desacoplamento do objeto que representa um critério de
+		pesquisa ([pattern]Query Object[/pattern]), do objeto que monta esse critério ([pattern]Repository[/pattern])
+		do objeto responsável por executar esse critério e retornar os resultados ([pattern]DomainStore[/pattern]).
+		
+		Adicionalmente colocaremos a responsabilidade de controle do ciclo de vida da entidade pesquisada ([wiki={{@lang};text()}]CRUD[/wiki])
+		no repositório apenas delegando para o [pattern]DomainStore[/pattern] o como esse controle é realmente executado
+		
+[h2]Estratégia de Persistência[h2]
+		A estratégia de persistência representa o objeto responsável pelo trabalho real de executar os critérios de pesquisa
+		e operações CRUD. Eis um esqueleto do contrato deste objeto
+		
+[code=java]
+
+public interface DomainStore {
+
+    public <E> E save(E instance);
+	public <E> void delete(E instance);
+	public <E> QueryResult<E> query(Criteria<E> criteria);
+}		
+		
+[/code]
+	
+		A primeira coisa a reparar é que todos os métodos são fortemente tipados, mas o tipo 
+		não dependende da classe. Básicamente estamos assegurando que o tipo do resultado é compativel
+		com o do argumento. Na prática, esta classe aceita qualquer objeto e não depende realmente de nenhum outro tipo.
+		A segunda coisa importante é que todas as pesquisas acontecem através dos objectos [icode]Criteria[/icode] e [icode]QueryResult[/icode].
+		O primeiro define o que queremos encontrar, o segundo encapsula o resultado.
+		
+[h2]O Repositório[h2]
+		A definição do repositório não carece da declaração de um contrato, até por que, cada repositório
+		tem um contrato diferente do outro. Contudo, vamos definir uma classe abstrata para isolar
+		algumas partes comuns a todos os repositórios.
+		
+		Uma coisa que todos os repositórios que vamos construir, têm em comum, é o controle do ciclo da sua respetiva entidade.
+		Além disso, todos eles irão delegar algumas funcionalidades à classe [icode]domainStore[/icode]. O uso de uma classe
+		abstrata irá facilitar isto também.
+		
+[code=java]
+
+public abstract class AbstractRepository<E> {
+
+	private DomainStore domainStore;
+	
+	public AbstractRepository (DomainStore domainStore){
+		this.domainStore = domainStore;
+	}
+
+	protected DomainStore getDomainStore(){
+		return domainStore;
+	}
+	
+	public <E> E save( <E> instance){
+		return domainStore.save(instance);
+	}
+	
+	public <E> void delete( <E> instance){
+		return domainStore.delete(instance);
+	}
+	
+} 		
+		
+[/code]
+	
+		Os métodos [icode]save[/icode] e [icode]delete[/icode] são essencialmente delegados 
+		à estratégia de persistência encapsulada no domainStore. Caso seja necessário, o repositório poderá sobrescrever 
+		esse comportamento, mas isso é raro sendo usado mais em ambiente de testes. 
+		
+[h2]Repositórios de Senha e Usuário[h2]
+		Vamos usar as classes acima para criar nosso primeiro repositório. Este será um repositório 
+		de senhas ([icode]Password[/icode]). 
+		
+		A senha conta com a associação entre um nome de usuario e uma palavra-passe devidamente encriptada (digest). 
+		Além disso contém informações sobre a validade da senha através da data de expiração. 
+		
+		Ao trabalhar com senhas precisamos essencialmente de duas pesquisas. Uma que encontre a senha dado o 
+		nome do usuário e outra que encontre todas as senhas que irão expirar dentro de um certo periodo.
+		
+[code=java]
+
+public class PasswordRepository extends AbstractRepository<Password> {
+
+	public PasswordRepository (domainStore domainStore){
+		super(domainStore);
+	}
+
+	public Password findUsernamePassword(String username){
+		
+		Criteria<Password> criteria = CriteriaBuilder.search(Password.class)
+			.and("username").eq(username)
+			.all();
+							
+		QueryResult<Password> result = domainStore.query(criteria);
+		
+		return result.first();
+	}
+		
+	public Collection<Password> findWillExpireInPeriod(Date start, Date end){
+		
+		Criteria<Password> criteria = CriteriaBuilder.search(Password.class)
+			.and("expiration").bewteen(start,end)
+			.all();
+							
+		QueryResult<Password> result = domainStore.query(criteria);
+		
+		return result.all();
+	}
+}		
+		
+[/code]
+	
+		A classe de criteria é construida no padrão [pattern]Query Object[/pattern] como a composição de objetos [icode]Criterion[/icode]
+		A classe [icode]CriteriaBuilder[/icode] serve apenas para prover uma forma fluente de compor o criterio de pesquisa.A implementação é simples,
+		mas demasiado longa para o escopo deste artigo. Para um exemplo de implementação, por favor consultar 
+		[url={@href}]a classe CriteriaBuilder no pacote de critérios do MiddleHeaven[/url]. 
+		
+		O ponto importante aqui é que tanto a classe [icode]Criteria[/icode] como a classe [icode]CriteriaBuilder[/icode] não dependem de mais nada. Especialmente
+		não dependem do repositório, nem da estratégia de persistência nem do modelo das entidades.
+		
+		Os métodos de pesquisa são simples e mostram exatamente o objetivo de encapsulamento do repositório. As pesquisas são realmente
+		realizadas pela estratégia de persistência e retornam um objeto  [icode]QueryResult[/icode], o qual por sua vez permite retornar uma coleção
+		dos objetos procurados, ou apenas o primeiro item dessa coleção. Poderiamos usar alguma interface da API de coleções padrão do Java, mas
+		nos traria várias desvantagens. Primeiro, todas as coleções são mutáveis por natureza com métodos como [icode]retainAll[/icode] e [icode]addAll[/icode]. 
+		Isso nos obrigaria a usar mecanismos como 
+		[icode]Collections.unmodifiable()[/icode] ou a criar uma implementação especial dessa coleção. Por outro lado, o uso de um objeto diferente
+		nos permite implementar padrões como [pattern]Fast Lane Reader[/pattern] e [pattern]Paginator[/pattern] ou tecnicas como [e]lazy loading[/e], 
+		caso necessário, de uma forma mais simples e controlada, sem nos preocuparmos com compatibilidade com a API de coleções.
+		
+		A seguir implementaremos um repositório de usuários.O repositório de usuários é mais simples ainda. Precisamos 
+		de um método que encontre o usuário pelo nome, outro que o encontre pelo identificador de persistencia ( o id) 
+		e finalmente um que nos retorne todos os usuários que existem cadastrados (para podermos implementar listagens).
+		
+[code=java]
+
+public class UserRepository extends AbstractRepository<User> {
+
+	public UserRepository (domainStore domainStore){
+		super(domainStore);
+	}
+
+	public User findByUsername(String username){
+		
+		Criteria<User> criteria = CriteriaBuilder.search(User.class)
+				.and("username").eq(username)
+				.all();
+							
+		QueryResult<User> result = domainStore.query(criteria);
+		
+		return result.first();
+	}
+	
+	public User findByIdentifier(Long id){
+		
+		Criteria<User> criteria = CriteriaBuilder.search(User.class)
+				.and("id").eq(id)
+				.all();
+							
+		QueryResult<User> result = domainStore.query(criteria);
+		
+		return result.first();
+	}
+	
+		
+	public Collection<User> findAll(){
+		
+		Criteria<User> criteria = CriteriaBuilder.search(User.class).all();
+							
+		QueryResult<User> result = domainStore.query(criteria);
+		
+		return result.all();
+	}
+}		
+		
+[/code]
+	
+		O interessante aqui é o método [icode]findAll[/icode] porque ele cria um critério de pesquisa sem nenhuma restrição.
+		Este método é tão simples e genérico que o poderiamos adicionar directamente em  [icode]AbstractRepository[/icode]
+		de forma genérica. O mesmo para o método [icode]findByIdentifier[/icode].
+		
+[code=java]
+
+public Collection<E> findAll()
+		
+		Criteria<E> criteria = CriteriaBuilder.search(resolveGenericClass()).all();
+							
+		QueryResult<E> result = domainStore.query(criteria);
+		
+		return result.all();
+}
+
+public E findByIdentifier(Long id){
+		
+		Criteria<E> criteria = CriteriaBuilder.search(resolveGenericClass())
+			.and("id").eq(id)
+			.all();
+							
+		QueryResult<E> result = domainStore.query(criteria);
+		
+		return result.first();
+}
+
+private Class<E> resolveGenericClass () {
+		ParameterizedType parameterizedType = (ParameterizedType) getClass().getGenericSuperclass();
+		return (Class) parameterizedType.getActualTypeArguments()[0];
+}
+		
+[/code]
+	
+		Embora o java faça [e]errasure[/e] de tipos genéricos isso não se aplica quando o tipo 
+		é herdado, portanto, como [icode]AbstractRepository[/icode], sendo abstrata, força a herança, logo é sempre possivel
+		saber qual o tipo real que está sendo usado. O código que faz isso está no método [icode]resolveGenericClass[/icode].
+		
+[h2]Serviços[h2]
+		Em todos os sistemas temos necessidade de criar lógicas que controlem o fluxo da informação e ações do sistema.
+		Em particular, no nosso sistema de exemplo precisamos de um serviço que avise os usuários que sua senha irá exprirar.
+		Isto implica em determinar quais senhas irão expirar, recolher o email do usuário e enviar o email de aviso.
+		O próximo codigo mostra como: 
+		
+[code=java]
+
+public class EmailExpirationWarningService implements ExpirationWarningService {
+
+	private EmailSendingService emailSendingService;
+	private PasswordRepository passwordRepository;
+	private UserRepository userRepository;
+	
+	public SimpleExpirationWarningService(
+		EmailSendingService emailSendingService,
+		PasswordRepository passwordRepo,
+		UserRepository userRepo
+		){
+		
+		this.emailSendingService = emailSendingService;
+		this.passwordRepository = passwordRepository;
+		this.userRepository = userRepository;
+	}
+	
+	@Override
+	public void sendExpirationWarnings(){
+		
+		// Regra: envia apenas aviso para quem terá sua senha experiada no periodo de 3 dias 
+		// contando a partir de amanhã
+		
+		Date start = CalendarUtils.tomorrow();
+		Date end = CalendarUtils.addDays(start, 3);
+		
+		Collection<Password> passwords = passwordRepo.findWillExpireInPeriod(start, end);
+		
+		for ( Password password : passwords ){
+			User user  = userRepo.findByUsername(password.getUserName());
+			
+			Email email = new Email();
+			email.setTo(user.getEmailAddress());
+			email.setMessage("A sua senha está prestes a expirar. Por favor, altere-a");
+			
+			emailSendingService.sendAssync(email);
+		}
+	} 
+}		
+		
+[/code]
+	
+		A lógica é clara e está totalmente contida em um método. Este serviço dependende do serviço de aplicação que envia emails
+		e dos repositórios de senha e usuário. Quando, e se, esta lógica mudar basta vir neste método e alterar a lógica. Em alternativa 
+		podemos criar outra implementação de [icode]ExpirationWarningService[/icode] que faça de outra forma. A vantagem de ter dois objetos
+		da mesma classe de serviços ([icode]ExpirationWarningService[/icode]) é que podemos alterar de uma para outra e comparar ambas em relação
+		a funcionalidade,desempenho ou outras métricas.
+		
+		Um serviço é construido no padrão [pattern]Service[/pattern] através da definição de um contrato (interface) e várias implementações (tantas quanto
+		necessárias). O serviço é um ponto de extensão e modificação muito flexivel e o uso de vários serviços simplifica a construção de testes ao mesmo
+		tempo que contribui para aumentar a velocidade com que os testes são executados. Por exemplo para testar se um email foi enviado, podemos
+		utilizar uma implementação de [icode]EmailSendingService[/icode] que guarda todos os objetos email numa lista na memoria, no final do teste basta verificar
+		que essa lista não está vazia e contém os emails direcionados aos usuarios certos.
+		
+		Serviço de aplicação como [icode]EmailSendingService[/icode] podem ser reaproveitados entre aplicações, enquanto serviços de dominio como
+		[icode]ExpirationWarningService[/icode] não podem.
+		
+[h2]Gravando Dados vs Consultando Dados[h2]
+		Em uma aplicação de cadastro temos normalmente uma tela onde as instâncias dos objetos são listadas (com algum tipo de filtro)
+		e uma outra onde podemos editar os atributos da entidade.
+		
+		A leitura de dados não altera o estado do sistema. Consultas não precisam ser verificadas nem produzem efeitos secundários como envio de email.
+		Por outro lado, operações de alteração sim precisam de validação e podem produzir efeitos secundários.
+		
+		Para ações de pesquisa como a mencionada listagem podemos consultar o repositório directamente. Não ha quebra de camadas porque tanto o repositório
+		quanto o serviço vivem na mesma camada: o dominio.Para ações de alteração precisamos ter maior controle. Temos validações a fazer, temos mecanismos e regras
+		para implementar e precisamos garantir que estas alterações são transacionais. Para ações de alteração usamos um serviço de dominio.
+		
+		A seguir está um exemplo de pesquisa e um outro de alteração. Para a pesquisa usaremos como exemplo um servlet
+		mas pode substituir pela classe de action do seu framework web favorito. Vamos supor também que o repositório de usuários foi devidamente injetado.
+		
+[code=java]
+
+		public void doGet(HttpServletRequest req, HttpServletResponse res){
+		
+			// monta o objeto de filtro
+			
+			UserFilter filter = new UserFilter();
+			filter.setActivo("true".equals(req.getParameer("ativo")));
+			filter.setPartialUsername(req.getParameer("username"));
+			
+			// executa a pesquisa
+			Query<User> query = usuarioRepo.findByFilter(filter);
+			
+			// disponibiliza os dados
+			req.setAttribute("list", query.fetchAll());
+			req.setAttribute("filter", filter);
+		}
+		
+[/code]
+	
+		A implementação do método [icode]findByFilter[/icode] é simplesmente:
+		
+[code=java]
+
+		public Query<User> findByFilter(UserFilter filter){
+		
+			CriteriaBuilder<User> criteriaBuilder = CriteriaBuilder.search(User.class)
+				.and("ativo").eq(filler.getAtivo());
+							
+			if(!filter.getPartialUsername().isEmpty()){
+				criteriaBuilder.aand("username").contains(filter.getPartialUsername());
+			}				
+							
+			return domainStore.query(criteriaBuilder.all());
+		
+		} 
+		
+[/code]
+	
+		O objecto [icode]CriteriaBuilder[/icode] é usado como qualquer outro objeto no padrão [pattern]Builder[/pattern],
+		não necessáriamente temos que escrever o critério numa unica instrução de codigo fluente.
+		
+		Olhemos agora para a atualização. Também aqui supomos que o [icode]UserEditionService[/icode] foi injetado corretamente.
+		
+[code=java]
+
+		public void doPost(HttpServletRequest req, HttpServletResponse res){
+		
+			// monta o objeto do request
+			
+			User user = new User();
+			user.setId(req.getParameer("id").isEmpty() ? null : Integer.parseInt(req.getParameer("id")));
+			user.setActivo("true".equals(req.getParameer("ativo")));
+			user.setUsername(req.getParameer("username"));
+			user.setRealName(req.getParameer("nomeReal"));
+			
+			// validação prévia de imput
+			UserValidator validator;
+			if(user.getId()==null){
+				validator =  UserValidator.getValidatorForInsertion();
+			} else { 
+				validator =  UserValidator.getValidatorForEdition();
+			}
+			
+			ValidationResult result = validator.validate(user);
+			
+			if(!result.isValid(){
+				//termina com erro
+				req.setAttribute("validationResult", result);
+				return;
+			}
+			
+			// executa 
+			try{
+				userEditionService.edit(user);
+				//retorna normalmente
+			}catch (InvalidationException e){
+				//termina com erro
+				req.setAttribute("validationResult", e.getValidationResult());
+			}
+	
+		}
+		
+[/code]
+	
+		A implementação do serviço seria mais ou menos assim: 
+		
+[code=java]
+
+public class SimpleUserEditionService implements UserEditionService {
+
+	UserRepository userRepo;
+
+	public SimpleUserEditionService (UserRepository userRepo){
+		this.userRepo = userRepo;
+	}
+
+    @Override
+    public void edit(User user) throws InvalidationException, IllegalArgumentException{
+    
+    		if(user ==null){
+    			throw new IllegalArgumentException();
+    		}
+    		
+   			// validação 
+   			 
+			UserValidator validator;
+			if(user.getId()==null){
+				validator =  UserValidator.getValidatorForInsertion();
+			} else { 
+				validator =  UserValidator.getValidatorForModification(userRepo);
+			}
+			
+			ValidatioResult result = validator.validate(user);
+			
+			if(!result.isValid(){
+				//termina com erro
+				throw new InvalidationException(result);
+			}
+			
+			userRepo.save(user);
+			
+    }
+     
+}
+		
+[/code]
+	
+		Pode reparar que usamos um validador diferente no caso de edição. Este validador depende do repositório 
+		para verificar duplicidades. Poderiamos ter utilizado este mesmo validador na classe de ação, mas estamos
+		fazendo diferente para demonstrar que as logicas de validação de pré-validação são, em geral, diferentes.
+		
+		Poderiamos ignorar o passo de pré-validação se garantirmos que todos os serviços de edição fazem uma validação interna, contudo
+		a pré-validação é util para quando queremos ir validando enquanto o usuário escreve. Util com o uso de ajax, por exemplo, em que a validação não aconteça simultaneamente com a edição.  
+		
+		O mecanismo de validação é baseado em uma [url={@href}]API de validação que você mesmo pode criar[/url],
+		especialmente utilizando algum tipo de validador composto. Os métodos estáticos de [icode]UserValidator[/icode] devolvem um validador préviamente
+		montado para diferentes finalidades. Validações para inserção são normalmente diferentes das de edição.
+		
+[h2]Resumo[h2]
+		Esta configuração de arquitura é bastante flexivel e bastante amigável para testes unitários e de integração, já que simplesmente trocando 
+		a estratégia de persistência , trocando a implementação do [class]DomainStore[/class], podemos fazer toda a aplicação funcionar apenas em memórias e usando dados controlados.
+		De igual forma podemos simular serviços e repositorios. 
+		

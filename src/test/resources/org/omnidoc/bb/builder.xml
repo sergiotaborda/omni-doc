@@ -1,0 +1,200 @@
+[*Builder*]
+
+
+[h2]Objetivo[/h2]
+			Prover uma forma de facilitar a montagem ou construção de objetos que seria complexa ou aborrecida quando feita manualmente.
+			
+[h2]Propósito[/h2]
+			Objectos são compostos por outros objetos e todos os objetos precisam ser criados e configurados de alguma forma antes de 
+			serem realmente úteis. Contudo, nem sempre a construção de um objetos é simples o suficiente para ser escrita em duas linhas 
+			de código, ou existem regras que não permitem criar o objeto de forma qualquer. 
+			
+			Ao codificar orientado a objetos é comum representarmos entidades do sistema como estruturas de objetos aninhados ou utilizar 
+			objetos no padrão [pattern=property-bag]Bean[/pattern] com várias propriedades. A construção de objetos deste tipo pode ser complexa e 
+			obrigar a escrever muito código burocrático devido à estrutura interna do objeto estar encapsulada.
+			Construir um objeto complexo é uma tarefa chata, propensa a erros e pouco controlável.
+			
+			A solução é clássica, mas quem realmente funciona bastante bem, é criar um outro objeto cuja responsabilidade é 
+			correta criação do objeto que queremos construir. Para que não haja confusão com o conceito de construtor, passarei a 
+			referir à responsabilidade do objeto que implementa o padrão [pattern]Builder[/pattern] como "montar". 
+			Um construtor, constrói, um [pattern]Builder[/pattern], monta.
+			
+			O objeto [pattern]Builder[/pattern] é responsável por montar um outro objeto. Esse outro objeto que construir é chamado produto, 
+		    no contexto deste padrão. O objeto [pattern]Builder[/pattern] conta com vários métodos na sua interface de forma a poder ser 
+		    informado das características que o produto terá e um método que realmente irá montar o produto e entregá-lo. A chamada a este método
+		    termina o trabalho do objeto [pattern]Builder[/pattern].
+			
+[h2]Implementação[/h2]
+			A estrutura clássica de uma implementação do objeto [icode]Builder[/icode] tem este aspecto:
+			
+[code=java]
+
+public class Builder<Produto> {
+
+	public void setPropriedadeA ( String propriedadeA ){...}
+	public void setPropriedadeB ( Long propriedadeB ){...}
+	...
+	public void montaProduct (){...}
+	public Produto getProduct (){...}
+}
+			
+[/code]
+	
+			Por exemplo, um objeto [icode]Builder[/icode] para montar veículos seria assim:
+			
+[code=java]
+
+public class BuilderVehicle {
+
+	public void setColor ( Color color ){...}
+	public void setEngime ( Engine engine ){...}
+	...
+	public void assemble (){...}
+	public Vehicle getVehicle (){...}
+}
+		
+[/code]
+	
+		Note que as propriedades e os nomes dos métodos montador e acessor estão vinculados ao objeto a ser construído e fazem sentido 
+		para esse objeto e dentro do domínio em que ele se insere. Isto não é uma regra do padrão, mas é uma boa prática para que o 
+		programador se sinta confortável ao usar o objeto montador e o use naturalmente.
+			
+[h2]Interface Fluente[/h2]
+			Utilizar o objeto [icode]Builder[/icode] resulta em invocar vários métodos no objeto e no fim invocar o método montador. 
+			Isto rapidamente se torna prolixo se não tivermos certos cuidados. Tomando o exemplo do montador de veículos ficaria 
+			mais ou menos assim:
+			
+[code=java]
+
+BuilderVehicle builder = new BuilderVehicle () ;
+builder.setColor ( Color.WHITE ) ;
+builder.setEngine ( new TurboEngineAs234 ()) ;
+builder.setDoorQuantity ( 5 ) ;
+builder.setFuelType ( FuelType.FLEX ) ;
+builder.assemble () ;
+
+Vehicle vehicle = builder.getVehicle () ;
+			
+[/code]
+	
+			Como se vê é muita coisa para escrever.Imagine que existem mais campos ou que o nome da variável [icode]builder[/icode] é maior. 
+			Muita coisa para escrever. O ideal seria poder encaixar as invocações com o mínimo possível de esforço , algo assim:
+			
+[code=java]
+
+Vehicle vehicle = new BuilderVehicle ()
+	.setColor ( Color.WHITE )
+	.setEngine ( new TurboEngineAs234 ())
+	.setDoorQuantity ( 5 )
+	.setFuelType ( FuelType.FLEX )
+	.assemble ()
+	.getVehicle () ;
+			
+[/code]
+	
+ 			Nada mau, mas poderíamos melhorar mais ainda. Porque o objeto [icode]Builder[/icode] tem que montar o produto ele 
+ 			conhece a sua estrutura e as opções dessa montagem, por isso é natural definir um Builder mais inteligente. 
+ 			Por outro lado se sempre invocamos [icode]assemble()[/icode] antes de [icode]getVehicle()[/icode] podemos fundir os dois. 
+ 			O resultado é ainda menos coisas para escrever:
+ 			
+[code=java]
+
+Vehicle vehicle = new BuilderVehicle ()
+	.setColor ( Color.WHITE )
+	.setTurboEngineAs234 ()
+	.setFiveDoors ()
+	.setFuelFlex () 
+	.assembleVehicle () ;
+			
+[/code]
+	
+			Esta forma de fazer encaixar os métodos de forma a que funcionem como uma macro instrução chamado [pattern]Method Channing[/pattern] mas
+			mais conhecido como Interface Fluente. [i]Interface[/i] aqui se refere ao contrato do objeto [icode]Builder[/icode] e [i]Fluente[/i] 
+			porque diz muito com poucas palavras (pouca escrita).
+			[i]Interface Fluente[/i] é um nome bonito para o padrão [pattern]Method Channing[/pattern] que é antigo mas pouco utilizado devido ao
+			 vício de usar o padrão [pattern=property-bag]Bean[/pattern] 
+			para todos os objetos ignorando a real responsabilidade do objeto. A classe [class]StringBuffer[/class] já tradicional na API Java sempre 
+			contou com interface fluente : o método [icode]append()[/icode].
+			
+			Implementar uma interface fluente é simples, basta que cada método sempre retorne o próprio objeto ([icode]this[/icode]) permitindo o 
+			encadeamento das invocações de forma simples.
+			
+			O uso da Interface Fluente é especialmente útil quando em conjunção com o padrão [pattern]Builder[/pattern], pois quase sempre estamos 
+			interessados em passar alguma informação – várias, na realidade – para ele e raramente queremos pedir alguma coisa dele. 
+			O único método que não segue esta regra é aquele que retorna o produto já montado. Contudo, nesse momento, a nossa configuração 
+			do objeto montador já terminou.
+			
+[h2]Builder, QueryObject e DSL[/h2]
+			Uma das grandes utilidades do padrão Builder é utilizá-lo para construir estruturas que implementem o padrão [pattern]Composite Object[/pattern] ou que sejam, 
+			de alguma forma, composições de objetos. Um exemplo importante são as implementações de [pattern]QueryObject[/pattern]. 
+			O objetivo de um [pattern]QueryObject[/pattern] é ser um objeto que representa toda a informação necessária para impor critérios 
+			de pesquisas. Uma String com SQL é uma forma 'primitiva' de [pattern]QueryObject[/pattern]. Os [pattern]QueryObject[/pattern] de hoje correspondem 
+			a objetos especiais – conhecidos como Criteria – que serão interpretados para criar o SQL ou interpretados diretamente para 
+			obter os resultados da pesquisa. Um montador de objetos que implementam [pattern]QueryObject[/pattern] seria algo como:
+			
+[code=java]
+
+Criteria criteria = CriteriaBuilder.search (Customer.class)
+.and ( "active" ) .eq (true)
+.and ( "name" ) .match ( "%io" )
+.orderBy ( “name” ) .asc ()
+.build () ;
+			
+[/code]
+	
+[h2]Interface Progressiva[/h2]
+		 Vimos que a interface fluente é conseguida retornando o próprio objeto no método de forma a poder encadear as ações. 
+		 Contudo, repare que a frase [icode].and("active").eq(true)[/icode] atua como uma unidade não sendo possível escrever 
+		 [icode].and("active").and("name")[/icode]. Não faria sentido explicitar o nome do campo sem dizer qual valor queremos para ele.
+		 Para conseguir coesão durante o encadeamento de chamadas  o método [icode]and()[/icode] não retorna o objeto builder de Criteria original
+		 sob o qual foi invocado, mas sim um novo objeto builder para aquela "frase" de filtro. Apenas quando a frase 
+		 tiver todos os seus componentes é que ela é adicionada internamente ao builder original e voltamos a ele builder podendo invocar
+		 [icode]and()[/icode] novamente ou outro método como [icode]orderBy[/icode] (no qual usamos a mesma técnica para invocar [icode]asc()[/icode])
+		 
+		 Martin Fowler apelidou esta mecânica de Interface Progressiva. A idéia é que o contrato ( a interface, o conjunto de métodos disponíveis)
+		 é  alterado sempre que queremos garantir algum tipo de coesão ou caminho a seguir pelo programador em relação ao objeto [icode]Builder[/icode].
+		 Esta técnica além de útil nos IDE de hoje com recursos de [e]auto-complete[/e], ajuda a garantir tipagem forte ao longo de todo o processo de montagem
+		 além de garantir que regras complexas ou burocráticas serão cumpridas pelo programador.
+		 
+[h2]Exemplos na API padrão[/h2]
+			O padrão [pattern]Builder[/pattern] está presente originalmente na API padrão na classe [class]StringBuffer[/class] que 
+			é usada para construir objetos [class]String[/class].
+			Mais recentemente com a introdução da classe [class]StringBuilder[/class] foi criada a interface [class]Appendable[/class]
+			que expõe o método [icode]append()[/icode] que é responsável por parte da fluência destes objetos. Essa interface foi aplicada
+			a objetos como [class]PrintWriter[/class] tornando mais simples a operação de concatenar [class]String[/class]. 
+			
+[h2]Discussão[/h2]
+			O Builder acaba fazendo o papel de 'linguagem de programação' específica para o domínio do objeto construído já que os seus métodos 
+			mapeiam condições comuns que queremos usar para aquele tipo de objeto. Torna-se, portanto, claro que ao implementar um objeto [icode]Builder[/icode]
+			o ganho é tanto maior quanto mais a interface fluente se aproximar da forma com o programador pensa quando pretende montar o objeto 
+			produto. 
+			
+			Estas interfaces fluentes especificamente úteis em certo domínio ganharam a denominação de Linguagens Específicas de Domínio 
+			(DSL em inglês). A Interface Fluente e um Builder são características comuns às DSL quando implementadas em Java. Outros tipos 
+			possíveis que incluem o uso de linguagens realmente específicas (com seu compilador e interpretador) são também uma hipótese – e 
+			até possível de integrar com java via Java Scripting Framework mas um Builder com interface fluente é muito mais simples 
+			de construir e muito útil mesmo assim.
+			
+			O objetivo do padrão [pattern]Builder[/pattern] é ajudar o programador na tarefa de montar/configurar objetos. Contudo isto
+			não significa que o objeto não possa ser montado ou configurado à mão, da forma tradicional, invocando cada um dos seus modificadores.
+			Também não significa que o objeto [icode]Builder[/icode] tenha algum acesso particular aos atributos do objeto produto. Embora isso possa 
+			acontecer, isso implicaria em que o produto poderia apenas ser criado usando o objeto [icode]Builder[/icode] transformando-o num misto de 
+			[pattern]Factory[/pattern], o que não é o objetivo aqui.
+			
+			Às vezes não é simples distinguir entre um objeto que implementa o padrão [pattern]Builder[/pattern] de 
+			um que implementa o padrão [pattern]Factory[/pattern] pois as diferenças são sutis. Contudo é normal para um objeto [icode]Builder[/icode] existirem diversos métodos
+			que podem ser invocados ou não e um único método cuja invocação é obrigatório e que retorna o objeto produto devidamente montado enquanto
+			que num objeto [icode]Factory[/icode] existir apenas um método com uma série de parâmetros, possivelmente até várias sobrecargas desse método.
+			Normalmente um [icode]Factory[/icode] não tem estado usando os parâmetros para construir o objeto, enquanto um [icode]Builder[/icode] vai acumulando parâmetros
+			para produzir o produto no final. Por vezes a forma como o programador desenha estes objetos pode iludir a sua finalidade ou o padrão que estão sendo usado
+			o que apenas leva à confusão. 
+			
+			Enquanto o padrão [pattern]Factory[/pattern] visa substituir o papel do construtor da classe, o padrão [pattern]Builder[/pattern] visa
+			principalmente simplificar a invocação dos métodos modificadores do objeto depois que o construtor da classe já foi invocado. 
+			
+[h2]Padrões relacionados[/h2]
+			O padrão [pattern]Builder[/pattern] é facilmente relacionado ao padrão [pattern]Method Channing[/pattern] já que é extremamente útil
+			para a sua implementação, embora não sendo obrigatório. 
+			
+			O padrão [pattern]Builder[/pattern] é também facilmente relacionado ao padrão [pattern]Factory[/pattern] devido à semelhança de objetivos.
+			

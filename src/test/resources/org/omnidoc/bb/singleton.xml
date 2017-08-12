@@ -1,0 +1,255 @@
+[*Singleton*]
+
+
+[h2]Objetivo[/h2]
+			Restringir a instanciação de objetos de uma classe a um único objecto.
+			
+[h2]Propósito[/h2]
+			Ao definir uma classe normalmente esperamos utilizá-la para criar vários
+			objectos dessa mesma categoria cada um com o seu estado. Por outro lado,
+			em uma linguagem orientada a objetos esperamos poder manipular qualquer
+			recurso como sendo um objeto. Acontece, que às vezes, o recurso que estamos
+			utilizando é único e portanto apenas um objeto pode ser criado para o acessar.
+			
+			Mas o que significa o recurso ser  único ? Significa que não será possivel 
+			existir mais do que um em qualquer ponto do tempo. Poderiamos pensar, por exemplo
+			que o CPU é único. Isso é verdade hoje, mas pode não ser verdade amanhã; logo, o CPU não é
+			um recurso candidato a ser modelado por um único objecto. Um exemplo de recurso unico
+			é o ambiente em que a aplicação é executada ( o runtime). Cópias da aplicação podem
+			ser executada em vários ambientes mas do ponto de vista da aplicação ela apenas 
+			executa em um único. No caso do java as aplicações correm em uma JVM e apenas uma.
+			Quando temos sistemas distribuidos temos na realidade cópias da aplicação,ou aplicações
+			diferentes que se conversam rodando em JVM diferentes.
+			
+			O propósito do padrão Singleton é possibilitar o uso do objeto que mapeia este tipo de
+			recurso unico, mas simultaneamente impedir que mais do que uma instancia desse tipo de
+			objeto possa existir em qualquer ponto do tempo.
+			
+			Porque é único, o objeto será global, ou seja, sempre o mesmo em qualquer ponto da aplicação.
+			Contudo, objetos globais não são necessáriamente únicos e por isso não ha uma equivalência
+			entre objetos que seguem o padrão Singleton e objetos globais.
+			
+[h2]Implementação[/h2]
+			Implementar um Singleton não é tão fácil como parece. Ao implementar um Singleton é 
+			necessário cuidar de não permitir formas de duplicar o objeto que existe nem permitir
+			criar outros.Como vimos um Singleton é um objeto global acessivel em qualquer ponto
+			da aplicação.Isso significa que ele pode ser utilizado em simultâneo em várias threads.
+			
+			Outro cuidado é com a serialização. Normalmente se o recurso se refere a algum componente
+			físico da máquina ou  do ambiente de execução não faz sentido serializar esse objeto.
+			Se o recurso em causa diz respeito a um dominio de aplicação em que o recurso é
+			único apenas do ponto de vista lógico da abstração, e não tem um vinculo ao mundo físico,
+			então pode ser possivel serializar o objeto. contudo esta necessidade é, na prática, rara.
+			O problema é que, quando é necessária, ela abre a porta para mecanismos que permitem duplicar 
+			o objeto ou criar vários objetos da classe , e isto viola directamente o propósito do padrão 
+			singleton.Um outro mecanismo que pode ser usado para driblar a unicidade do objeto Singleton é a
+			API de Reflection. 
+			
+			Para implementarmos um Singleton corretamente temos que ter atenção a todos
+			estes aspectos. Analizemos então as propriedades que a implementação deve ter:
+				Apenas a classe pode controlar a instanciação do objecto.Protegida de duplicação por introspecção.Protegida de duplicação por serialização.
+			A partir do Java 5 a linguagem conta com o tipo [icode]enum[/icode].
+			Objectos do tipo [icode]enum[/icode] não são singletons mas têm todas as propriedades
+			necessárias para serem singletons.são registentes a serialização,instrospeção e
+			a classe é a unica a controlar a instanciação.Aliás, no caso do [icode]enum[/icode]
+			existe o suporte da própria JVM. Por isto, a forma mais fácil de criar um Singleton
+			hoje em dia é utilizar um [icode]enum[/icode] que só tenha uma instância possivel.
+			
+[code=java]
+
+public enum Desktop {
+	INSTANCIA;
+	
+	// métodos normais
+}				
+			
+[/code]
+	
+			não ha necessidade de declarar como [icode]final[/icode] porque não é possivel criar subclasses 
+			de [icode]enum[/icode].
+			
+			Utilizar esta forma de implementação é ideal no caso do Singleton ser único a nivel logico
+			sem nenhuma ligação a um artefato fisico. Para essas outras ocasiões especiais
+			este mecanismo não serve tão bem, como o caso do próprio Desktop.
+			
+			Um desktop é único, mas ele pode não existir. Ou seja, ou existem zero instancias de
+			desktop ou existe exactamente uma,e uma apenas. O desktop é um recurso do sistema operacional (SO)
+			e portanto existe uma dependencia inerente com o SO. Além disso para cada SO, o desktop
+			pode ter funcionalidades diferentes. então, para este tipo de singletons, ou quando estiver usando
+			uma versão do java anterior à 5, a implementação seria mais como
+			a mostrada a seguir:
+			
+[code=java]
+
+public final class Desktop {
+	private static final Desktop ME = new Desktop();
+	
+	public static Desktop getDesktop(){
+		return ME;
+	}
+	
+	// Esconde o construtor.
+	private Desktop(){}
+	
+	// métodos normais
+}				
+			
+[/code]
+	
+			Repare-se como a instancia é criada com [icode]new[/icode] e colocada numa variável final o que a 
+			torna imutável pelo tempo de execução da aplicação. 
+			Sendo um atributo da classe ([icode]static[/icode]) é garantido que será inicializado antes de 
+			qualquer método da classe ser invocado.
+			
+			O construtor privado assegura que apenas a classe pode criar o objecto e de quebra que a classe
+			não poderá ser extendida por uma subclasse. O [icode]final[/icode] na declaração da classe parece 
+			dedundante mas reforça o mesmo conceito especialmente quando reflexão ou outra tecnica de introspecção
+			for usada.
+			
+[h3]Inicialização e Lazy loading[/h3]
+				Quando o singleton mapeia um recurso do SO ou até um recurso fisico ou periférico, é comum 
+				ser necessário vincular o objeto ao recurso através de algum processo de inicialização.
+				Este processo em si mesmo pode ser demorado e consumir memória,processamento,ou requerer sincronismo
+				entre threads diferentes. Por isso, é desejável que ele seja executado apenas quando necessário.
+				
+				A inicialização pode acontecer no construtor, mas preferivelmente deveria acontecer em um método.
+				Contudo, dado que a classe não pode ser extendida, não ha vantagem em usar um método para isto
+				pois ele nunca será sobre-escrito. Isto não modifica o [e]design[/e] anterior, pois basta colocar 
+				o codigo de inicialização dentro do construtor.
+				
+				Para adiar o processo de inicialização é comum utilizar um processo conhecido 
+				como [e]Lazy Loading[/e] e é comum ver implementações dele desta forma:
+				
+[code=java]
+
+public final class Desktop {
+	private static final Desktop ME;
+	
+	public static Desktop getDesktop(){
+		if ( ME == null ){
+			ME = new Desktop();
+		}
+		return ME;
+	}
+	
+	// Esconde o construtor.
+	private Desktop(){
+		//inicialização
+	}
+	
+	// métodos normais
+}								
+				
+[/code]
+	
+				Só que esta forma de implementação tem vários problemas . Por exemplo, não é determinista em 
+				ambientes multi-thread podendo levar à criação de mais do que um objecto. Isso leva a considerar 
+				que o método [icode]getDesktop[/icode]  deveria ser sincronizado e optariamos por uma versão onde adicionariamos a palavra
+				[keyword]synchronized[/keyword] ao método [icode]getDesktop[/icode].
+				
+				Mas, analizando melhor, o que realmente interessa sincronizar é a criação do objeto. Uma vez criado
+				não teremos mais problemas com o sincronismo. Esta conclusão leva a inplementar o método desta forma:
+				
+[code=java]
+
+public final class Desktop {
+	private static final Desktop ME;
+	
+	public static  Desktop getDesktop(){
+		if ( ME == null ){
+			synchronized(Desktop.class) {
+		      ME = new Desktop();
+		    }
+		}
+		return ME;
+	}
+	
+	// o resto do codigo
+	
+}								
+				
+[/code]
+	
+				Só que esta implementação, ainda não é suficiente para garantir sincronismo 
+				o que leva as pessoas a criarem um anti-padrão desta forma:
+				
+[code=java]
+
+public final class Desktop {
+	private static final Desktop ME;
+	
+	public static  Desktop getDesktop(){
+		if ( ME == null ){
+			synchronized(Desktop.class) {
+				if ( ME == null ){
+		      		ME = new Desktop();
+		      	}
+		    }
+		}
+		return ME;
+	}
+	
+	// o resto do codigo
+	
+}								
+				
+[/code]
+	
+				A dupla verificação não funciona, embora pareça que sim, e constitui um anti-padrão grave.
+				A solução real para este problema passa pelo uso da palavra reservada [keyword]volatile[/keyword].
+				
+[code=java]
+
+public final class Desktop {
+
+	private static final volatile Desktop ME;
+	
+	public static  Desktop getDesktop(){
+		if ( ME == null ){
+			synchronized(Desktop.class) {
+				if ( ME == null ){
+		      		ME = new Desktop();
+		      	}
+		    }
+		}
+		return ME;
+	}
+	
+	// o resto do codigo
+	
+}								
+
+[/code]
+	
+				Só que também esta solução era problemática proque nem todas as JVM implementavam 
+				o controle associado a [keyword]volatile[/keyword] da mesma forma. Apenas após a versão
+				5 do Java, quando foi especificado o comportamento esperado associado a esta palavra
+				é que se tornou seguro usá-la. Portanto, para código escrito em java 1.4 ou mais antigo,
+				a solução é tornar todo o método sincronizado , para a versão 5 ou superior é utilizar
+				a palavra [keyword]volatile[/keyword]. Para singletons lógicos , em java 5 ou superior é 
+				melhor utilizar [keyword]enum[/keyword]. Singletons lógicos são raros e provávelmente sempre os 
+				pode substituir pelo uso de outro padrão como [pattern]Registry[/pattern]
+[h2]Discussão[/h2]
+			Singleton é um dos padrões mais incompreendidos de sempre. O objetivo não é simplesmente 
+			limitar o numero de objetos que podem ser criados e muito menos é tornar o objecto acessivel
+			globalmente (existem outros padrões para isto como Registry).
+			O objetivo é que só seja possivel criar um e [i]nunca[/i] mais do que um objecto. 
+			
+[h2]Exemplos na API padrão[/h2]
+			O uso do padrão Singleton é raro mas podemos encontrar o seu uso em locais em que o JSE precisa
+			utilizar recursos do SO ou da JVM. Exemplos de singleton na JSE são a classe [class]Runtime[/class] - associada ao ambiente
+			onde a aplicação está rodando e a classe [class]Desktop[/class] associada à area de trabalho do usuário.
+			De notar que [icode]Desktop[/icode] é um singleton opcional, ou seja, pode não existir um presente. 
+			
+[h2]Padrões associados[/h2]
+			Singleton é um padrão relacionado à criação do objeto que garante que apenas um, e um só, objeto existe
+			em qualquer ponto da execução da aplicação. Ele se relaciona ao padrão [pattern]Static Factory Method[/pattern]
+			por utilizar um método estático para dar acesso ao objeto em vez de utilizar uma variável publica. O uso
+			de  [pattern]Static Factory Method[/pattern] permite fazer lazy loading e contornar problemas relacionados
+			a sincronismo em ambiente multi-thread.
+			
+			Singleton define um objeto único para toda a execução acessado através de métodos estáticos. 
+			Isto significa que esse objeto é global. Contudo, se o seu objetivo é apenas ter um objeto global
+			cuja classe não tem qualquer restrição a quantas instancias podem ser criadas, utilizar o padrão
+			[pattern]Shared Object[/pattern] será bem mais útil. Caso precisa utilizar vários objetos globais
+			a melhor opção recai no padrão [pattern]Registry[/pattern]

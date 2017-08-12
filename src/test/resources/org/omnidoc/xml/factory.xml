@@ -1,0 +1,143 @@
+<document>
+
+<properties>
+	<title>Factory</title>
+	<created>2012-06-15</created>
+</properties>
+
+	<related-patterns>
+		<name>Factory Method</name>
+		<name>Service Locator</name>
+		<name>Abstract Factory</name>
+		<name>Builder</name>
+	</related-patterns>
+	
+	<references>
+		<ref id="1" >
+			<title>Design Patterns: Elements of Reusable Object-Oriented Software</title>
+			<book>gof-design-patterns</book>
+		</ref>
+		<ref id="2" >
+			<title>Spring Framework</title>
+			<url>http://www.springframework.org/</url>
+		</ref>
+		<ref id="3" >
+			<title>Google Guice</title>
+			<url>http://code.google.com/p/google-guice/</url>
+		</ref>
+	</references>
+	
+<body>
+<section name="Objetivo" >
+<p>
+Permitir que a criação de um objeto seja controlada por outro.
+</p>
+</section>
+
+<section name="Propósito" >
+<p>
+<pattern>Factory</pattern> (Fábrica) é um padrão de projeto que visa encapsular a criação de um objeto de certa classe em um outro objeto de outra classe <ref id="1" />.
+</p>
+<p>
+<pattern>Factory</pattern> é provavelmente um dos padrões que mais influencia a escrita de programas orientados a objetos que se utilizam do Princípio da Inversão de Controle quando chega a hora de instanciar objetos.
+O Principio de Inversão de Controle troca o controle do objeto utilizador para o objeto utilizado. No caso da criação de objeto isto significa que se um objeto A quer uma instância do objeto B a diretiva <keyword>new</keyword> não 
+pode ser usada. A opção então é delegar a um objeto C que se encarrega de criar o objeto B de alguma forma.
+</p>
+<p>
+Algumas razões existem para que não se queira utilizar <keyword>new</keyword> diretamente. A primeira, e mais óbvia, é não saber que classe de objeto instanciar. 
+Isso é comum numa aplicação bem desenhada onde variáveis são estruturadas com base em interfaces. Assim, vários tipos de objetos diferentes podem ser associadas a essa variável. 
+Porque várias opções existem para o tipo de objeto que será atribuído à variável é útil delegar a escolha para um outro objeto: a fábrica.
+</p>
+<p>
+Uma outra razão é a necessidade de inicializar o objeto instâncias antes de ser atribuído à variável. Importante notar que esta inicialização não depende do ambiente onde o objeto será utilizado,
+ mas apenas da estrutura do próprio objeto. Quando o ambiente em que o objeto será usado necessita configurar o objeto sem saber qual ele é realmente o padrão <pattern>Builder</pattern> é utilizado. 
+ O padrão <pattern>Builder</pattern> prepara a construção e inicialização do objeto antes de o devolver. O padrão <pattern>Factory</pattern> tem total autonomia para fazer essas operações sem intervenção de mais ninguém.
+</p>
+</section>
+<section name="Implementação" >
+<p>
+A implementação de <pattern>Factory</pattern> pode ser tão simples como aplicar <keyword>new</keyword> até ler um arquivo de configuração de um arquivo e criar um objeto de proxy dinâmico
+através dessas configurações.
+</p>
+<source language="java"><![CDATA[
+
+public class TaxCalculatorFactory  {
+
+ private Locale locale;
+ 
+ public Factory (Locale locale){
+	this.locale = locale;
+ }
+
+ public TaxCalculator newInstance (){
+  return new LocaleTaxCalculator (locale) ;
+ }
+ 
+}
+
+]]></source>
+<p>
+Aqui a implementação é bastante simples instanciando um objeto da classe <code>LocaleTaxCalculator</code> com <keyword>new</keyword>, mas na realidade não há limite para o que um <pattern>Factory</pattern>  pode fazer.
+Em geral a fábrica tem na assinatura o retorno de uma interface e não de uma classe. É possível que o <pattern>Factory</pattern> devolva uma classe, mas é mais comum ver um interface sendo retornada porque normalmente o principio de 
+Design para Interfaces é seguido.
+</p>
+<p>
+É importante notar que o método que cria o objeto é de instância. Ou seja, é preciso instanciar a classe de <pattern>Factory</pattern> para invocar o método. Caso contrário estaríamos na presença de <pattern>Factory Method</pattern> 
+ou <pattern>Service Locator</pattern>. O objetivo de ter um objeto – e não um método – para instanciar outro objeto é promover polimorfismo da própria fábrica. Ou seja, a fabrica, ela mesma, por ser instanciada 
+por outra fábrica ou podem existir várias implementações da mesma fábrica, conforme o caso.
+</p>
+<p>
+A fábrica contém normalmente um conjunto de parâmetros que permitem configurar qual objeto criar ou como inicializar o objeto criado. Desta forma, diferentes valores para este conjunto de parâmetros produzirá diferentes objetos
+o que é onde o padrão <pattern>Factory</pattern> se torna realmente mais útil e flexível que a simples invocação direta de <keyword>new</keyword>.
+</p>
+</section>
+
+<section name="Fábricas e os Princípios Básicos do Design" >
+<p>
+<pattern>Factory</pattern> é o padrão que se relaciona a muitos princípios básico de programação orientada a objetos como sejam o Princípio de Separação de Responsabilidade (Separation of Control - SoC) e Princípio da Inversão de Controle (Inversion of Control - IoC).
+</p>
+<p>
+Ao remover da classe que usa o objeto a responsabilidade de o inicializar tornamos essa classe menos acoplada ao resto do sistema. A classe pode agora usar o objeto sem se preocupar com criá-lo e inicializá-lo. 
+Por outro lado, como o objeto vai ser criado apenas em um único lugar ele não precisa prover muitas formas de inicialização, diminuindo a responsabilidade de tentar saber como as outras classes vão trabalhar com ele.
+Em outras palavras: usar <pattern>Factory</pattern> torna seu código menos acoplado e portanto mais flexível a mudanças.
+</p>
+<p>
+Com o advento de sistemas complexos o uso de padrões como <pattern>Factory</pattern> e seu primo <pattern>Service Locator</pattern> ficou claro que o acoplamento ainda se mantinha. É verdade que encapsulamos a 
+instanciação do objeto que nos interessa mas temos agora que instanciar a fábrica. Ou, se não sabemos qual é, temos que instanciar a fábrica da fábrica…
+A única forma de resolver este problema é não obrigar a classe que usa o objeto a saber como obter esse objeto. Simplesmente se permite que a variável seja preenchida do exterior (um método modificador). 
+Desta forma, é o ambiente onde a classe está sendo usada que irá decidir qual o objeto concreto será usado e de onde será obtido. Este é o conceito por detrás do Princípio da Inversão de Controle.
+</p>
+<p>
+Aplicando o Princípio da Inversão de Controle para resolução do problema especifico de descobrir qual instância usar chegamos no conceito de Injeção de Dependência (DI). A idéia é simples. 
+De alguma forma você declara qual objeto será usado por uma classe em particular. Um sistema especial – chamado ambiente de injeção (ou <estrang>injection container</estrang> em inglês) – irá ler essa informação, 
+inicializar o objeto certo e anexá-lo ao objeto que o irá usar. Esta técnica remove o uso explicito de <pattern>Factory</pattern> no seu código e introduz um mecanismo novo. Frameworks como o Spring <ref id="2"/> e o Guice <ref id="3"/> 
+fornecem esta capacidade.
+</p>
+<p>
+Eliminamos assim, o problema de instanciar suas classes <pattern>Factory</pattern> dentro do seu código, mas não deixou de necessitar delas. O ambiente de injeção apenas transporta a responsabilidade da inicialização para fora do
+ seu código, contudo ele não elimina essa necessidade. Afinal, os objetos têm que ser criados. O Injection Container é na realidade um <pattern>Service Locator</pattern> de <pattern>Factory</pattern> capaz de entender qual factory
+é usada para qual classe.
+</p> 
+<p>
+Mesmo com o uso de ambientes de injeção pode ser necessário criar fábricas especificas para instanciar seus objetos. O que o ambiente pode fazer por si é liberá-lo de fazer isso no casos simples em que a fabrica se limitaria 
+a invocar <keyword>new</keyword>. Contudo na prática é muitas vezes necessário escrever sua própria fábrica de objetos devido à complexidade da inicialização ou aos cuidados necessários.
+A única forma de encapsular a instanciação de objetos é usando o padrão <pattern>Factory</pattern>, mesmo quando você utilizar um ambiente de injeção.
+</p>
+</section>
+
+<section name="Padrões relacionados" >
+<p>
+O padrão <pattern>Factory</pattern> nasce da aplicação de polimorfismo ao padrão <pattern>Factory Method</pattern> e é comum ser utilizado em combinação com outros padrões de projeto já que em muitos casos é necessário 
+encapsular a criação de algum objeto.
+</p>
+<p>
+O padrão <pattern>Factory</pattern> está também associado a uma filosofia de programação orientada pelo uso de Injeção de Dependência, já que o ambiente de injeção é formalmente implementado como um Factory. A diferença é que ele 
+produzirá qualquer tipo de objeto em particular produzirá outros <pattern>Factory</pattern> e/ou utilizará <pattern>Factory</pattern> para criar outros objetos.
+</p>
+<p>
+Um outro padrão relacionado a <pattern>Factory</pattern> é o padrão <pattern>Service Locator</pattern>. Embora possamos pensar em <pattern>Service Locator</pattern> como uma especialização de <pattern>Factory Method</pattern> 
+existe a necessidade de passar parâmetros para o objeto para que ele faça a sua função. Em particular podemos ter diferentes implementações que procuram os objetos de forma diferente ou em diferentes fontes.
+</p>
+</section>
+</body>
+</document>

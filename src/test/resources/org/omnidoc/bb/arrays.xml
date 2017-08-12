@@ -1,0 +1,258 @@
+[*Trabalhando com Arrays em Java*]
+
+
+[h2]Conceito[/h2]
+			A palavra [e]array[/e] significa "conjunto de coisas posicionadas em linha". A palavra mais próxima em português seria [i]arranjo[/i]
+			que não transmite a relação de ordem entre os elementos.	É comum vermos palavras como sequência, vetor, matriz ou fila como traduções de array, 
+			mas nenhuma delas expressa o real significado de "arranjo". Por exemplo, "sequência" implica na existência de ordem no valor dos elementos,
+			"vetor" implica uma referencia geométrica e matemática que não é verdadeira assim como "matriz" que ainda implica no conceito de múltiplas dimensões. O nome "fila" implica no conceito
+			não apenas de ordem, mas também na noção de ordem de processamento (como, por exemplo, "First In, First Out"). 
+			Para evitar ambiguidade, usaremos o termo [e]array[/e] sem tentar traduzi-lo.
+			
+			Um array, em java, é um objeto. Contudo este objeto recebe tratamento especial da linguagem e da JVM (tal como acontece com [class]String[/class]).
+			
+[h3]Declarando e Inicializando Arrays em Java[/h3]
+			O objeto de array agrega outros objetos que compartilham um supertipo comum e aos quais nos podemos referir por um índice (um número inteiro).
+			Arrays em java são imutáveis. Isto significa que não há forma de modificar o tamanho do array - para comportar mais ou menos elementos - depois que ele foi criado.
+			Se o tamanho do array em uso não for suficiente teremos que criar um outro array e fazer uma cópia, elemento a elemento do antigo 
+			para o novo.
+			
+	[img=/ilust/{img/@src}]{legend/text()}[/img]
+	
+			Todos os elementos do array compartilham um tipo comum. Este tipo caracteriza o tipo do array. Embora exista uma classe chamada [class]java.lang.reflect.Array[/class] esta 
+			classe apenas é utiliza para operações de introspecção. Sendo, o objeto de array não tem uma classe associada, ou melhor, tem várias. Dado um tipo A, que pode ser qualquer tipo java
+			(classe, interface, enum ou anotação ), um array de A é escrito como [icode]A[][/icode]. Os parênteses retos sem nada no interior representam que este é um tipo de array.
+			
+[code=java]
+
+			// um tipo de variável de array de A
+			A[] variável
+			
+[/code]
+	
+			O Array também pode ser criado usando tipos primitivos. A forma de declaração é semelhante.
+			A sintaxe do java também aceita que o símbolo de array ("[ ]") possa ser colocado no nome da variável:
+			
+[code=java]
+
+			
+			// array de inteiros com 5 posições.
+			
+			int[] inteiros = new int[5];
+			
+			// pode ser declarado também como 
+			
+			int inteiros[] = new int[5];
+			
+			
+[/code]
+	
+			Esta segunda forma é tradicional em outras linguagens, e embora possível em java, não é a forma sugerida. A boa prática de escrita de código 
+			sugere o uso da primeira forma de declaração em vez da segunda; e é prática comum. Isto porque [icode]int[][/icode] realmente representa uma classe de objetos diferente de [icode]int[/icode]. Aliás, neste caso
+			int sequer é um objeto, enquanto que um array sempre é um objeto.
+			
+			Em java qualquer variável é composta por duas fases: a declaração e a inicialização. Não é diferente para os tipos de array.
+			Na declaração dizemos de que tipo o array será e qual é o seu tamanho. O tamanho do array tem que ser explicitamente informado já que, em java , este tamanho nunca será alterado.
+			Eis alguns exemplos:
+			
+[code=java]
+
+			
+			// array de inteiros com 5 posições.
+			
+			int[] inteiros = new int[5];
+			
+			// array de String com 8 posições.
+			
+			String[] strings = new int[8];
+			
+			
+			// array de Produto com 20 posições.
+			
+			Produto[] produtos = new Produto[20];
+			
+			
+			
+[/code]
+	
+			Mas com os arrays ainda temos um passo suplementar. Ao inicializar o array, as posições são automaticamente inicializadas pela JVM.
+			Para tipos primitivos numéricos o numero 0 é usado, para booleanos, [icode]false[/icode] é usado, e para objetos os elementos são inicializados com [icode]null[/icode].
+			Normalmente não são estes os valores que queremos que estejam no array. Por isso, para arrays temos um passo suplementar em que iremos fazer a atribuição dos valores.
+			Podemos fazer isso explicitamente ou usado instruções [keyword]for[/keyword] ou [keyword]while[/keyword].
+			
+[code=java]
+
+			
+			// array de números pares com 5 posições.
+			
+			int[] numeroPares = new int[5];
+			
+			// atribuindo manualmente
+			
+			numeroPares[0] = 0;
+			numeroPares[1] = 2;
+			numeroPares[2] = 4;
+			numeroPares[3] = 6;
+			numeroPares[4] = 8;
+			
+			// atribuindo num ciclo.
+			
+			for (int i = 0; i &lt; numeroPares.length ; i++ ){
+				numeroPares[i] = i*2;
+			}
+				
+			
+[/code]
+	
+			Repare que para conseguir utilizar a atribuição com [keyword]for[/keyword] usamos a propriedade [icode]length[/icode] do array. Esta propriedade
+			contém o numero de posições do array ( no caso do exemplo, 5). Repare também que usamos uma variável para acessar a posição do array. Esta é a utilização 
+			mais direta e útil do array já que uma qualquer posição pode ser referida por uma variável. Contudo, esta variável só pode ser do tipo [class]int[/class].
+			
+			A forma manual de atribuição pode ser bastante extensa e pesada de escrever, mas existe uma outra forma de atribuir valores a um array:
+			
+[code=java]
+
+			int[] numeroPares = new int[]{0,2,4,6,8};
+			
+[/code]
+	
+			Usando chaves podemos escrever os valores para as posições do array. Repare que neste caso não declaramos o tamanho do array , que obrigatoriamente será igual ao numero de elementos
+			escritos entre chaves.
+			
+[h3]Copiando Arrays[/h3]
+			O tamanho de um array, em java, é fixo. Se precisarmos de mais posições no array além daquelas que explicitamos durante a construção não temos como
+			alterar o array. Sendo assim, a única opção que nos resta é criar outro array maior, e copiar os elementos que já temos para esse array. Para fazermos isto
+			utilizamos o método [icode]System.arrayCopy[/icode]. 
+			
+			Imaginemos que queremos aumentar o nosso array de números pares para mais 10 posições. Eis o que faríamos:
+			
+[code=java]
+
+			int[] numeroPares = new int[]{0,2,4,6,8};
+			
+			int[] numeroParesMaior = new int[15]; // 5 + 10
+			
+			System.arrayCopy(numeroPares, 0, numeroParesMaior, numeroPares.length);
+		
+			
+[/code]
+	
+			Primeiro criamos o array com mais posições. É um outro objeto que declaramos com um tamanho maior. Depois , em vez de atribuirmos os valores manualmente ou com uma instrução de ciclo,
+			utilizamos o método [icode]arraycopy[/icode]. Este método é mais eficiente que qualquer outra opção que a linguagem java tem a oferecer. Portanto, realizar um ciclo para copiar arrays
+			é uma péssima prática em java. O método [icode]System.arrayCopy[/icode] está na classe [class]System[/class] exatamente para deixar claro que o java irá (onde possível) usar recursos nativos do sistema
+			para fazer a cópia. Após a invocação deste método, o array [icode]numeroParesMaior[/icode] terá os mesmos valores que o array anterior tinha, nas mesmas posições.
+			As outras posições estarão, claro, inicializada com os valores padrão conforme o tipo do array. 
+			
+			É muito importante entender que a falha em dimensionar corretamente o array irá causar danos na performance do sistema já que seremos obrigados a fazer cópias
+			entre arrays cada vez maiores. Isto é especialmente importante para entender o uso correto da classe [class]ArrayList[/class] que é, internamente, baseada em um array.
+			
+[h3]Arrays e ArrayList[/h3]
+				Como vimos o tamanho de um array é fixo e para aumentar o tamanho precisamos criar outro array e copiar as informações.
+				Na prática muitas vezes não sabemos quantos elementos vamos utilizar. Para esses casos a plataforma java oferece o Java Collections Framework.
+				Esta API conta com uma serie de implementações úteis de classes de coleção. Estas classes podem, ou não, utilizar-se de semântica de ordenação e indice.
+				A interface [class]List[/class] provê um contrato para todas as coleções que precisem de semântica de ordenação e indice.
+				
+				A implementação mais utilizada de [class]List[/class] é a classe [class]ArrayList[/class]. Esta é uma implementação simples que utiliza internamente um array para manter 
+				os ítens da lista ordenados pelo seu indice, tal como um array faria. [class]ArrayList[/class] provê funcionalidade automática para aumentar o tamanho do array quando for necessário.
+				Isto poupa ao programador ter que escrever muito código, mas não poupa a JVM de ter que copiar o array caso o tamanho aumente.
+				
+				Porque todos os [class]ArrayList[/class] contém um array é boa prática  que seja informado um tamanho inicial para o [class]ArrayList[/class], e que, se não for possível estimar este
+				tamanho, então é melhor não usar [class]ArrayList[/class] e escolher outra implementação de [class]List[/class], como seja, a classe [class]LinkedList[/class].
+				
+[code=java]
+
+				 List<Integer> lista = new ArrayList<Integer>(); // <- má prática
+				 
+				 List<Integer> lista = new ArrayList<Integer>(4); // <- boa prática
+				 
+				 
+				
+[/code]
+	
+[h3]Arrays multidimencionais e Matrizes[/h3]
+				Arrays, em java, não podem ter mais do que uma dimensão. Esta capacidade é normalmente utilizada, em outra linguagens para implementar matrizes. 
+				Contudo a linguagem java e a JVM não têm suporte a arrays multidimencionais, nem a matrizes no sentido matemático com outras linguagens têm.
+				Em java, podemos construir objetos semelhantes a arrays multidimencionais utilizando arrays de arrays. Contudo, a linguagem java dá suporta a um 
+				sintaxe especifica para trabalhar com arrays de arrays semelhante ao que seria de esperar para arrays multidimencionais.
+				
+				Aumentar o numero de dimensões torna a declaração e a inicialização um pouco mais complicadas.
+				Imaginemos que queremos criar uma matriz 3x4 de inteiros. Ficaria assim:
+				
+[code=java]
+
+			int[][] matrix = new int[3][4];
+			
+			for (int i = 0; i &lt; matrix.length ; i++ ){
+				matrix[i] = new int[4];
+				for (int j = 0 ; j  &lt; matrix[i].length; j++){
+					matrix[i][j] = i+j;
+				}
+			}
+			
+[/code]
+	
+			Começamos por declarar a matrix como sendo de duas dimensões de tamanho 3 e 4 respectivamente. Em java, arrays de arrays não precisam ter o mesmo tamanho em cada dimensão. 
+			É mais simples entender o processo se imaginarmos um array normal de uma dimensão que em cada posição contém um outro array normal de uma dimensão.
+			
+	[img=/ilust/{img/@src}]{legend/text()}[/img]
+	
+			É por isso que antes de colocarmos o valor na posição (i,j) temos que inicializar um array de tamanho 4 na posição i. 
+			
+				Se estivermos interessados em carregar o array diretamente podemos optar por escrever assim:
+			
+			
+[code=java]
+
+			int[][] matrix = {
+					{0,1,2,3},
+					{1,2,3,4}, 
+					{2,3,4,5}
+				};
+			
+[/code]
+	
+				Esta forma é mais compacta é fica evidente que se trata de um array de arrays e não de uma matrix no sentido matemático.
+			
+				Poderíamos definir arrays de diferentes tamanhos sem problemas:
+			
+[code=java]
+
+			int[][] matrix = {
+					{0,1},
+					{1,2,3,4}, 
+					{2,3,4}
+				};
+			
+[/code]
+	
+				Embora tudo isto sendo possível não é , na prática , muito útil. É raro que você utiliza um array de arrays. Em uma linguagem orientada a objetos como java existem classes de objetos 
+				que podem representar matrizes usando algoritmos mais eficientes como arrays unidimensionais e até não usando arrays. Várias bibliotecas de terceiros implementam objetos relacionados a álgebra
+				com uma semântica muito mais rica que a de arrays.
+			
+[h3]Arrays e List[/h3]
+				Devido a que o tamanho do array é fixo, arrays não são tão úteis em java como em outras linguagens, onde são usados como substituídos de objetos de coleção.
+				Em java esse papel cabe aos objetos definidos pelo Java Collections Framework. Contudo, é muitas vezes necessário converter coleções em arrays e vice-versa.
+				Para converter um array em uma coleção basta usa o método [icode]Arrays.asList[/icode]. Este método recebe uma array e devolve um objeto do tipo [class]List[/class].
+				Este método é eficiente porque realmente não faz uma cópia do array para uma lista, apenas encapsula o array na interface [class]List[/class]. Por causa disto,
+				esta lista não pode ser modificada e a tentativa de incluir ou remover elementos da lista causará exceções.
+				
+				Todos os objetos da hierarquia de [class]Collection[/class] têm o método [icode]toArray[/icode] com duas sobrecargas. Uma sem argumentos e uma com um array como parâmetro.
+				O método [icode]toArray[/icode] sem argumentos cria um array de [class]Object[/class] e carrega nas posições os elementos da coleção. A ordem que a carga é feita
+				depende da implementa da coleção e o respectivo javadoc deve ser consultado. O método [icode]toArray[/icode] que recebe um array como parâmetro simplesmente copia os elementos da coleção
+				para esse array começando na primeira posição, devolvendo esse mesmo array. Este método é preferível porque dá ao programador, não apenas o controle sobre o tamanho do array, 
+				mas também o seu tipo.
+				
+[h3]Arrays e Imutabilidade[/h3]
+				A imutabilidade do tamanho do array pode ser uma vantagem em alguns pontos do sistema em que queremos fornecer acesso a um conjunto de dados, mas não queremos que isso possa afetar 
+				o estado interno do objeto que está fornecendo os dados. 
+				
+				No passado a forma padrão de fazer isso era utilizar arrays, contudo hoje em dia, a melhor prática  é utiliza o Java Collections Framework em conjunto com a familia de 
+				métodos estáticos [icode]Collections.unmodifiable[/icode] que se utiliza o padrão [pattern]Decorator[/pattern] para tornar qualquer conjunto imutável e liberando-nos de ter que utilizar 
+				arrays.
+				
+[h3]Resumo[/h3]
+				Arrays são peças básicas em qualquer linguagem de programação. Em java, arrays são objetos de tamanho fixo. Isto pode impactar
+				certos algoritmos e usos gerais de arrays. Em particular o uso de arrays como coleções, o que não é recomendado e sugere-se o uso do Java Collections Framework.
+				O uso de arrays é comum e necessário em muitos casos simples e como ferramenta para implementar objetos mais complexos, mas deve ser deixado de lado se a mesma funcionalidade poder ser obtida 
+				utilizando uma classe do Java Collections Framework.
+				

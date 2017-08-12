@@ -1,0 +1,236 @@
+<document>
+
+	<properties>
+		<title>Fast Lane Reader</title>
+	</properties>
+
+	<references>
+		<ref id="1">
+			<title>Core J2EE Patterns – Fast Lane Reader Sun Developer Network</title>
+			<url>http://java.sun.com/blueprints/patterns/FastLaneReader.html</url>
+		</ref>
+		<ref id="2">
+			<title>Effective Java</title>
+			<book>effective-java</book>
+		</ref>
+	</references>
+
+	<pattern-catalogs>
+		<catalog>
+			<book>core-j2ee-patterns</book>
+		</catalog>
+	</pattern-catalogs>
+	
+	<related-patterns>
+		<name>Proxy</name>
+		<name>Adapter</name>
+		<name>Service Facade</name>
+		<name>Flyweight</name>
+	</related-patterns>
+	
+	<body>
+	<section name="Objectivo">
+		<p>
+			Fornecer acesso rápido a coleções de dados em camadas inferiores, diminuindo a criação de objectos sem violar os contratos entre camadas.
+		</p>
+	</section>
+	<section name="Propósito" >
+		<p>
+		Fast Lane Reader (Leitor Via-Rápida), ou apenas , Fastlane, é um padrão de projeto que visa diminuir a criação de objetos durante a 
+		leitura de uma coleção de objetos diminuindo o caminho entre o consultor da lista e o repositorio dos dados reais. [1].
+		</p>
+		<p>
+		Num cenário de aplicação multi-camada os dados do objetos são lidos da fonte de dados (por exemplo, um banco de dados) e colocados em instancias, que são depois adicionadas
+		em algum objeto de coleção (como, por exemplo, <code>List</code>). Criar todos esses objetos e colocar numa coleção java seria demasiado honeroso 
+		quer em termos de memória, quer em termos de processamento. Estamos facilmente sujeitos a receber um <code>OutOfMemoryError</code> ou 
+		a que o processo demore tempo demais.Isto é muito comum quando precisamos criar um relatório em que precisamos iterar todos os itens selecionados
+		mas eles são muitos.
+		</p>
+		<p>
+		A solução é simples de entender, mas não necessáriamente de implementar. 
+		Em vez de criarmos todos os objetos de uma vez, colocar na coleção e descartar a fonte de dados ( normalmente um <code>java.sql.ResultSet</code>) 
+		podemos encapsular a fonte de dados com a interface que queremos e construir o objeto de dados apenas quando necessário e 
+		um por vez.
+		</p>
+		<p>
+		A solução tipica é ter um objeto no padrão <pattern>Iterator</pattern>, em que temos um método para saber
+		se ainda existem mais elementos e um métodos para obter o elemento seguinte.
+		</p>
+		<p>
+		A criação do objeto real que será retornado do iterador pode ser criado internamente, ou no caso geral
+		podemos usar um objeto na padrão <pattern>Factory</pattern>.O objeto Factory está encarregue de pegar os 
+		dados brutos da fonte e os transformar em objetos. O objeto resultante não será guardado em lugar algum, 
+		diminuindo a quantidade de memória alocada durante a iteração.
+		</p>
+	</section>
+	<section name="Implementação" >
+		<p>
+		A seguir a estrutura de um objeto Fastlane que implementa a interface de um <code>Iterator</code> e lê um <code>java.sql.ResultSet</code>, que será a nossa fonte de exemplo.
+		O tratamento de exceções é omitido para simplificar o entendimento.
+		</p>
+		<source language="java" legend="Lendo um ResultSet por um Iterator" >
+public ResultSetFastlaneIterator&lt;T&gt; implements Iterator&lt;T&gt; {
+
+ ResultSet rs;
+ Factory&lt;T&gt; factory;
+ public ResultSetFastlaneIterator ( ResultSet rs , Factory&lt;T&gt; factory ){
+	this.rs = rs;
+	this.factory = factory;
+ }
+
+ public boolean hasNext (){
+	boolean hasNext = rs.next () ;
+	if (!hasNext){ // não ha mais dados
+		rs.close();
+	}
+	return hasNext;
+ }
+
+ public &lt;T&gt; next (){
+	return factory.createObject ( rs ) ;
+ }
+
+ public boolean remove (){
+   throw new UnsupportedOperationException ("Remove is not supported") ;
+ }
+
+} 
+</source>
+<p>
+Utilizamos o objeto <code>factory</code> para construir o objeto a partir do registro atual no <code>ResultSet</code>.
+Isso poderia ser feito diretamente no código do método <code>next()</code> caso saibamos o tipo especifico que será iterado.
+</p>
+<p>
+Um detalhe importante é que apenas no livramos da fonte de dados quando não houver mais dados para ler.
+Objeto de iteração implementado o FastLane pode continuar "vivo", mas liberamos os recursos que ele usa assim que possivel.
+</p>
+<p>
+Comparemos os códigos utilizando o padrão Fastlane e sem utilizar o padrão. 
+Este código ê objetos <code>Customer</code> e seria escrito num objeto que implemente o padrão <pattern>DAO</pattern>, por exemplo. 
+O tratamento de exeções foi removido para simplificação.
+</p>
+<source language="java" legend="Comparado códigos com e sem o uso de Fastlane Reader">
+
+// sem fastlane
+public Iterator&lt;Customer&gt; getIteratorForQuery (){
+
+ // obtém resultados do banco
+ ResultSet rs = executeQuery () ;
+ Factory&lt;Customer&gt; factory = new CustomerFactory() ;
+ 
+ List&lt;Customer&gt; list = new LinkedList&lt;Customer&gt;() ;
+ 
+ while ( rs.next ()){
+   list.add ( factory.createObject ( rs )) ;
+ }
+ 
+ // descarta resultSet 
+  rs.close () ;
+
+ return list.iterator () ;
+}
+ 
+// com fastlane
+ public Iterator&lt;Customer&gt; getIteratorForQuery (){
+
+ // obtém resultados do banco
+ ResultSet rs = executeQuery () ;
+
+ Factory&lt;Customer&gt; factory = new CustomerFactory() ;
+
+ // não acontece nenhuma iteração. 
+ return new ResultSetFastlaneIterator ( rs,factory ) ;
+ 
+ }
+</source>
+<p>
+O código que usa o padrão é apenas um inicialização do objeto que implementa Fastlane, no caso o objeto <code>ResultSetFastlaneIterator</code>. 
+Não ha iteração nem fabricação de nenhum objeto.O primeiro código cria e mantém 1+N objetos onde N é o numero de registros 
+retornados na pesquisa.Na execução do iterador ele não cria mais nenhum objeto. Portanto, a cada iteração existem na memoria 
+1+N objetos. O segundo métodos cria e mantém 3 objetos e durante a execução da iteração cria mais 1 objeto.
+Portanto, a cada iteração existem na memoria 4 objetos. Não é preciso muito para entender que existe uma vantagem em utilizar 
+FastLane Reader quando N é grande. E grande, neste caso é ser maior que 3.
+		</p>
+		<p>
+		A criação do objeto é delegada a um Factory. Eis um exemplo de como seria o codigo do método <code>createObject</code>.
+		</p>
+		<source language="java" legend="Exemplo de codigo de Factory" >
+		public class CustomerFactory implements Factory &lt;Customer&gt; {
+		
+			public Customer createObject(ResultSet rs){
+				Customer customer = new Customer();
+				
+				customer.setName(rs.getString("name"));
+				customer.setBirthdate(rs.getDate("birthdate"));
+				customer.setTaxIdentifier(new CustomerTaxIdentifier(rs.getString("taxIdentifier")));
+				
+				return customer;
+			}
+		}
+		</source>
+	</section>
+	<section name="Discussão">
+		<p>
+		O padrão FastLane Reader pretender acelerar a leitura de um conjunto de registros
+de forma eficiente. A forma de fazer isso é passar por cima da separação de camadas e 
+acessar internamente à camada de dados de uma qualquer outra camada superior, mas sem violar o encapsulamento.
+O utilizador do objeto que implementa o padrão não tem conhecimento de que os dados estão vindo directamente da camada mais inferior.
+Para que este processo de comunicação "trans-camada" funcione, a camada onde o objeto é 
+utilizado e a camada onde os dados são lidos têm que existir no mesmo nodo 
+( no caso, na mesma JVM). Caso contrário teremos que incluir logicas de <pattern>Proxy</pattern> remoto e com isso 
+colocando barreiras na comunicação entre as camadas. A via de leitura não é mais livre, e portanto, não mais é rápida.
+O padrão FastLane viola a separação de camadas explicitamente para fornecer uma otimização de eficiência.
+A utilização deste padrão implica num <estrang>trade-off</estrang> consciente: a violação de um principio básico em prol de um aumento de eficiencia.
+Contudo, é preciso tomar cuidado porque a violação de separação de camadas pode ter efeitos secundários à partida desconhecidos.
+		</p>
+		<p>
+		Em aplicações web é muito comun oferecer listagens para consulta pelo utilizador. Estas consultas
+são baseadas em objetos já que as tags JSP são normalmente baseadas em coleções. Contudo podemos "enganar" a camada 
+que gera o HTML utilizando um objeto de coleção que na realidade é desenhado como um Fastlane e que comunica directamente com o banco.
+		</p>
+		<p>
+		O exemplo de implementação acima mostra apenas o conceito por detrás do padrão.Na prática a implementação é mais complexa.
+		Além do tratamento de exceções que foi omitido temos ainda que controlar situações de mau uso. Imagine por exemplo que usamos
+		esse iterador num laço <keyword>for</keyword> e interrompemos esse laço com um <keyword>break</keyword>. O iterador não irá ler todos os objetos
+		e portanto o <keyword>if</keyword> nunca seria evaluado como verdadeiro e o <code>ResultSet</code> nunca seria fechado. Isto
+		obviamente não é boa ideia. Poderiamos acrescentar um método <code>close()</code> ao contrato do nosso Fastlane, mas nos caso, como o do exemplo,
+		que estamos simulando um outro contrato pre-estabelecido, ninguem teria acesso a esse método. Truques como a sobrescrita do método <code>finalize</code>
+		podem resolver, mas eles mesmos carecem de outros cuidados particulares <ref id="2" />. Enfim, a implementção real
+		de uma classe seguindo o padrão Fastlane não é simples e merece ser feita com cuidado.   
+		</p>
+	</section>
+	<section name="Exemplos em APIs">
+		<p>
+		Na API padrão temos o exemplo do uso do padrão Fastlane Reader o próprio <code>ResultSet</code>. Este objecto é implementado pelo <estrang>driver</estrang> JDBC
+		e se comunica directamente com o banco de dados, normalmente através de algum protocolo. Ao executar a pesquisa o driver é livre
+		para não criar todos os objetos de todas as linhas, podendo usar um mecanismo de Fastlane para minimizar o uso de memoria.
+		</p>
+		<p>
+		O Hibernate utiliza este padrão na implementação de <code>Query.iterate()</code> que retorna um <code>Object[]</code> com o valores.
+		Esta implementação tem uma pequena diferença do que mostrámos aqui já que não ha conversão para o objeto de dominio. Esta transformação,
+		embora comum, não é uma necessidade do padrão Fastlane Reader sendo que a sua principal caracteristica é iterar um objecto de cada vez. 
+		No caso esse objeto acontece ser um array de objetos.
+		</p>
+	</section>
+	
+	<section name="Padrões associados">
+		<p>
+		FastLane Reader pode ser entendido como uma especialização de <pattern>Proxy</pattern> em que o objeto constantemente comunica com um objeto em outra camada. 
+		Por outro lado, esse objeto não tem o mesmo contrato que o objeto Fastlane e por isso podemos entendê-lo como a especialização de <pattern>Adapter</pattern>. 
+		Por outro lado, ainda, podemos considerar que o trabalho de Fastlane é orquestrar o uso, e ciclo de vida, de outros objetos. Isso nos poderia levar a considerá-lo um <pattern ref="service-facade">Façade</pattern>.
+		No final das contas o FastLane não é nenhum destes. Ele pega um pouco de cada e, talvez por isso, ele mereça seu próprio nome.
+		</p>
+		<p>
+		Um outro padrão relacionado ao FastLane Reader é o <pattern>Flyweight</pattern>. 
+		O objeto criado pelo FastLane Reader pode ser uma versão simplificada do objeto real.
+		Desta forma, não só diminuímos o numero de objetos em memoria mas para cada um deles diminuímos 
+		o numero de atributos preenchidos. No caso de Fastlane Reader ter o contrato de uma coleção ao invés de um
+		iterador, podemos entender o proprio   Fastlane Reader  como uma especialização de <pattern>Flyweight</pattern> já
+		que ao não carregar a coleção toda mantém o objeto de coleção leve.
+		</p>
+	</section>
+
+
+	
+	</body>
+</document>

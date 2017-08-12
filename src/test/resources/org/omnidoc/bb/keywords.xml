@@ -1,0 +1,104 @@
+[*Palavras Reservadas*]
+
+
+[h2]Introdução[/h2]
+			Uma palavra reservada é uma palavra que não pode ser usada como nome de variáveis, métodos ou classes. Uma das principais características da linguagem java é que tem um pequeno conjunto de palavras reservadas. 
+			
+			A palavra reservada não é necessariamente uma palavra-chave, ou seja, uma palavra com significado especial na linguagem. Todas as palavras-chave são palavras reservadas, mas o inverso não é verdade.
+			
+			Até à versão 7 existem 53 palavras reservadas, das quais apenas 51 são realmente utilizadas na prática. Só como exemplo, o C# (versão 4.0) tem 78 palavras reservadas, 
+			o C++ (versão C++11) tem 86 palavras reservadas de base e Scala tem apenas 40.
+			
+			As palavras chave se dividem em categorias conforme o seu propósito. Algumas palavras são usadas em mais de um cenário. O significa da palavra depende do contexto onde é usado. A isso se chamada : carga semântica.
+			Java, por ter poucas palavras chave e propositalmente reaproveitar as palavras sempre que possível tem um carga semântica bastante maior que outras linguagens. Contudo, na prática não é possível confundir os vários
+			significados.
+			
+[h2]A lista[/h2]
+			Esta é a lista de palavras reservadas definidas até a versão 7 da linguagem.
+			
+[table]
+
+[tr][td]package[/td][td]import[/td][td]new[/td][td]class[/td][td]interface[/td][td]enum[/td][td]abstract[/td][td]final[/td][/tr]
+[tr][td]implements[/td][td]extends[/td][td]instanceof[/td][td]public[/td][td]private[/td][td]protected[/td][td]super[/td][td]this[/td][/tr]
+[tr][td]throw[/td][td]throws[/td][td]try[/td][td]catch[/td][td]finally[/td][td]if[/td][td]else[/td][td]for[/td][/tr]
+[tr][td]do[/td][td]while[/td][td]switch[/td][td]case[/td][td]default[/td][td]break[/td][td]continue[/td][td]return[/td][/tr]
+[tr][td]boolean[/td][td]byte[/td][td]short[/td][td]int[/td][td]long[/td][td]double[/td][td]float[/td][td]char[/td][/tr]
+[tr][td]void[/td][td]strictfp[/td][td]transient[/td][td]volatile[/td][td]synchronized[/td][td]native[/td][td]assert[/td][td]static[/td][/tr]
+[tr][td]goto[/td][td]const[/td][td]true[/td][td]false[/td][td]null[/td][td][/td][td][/td][td][/td][/tr]
+[/table]
+	
+[h2]Organização[/h2]
+			Os arquivos fonte da linguagem são organizados em pacotes através da palavras [keyword]package[/keyword] e classes em pacotes diferentes são referenciadas com [keyword]import[/keyword].
+			
+[h2]Classes, Interfaces , Anotações e Enums[/h2]
+			Os arquivos fonte da linguagem representam principalmente classes de objetos através de [keyword]class[/keyword] mas podem também representam 
+			interfaces com [keyword]interface[/keyword] enumerações com [keyword]enum[/keyword] ou anotações com @[keyword]interface[/keyword]. Note como a palavra [keyword]interface[/keyword]
+			tem dois significados conforme é precedida ou não de @.
+			
+			O palavra [keyword]class[/keyword] também é usada em conjunto com o nome da classes para definir o literal da classe. Por exemplo [icode]String.class[/icode] é um objeto instância da classe [icode]Class[/icode] de String.
+			
+			Classes podem ser abstratas se classificadas com [keyword]abstract[/keyword]. O mesmo vale para métodos dentro da classe. Classes podem ser declaras inextensíveis se 
+			classificadas com [keyword]final[/keyword]. O mesmo vale para métodos dentro da classe. Classes e métodos podem ainda ser considerados estáticos quanto 
+			classificados com [keyword]static[/keyword].
+			
+			Classes podem herdar de outras classes com [keyword]extends[/keyword] e implementar interfaces com [keyword]implements[/keyword]
+			Interfaces podem extender outras interfaces com [keyword]extends[/keyword].
+			
+			O operador  [keyword]instanceof[/keyword] pode ser usado para verificar se um objeto representa uma instância de uma certa classe, interface, anotação ou enum.
+			
+[h2]Controle de Visibilidade[/h2]
+			A visibilidade pode ser controlada para atributos, métodos e tipos (classes, anotações, interfaces, enum) com [keyword]public[/keyword](visível a todos), 
+			[keyword]protected[/keyword] (visível apenas dentro do mesmo pacote e/ou via herança) e [keyword]private[/keyword] (invisível a todos os outros).
+			
+[h2]Modificadores de escopo[/h2]
+			Por padrão todos os métodos e atributos são resolvidos no escopo mais próximo. Contudo é por vezes necessário explicitar o escopo da classe com [keyword]this[/keyword] ao da sua super classes imediatamente superior com super.
+			
+			As palavras [keyword]super[/keyword] e [keyword]this[/keyword] ainda podem ser usadas em construtores para referenciar um outro construtor da mesma classe ou da classe sendo extendida.
+			
+[h2]Controle de Exceções[/h2]
+			Exceções podem ser lançadas com [keyword]throw[/keyword]e o método pode declarar quais exceções pode lançar com [keyword]throws[/keyword].
+			
+			Exceções podem ser controladas com [keyword]try[/keyword] em conjunção com [keyword]catch[/keyword] e [keyword]finally[/keyword]
+[h2]Estruturas de Decisão[/h2]
+			O fluxo do código pode ser controlado por decisões com [keyword]if[/keyword] e alternativas com [keyword]try[/keyword]. Repetições podem ser conseguidas com [keyword]for[/keyword], [keyword]while[/keyword] ou [keyword]do[/keyword]-[keyword]while[/keyword].
+			
+			Decisões podem ainda ser feitas utilizando a construção de chaveamento [keyword]switch[/keyword] onde se especificam os casos possíveis com [keyword]case[/keyword]. Um caso padrão é identificado com [keyword]default[/keyword].
+			
+			Fluxo de repetição e chaveamento podem ser interrompidos com [keyword]break[/keyword]. Fluxos de repetição podem pular para a próxima iteração com [keyword]continue[/keyword].
+			
+			Fluxos de código que produzem valores podem comandar que o retorno seja executado com [keyword]return[/keyword]
+[h2]Tipos primitivos[/h2]
+			Java suporta tipos de dados que não são objetos chamados de tipos primitivos. Cada um deles identificado com uma palavra reservada para o nome do tipo: [keyword]byte[/keyword], [keyword]short[/keyword], [keyword]int[/keyword],
+			[keyword]long[/keyword], [keyword]double[/keyword], [keyword]float[/keyword], [keyword]char[/keyword] e [keyword]boolean[/keyword]. Um tipo primitivo especial é usado quando não há retorno do método [keyword]void[/keyword], embora não seja 
+			válido declarar variáveis do tipo [keyword]void[/keyword]
+[h2]Reserva Especial[/h2]
+			Duas palavras são reservadas por motivos históricos e usá-las em código irá criar erros de compilação: [keyword]goto[/keyword] e [keyword]const[/keyword].
+			[keyword]goto[/keyword] é reservado exatamente para que ninguém use. [keyword]const[/keyword] era utilizado para definir constantes em versões iniciais do java (pré lançamento ao publico). No modelo atual constantes são definidas
+			com uma conjunção de palavras, especificamente [keyword]static[/keyword] e [keyword]final[/keyword] em sequência
+			
+[h2]conceitos Avançados[/h2]
+			Java provê controle muito crú de threads. Ao trabalhar com threads é importante controlar o acesso sincronizado e isso é conseguido com [keyword]synchronized[/keyword]. Também no âmbito do uso de threads pode ser útil
+			libertar atributos para serem consultados por diferentes threads, embora esperando coerência na leitura. Isso é conseguido com [keyword]volatile[/keyword].
+			
+			Java provê um mecanismo intrínseco de serialização de objetos para stream de bytes e vice-versa. Por padrão todos os atributos são serializados. Para indicar que um atributo não deve ser serializado é utilizada a palavra 
+			[keyword]transient[/keyword].
+			
+			Java provê um mecanismo intrínseco de extensão de funcionalidade onde a implementação real é realizada em código em outra linguagem. Por exemplo C++. Para conseguir isso o método é classificado com
+			[keyword]native[/keyword].
+			
+			Java provê um mecanismo intrínseco de controle de calculo em ponto flutuante e à semelhança de outras linguagens não garante que o mesmo calculo feito em diferentes JVM e diferente máquinas reais dê o mesmo resultado.
+			Contudo é possível forçar que a JVM imponha regras que garantem que o resultado é reprodutível de forma portável. Para isso o método é marcado com [keyword]strictfp[/keyword].
+			
+			Java provê um mecanismo intrínseco de asertivas. Este mecanismo é controlado pela JVM e pode ser ligado e desligado. Para que o programador possa criar uma assertiva é usada a palavra [keyword]assert[/keyword].
+			
+[h2]true, false e null[/h2]
+			As palavras [icode]true[/icode] , [icode]false[/icode] e [icode]null[/icode] não são consideradas palavras chave porque são na realidade valores literais, contudo, sendo que não podem ser usados como nome de classe, 
+			variável ou método, são consideradas palavras reservadas.
+			
+[h2]Uma por uma[/h2]	
+			Lista de palavras reservadas e seus significados
+			[url={@href}]abstract[/url] - usado para definir que um tipo ou método é abstrato. No caso de métodos, alguma classe na hierarquia descendente terá que prover uma implementação. No caso da classe, significa que não possível 
+				invocar [keyword]new[/keyword] nessa classe e produzir um objeto[url={@href}]assert[/url] - usado para declarar uma assertiva no código que pode ser ligada ou desligada pela JVM[url={@href}]break[/url] - usado para interromper um fluxo de repetição ou de escolha.[url={@href}]boolean[/url] - usado para declarar uma variável ou atributo primitivo do tipo lógico[url={@href}]byte[/url] - usado para declarar uma variável, ou atributo, primitivo do tipo numérico inteiro com sinal de 8 bits[url={@href}]case[/url] - usado para declarar uma opção dentro da escolha declarada por [keyword]switch[/keyword][url={@href}]catch[/url] - usado para declarar o escopo de tratamento de exceção, ou exceções, especificas[url={@href}]char[/url] - usado para declarar uma variável, ou atributo, primitivo do tipo numérico inteiro, sem sinal, de 16 bits[url={@href}]class[/url] - usado para definir uma classe ou para se referenciar ao literal que representa essa classe[url={@href}]continue[/url] - usado para avançar um fluxo de repetição para a próxima iteração[url={@href}]const[/url] - não é usado. A palavra é reservada que não tem qualquer significado semântico. Simplesmente não é possível usar essa palavra no código. O compilador acusará um erro de sintaxe.[url={@href}]default[/url] - usado para declarar uma opção padrão dentro da escolha declarada por [keyword]switch[/keyword] que será usada caso nenhuma outra opção seja escolhida.[url={@href}]double[/url] - usado para declarar uma variável, ou atributo, primitivo do tipo numérico de ponto flutuante de precisão dupla[url={@href}]do[/url] - usado em conjunção com  [keyword]while[/keyword]  para declarar uma repetição de execução de um certo código sendo que a cada fim de execução uma expressão será validada para saber se o código anterior será
+				novamente executado[url={@href}]else[/url] - usado para declarar uma alternativa de decisão que deve ser tomada e o código a ser executado caso a expressão de avaliação seja falsa. Também utilizado para poder encadear outro if com uma nova expressão de decisão[url={@href}]enum[/url] - usado para definir uma enumeração[url={@href}]extends[/url] - usado para indicar que uma interface deverá extender a funcionalidade de outra interface, ou usada para indicar que uma classe deverá extender a funcionalidade de outra classe. Também
+				é usada na declaração de [e]generics[/e] para indicar que o tipo genérico deve extender um certo tipo[url={@href}]false[/url] - representa o valor lógico literal para FALSO [url={@href}]final[/url] - usado para definir que um tipo ou método, classe atributo ou variável não podem ser redefinidos. A partir da versão 7 é usado dentro de uma estrutura [keyword]cacth[/keyword] para indicar que a exceção poderá ser relançada[url={@href}]finally[/url] - usado para declarar o escopo de execução que sempre será executado tenha havido ou não um exceção[url={@href}]float[/url] - usado para declarar uma variável, ou atributo, primitivo do tipo numérico de ponto flutuante de precisão simples[url={@href}]for[/url] - usado para declarar uma repetição de execução de um certo código sendo que irá acontecer uma inicialização, um teste e um incremento de uma certa variável ou conjunto de variáveis[url={@href}]goto[/url] - não é usado. A palavra é reservada apenas para não ser possível utilizar esta palavra no código. Não existe funcionalidade de goto em Java.  O compilador acusará um erro de sintaxe.[url={@href}]if[/url] - usado para declarar uma decisão que deve ser tomada e o código a ser executado caso a expressão de avaliação seja verdadeira[url={@href}]implements[/url] - usado para indicar que uma interface deverá ser implementa pela classe ou enumeração[url={@href}]import[/url] - usado para estabelecer de quais pacotes estão sendo usadas as classes que aparecem no corpo do arquivo de fonte[url={@href}]instanceof[/url] - operador usado para auferir se um objeto é de um certo tipo (classe, interface, enum, anotação), considerando toda a sua hierarquia[url={@href}]int[/url] - usado para declarar uma variável, ou atributo, primitivo do tipo numérico inteiro com sinal de 32 bits[url={@href}]interface[/url] - usado para definir uma interface ou para se definir uma anotação quando precedido de @[url={@href}]long[/url] - usado para declarar uma variável, ou atributo, primitivo do tipo numérico inteiro com sinal de 64 bits[url={@href}]native[/url] - usado para declarar que a implementação do método será realizada em outra linguagem, e uma chamada nativa ao OS será usada para executar esse código[url={@href}]new[/url] - operador usado para criar um objeto, instância de uma classe.[url={@href}]null[/url] - representa o valor literal de "ausência de objeto" em uma variável ou atributo de objeto[url={@href}]package[/url] - usado para estabelecer a qual pacote o arquivo de fonte, e por conseqüência os seus tipos públicos, pertencem[url={@href}]private[/url] - usado para indicar que uma tipo ou método não é visível senão a si mesmo ou ao seu tipo imediato[url={@href}]protected[/url] - usado para indicar que uma tipo ou método é visível apenas aos tipos do mesmo pacote ou a tipo que herdem do tipo corrente.[url={@href}]public[/url] - usado para indicar que uma tipo ou método é visível a qualquer outro tipo ou método e pode por ele ser invocado[url={@href}]return[/url] - usado para forçar o retorno de um método, devolvendo ao método chamador um valor ou não[url={@href}]short[/url] - usado para declarar uma variável, ou atributo, primitivo do tipo numérico inteiro com sinal de 16 bits[url={@href}]static[/url] - usado para indicar que o método ou tipo definido a seguir não pertence ao escopo do objeto, mas sim ao escopo da classe em si mesma [url={@href}]strictfp[/url] - usado para declarar que o método deve ser executado levando em consideração regras estritas de reprodutibilidade de calculo[url={@href}]super[/url] - usado para indicar que o escopo pretendido para a invocação de um método ou acesso a um atributo é o da classe mãe.Também utilizado para fazer referencia a um outro construtor da classe imediatamente superior na hierarquia de herança.[url={@href}]switch[/url] - usado para declarar uma escolha entre várias opções de execução[url={@href}]synchronized[/url] - usado para declarar que um certo escopo de código deve ser protegido de acesso concorrente de threads diferentes[url={@href}]this[/url] - usado para indicar que o escopo pretendido para a invocação de um método ou acesso a um atributo é o do próprio objeto corrente. Também utilizado para fazer referencia a um outro construtor da mesma classe. É usando 
+				ainda como forma de referir a instância que encapsula a instância corrente quando em uma classe aninhada[url={@href}]throw[/url] - usado para lançar uma exceção[url={@href}]throws[/url] - usado para declarar quais exceções são possíveis de serem lançadas por um método[url={@href}]transient[/url] - usado para declarar que o atributo não será incluído na serialização do objeto[url={@href}]true[/url] - representa o valor lógico literal para VERDADEIRO [url={@href}]try[/url] - usado para declarar o escopo de captura de exceções[url={@href}]void[/url]void - usado para declarar que o método não terá retorno[url={@href}]volatile[/url]volatile - usado para declarar que é seguro o atributo ser acessado por threads diferentes de forma concorrente[url={@href}]while[/url]while - usado para declarar uma repetição de execução de um certo código sendo que a cada inicio de execução uma expressão será validada para saber se o código seguinte será executado

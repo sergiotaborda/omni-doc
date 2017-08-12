@@ -1,0 +1,105 @@
+[*Property Bag*]
+
+
+[h2]Objetivo[/h2]
+			Agrupar um conjunto de propriedades numa unidade lógica.
+			
+[h2]Propósito[/h2]
+			É bastante comum que se necessite trabalhar com um conjunto de valores
+			para diferentes propriedades normalmente como argumento para um método, 
+			como resultado de um, ou como informação de configuração de um outro objecto. 
+			
+			Se cada propriedade fica "livre" pelo código é mais dificil saber depois onde
+			alterá-la ou de onde lê-la. A ideia, portanto, é usar um objeto como ponto
+			de amarração para todas as propriedades relacionadas a um certo item,ou contexto. 
+			Assim, de certa forma reforçamos a tipagem de um  conjunto (sacola) de propriedades
+			sem forçar nenhuma abstração mais elaborada.
+			
+[h2]Implementação[/h2]
+			Existem várias formas de implementar um Property Bag em java.
+			
+[h3]java.util.Map e java.util.Properties[/h3]
+				A forma mais simples de construir um Property Bag em java é utilizando
+				um mapa (um objeto cuja classe implemente [class]java.util.Map[/class]) , como por exemplo
+				[class]HashMap[/class].
+				
+				Esta classe já provê métodos que permitem atribuir valor a uma propriedades,
+				listar todas as propriedades, todos os valores e todos os pares propriedade-valor.
+				Por outro lado, o uso do mapa obriga a que todas as propriedades tenham o mesmo tipo (todas String,
+				ou todas Color,etc...).Isto se usarmos a tipagem forte oferecida pelo recurso de tipos genéricos.
+				Mas caso não usemos isso, poderemos ter diferentes tipos, mas à custa de uma tipagem fraca.
+				
+				Embora fracamente tipado este padrão é tão util que existe até uma classe utilitária que o implementa 
+				de uma forma mais dirigida. A classs [class]Properties[/class] implementa um mapa de [icode]String[/icode] para 
+				[icode]String[/icode] e ainda possibilita persistir esse mapeamento em arquivo. Muito util para configurações 
+				simples que podem ser convertidas de e para texto. O único problema é que essa conversão tem que ser feita por
+				outro objecto que leia/escreva no objeto [icode]Properties[/icode] mapeando de/para os valores corretos.
+				
+[h3]Bean[/h3]
+				Uma forma mais fortemente tipada é utilizar uma classe java comum que permita definir o tipo de cada propriedade.
+				Esta é a forma mais comum por ser menos propensa a erro de tipagem e relativamente fácil de programar. De tão comum
+				esta abordagem foi batizada de Bean.
+				
+				Na realidade o nome "bean" (grão) deriva da diminuição de "JavaBean" (grão de Java - um trocadilho com o grão de café Java).
+				JavaBean é uma tecnologia de componentes padronizada na JSE no pacote [icode]java.beans[/icode].
+				A diferença principal é que um JavaBean contém um mecanismo de geração de eventos seguindo o padrão [pattern]Observer[/pattern]
+				que avisa quando uma propriedade é modificada e pode até delegar o controle da mudança do valor num mecanismo
+				em que a mudança pode ser vetada. 
+				
+				Um "bean" tem a mesma estrutura  que um JavaBean mas sem o mecanismo de eventos. Daí a ideia de que um "bean" é 
+				um JavaBean diminuido.
+				
+				A implementação do [icode]Property Bag[/icode] com um bean java estabelece uma tipagem forte
+				para os tipos dos valores das propriedades, mas não contêm mecanismos embutidos para listar
+				essas propriedades,valores,ou pares propriedade-valor. Isto é contra-produtivo para o uso de classes
+				para a definição de [icode]Property Bag[/icode] e por conseguinte um mecanismo que permitisse isso seria necessário.
+				
+				O java inclui o pacote [icode]java.lang.reflect[/icode] que permite ler os métodos e atributos de uma classe
+				através de introspeção. Este mecanismo aliado ao pacote [icode]java.beans[/icode] permite tratar uma classe
+				como a definição de um [icode]Property Bag[/icode] e qualquer objeto dessa classe como uma instância de [icode]Property Bag[/icode].
+				
+				Para que estes pacotes entendam que a sua classe define um [icode]Property Bag[/icode] algumas convenções
+				devem ser seguidas (chamadas de JavaBeans naming conventions):
+				A classe deve ter definir um construtor sem argumentos.A classe deve ter definir um método acessor e modificador para cada propriedade, e nomeá-los
+						corretamente. A nomenclatura consiste em prefixar o nome da propriedade com o prefixo "get" para os acessores,
+						e o prefixo "set" para os modificadores. No caso da propriedade ter um valor logico, o prefixo do acessor deve ser "is"
+						em vez de "get".
+				A convenções para JavaBeans exigem mais tipos de métodos relacionados ao controle de eventos e ao padrão [pattern]Observer[/pattern].
+				Para implementar um [icode]Property Bag[/icode] estes são suficientes.
+				
+				Normalmente as propriedades de um [icode]Property Bag[/icode] são objetos simples e não coleções de objetos (caso isso seja necessário
+				essa coleção deverá ser encapsulada em um objeto simples), contudo nada proibe que utilize um objecto de coleção ou [e]array[/e] 
+				como valor de uma propriedade (propriedade multivalorada), mas o seu tratamento automático é estranho. Normalmente, ao chegar nesta
+				situação é bom começar a desconfiar que objeto que está modelando pode não ser um [icode]Property Bag[/icode].
+				
+[h2]Discussão[/h2]
+			O padrão [icode]Property Bag[/icode], mais conhecido  pela implementação do tipo Bean no lingo java, é de uso comum e muitas vezes
+			desapercebido sendo só evidente quando se utilizam os recursos da classe [class]Properties[/class]. 
+			
+			A tecnologia de objetos é fortemente vinculada a este padrão sendo muito fácil criar um Property Bag
+			que contenham qualquer conjunto de propriedades. E é tão comum que passa desapercebido mesmo quando
+			a pessoa nomeia as suas classes como [icode]QualquerCoisaBean[/icode].   
+			
+			Outra mostra de como a tecnologia de objetos é dependente deste padrão é a tecnologia de componentes
+			Java Bean. Esta tecnologia foi extentida por meio da Java Management Extentions (JMX) transendo outros
+			tipos de Propery Bags baseados em classes e interfaces. Estas tecnologias , e até os Enterprise Java Beans
+			embora não sendo formados apenas de Property Bag têm este padrão na sua essência.
+			
+[h2]Exemplos na API padrão[/h2]
+			Como já vimos a classe [class]Properties[/class] implementa o padrão [icode]Property Bag[/icode] 
+			até com possibilidade de persistencia em arquivo ( o famoso arquivo .properties). 
+			O JSE utiliza este padrão em [icode]System.getProperties()[/icode] que retorna um objeto [class]Properties[/class]
+			com várias propriedades do ambiente de execução  da aplicação que permitem saber coisas interessantes como,
+			por exemplo, o nome do sistema operacional.
+			
+[h2]Padrões associados[/h2]
+			Property Bag pode também ser chamado de [pattern]Bean[/pattern], pois como vimos, essa é a essência
+			da tecnologia Java Bean. Muitas vezes Property Bag precisam ser acessada globalmente e é util utilizar o
+			padrão Registry.   
+			
+			Transfer Objects são casos particulares de Property Bag que são utilizados para transportar informaçao entre
+			nodos, ou andares, diferentes da aplicação. Transfer Object é a Property Bag vianjante.
+			
+			Value Objets podem ser entendido como Proeprty Bags de uma propriedade só que se especializam em dar suporte
+			à leitura e manipulação dessa propriedade sem nunca a tornar acessivel a objetos exteriores.
+			

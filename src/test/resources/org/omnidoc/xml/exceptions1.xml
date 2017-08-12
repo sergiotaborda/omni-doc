@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+
+<properties>
+	<author>Sérgio Manuel Marcos Taborda</author>
+	<title>Trabalhando com Exceções
+	<part>1</part>
+	<subtitle>Conceitos</subtitle>
+	</title>
+	<objective>
+	O autor espera que este artigo seja útil no entendimento e uso do mecanismo de exceções do Java. 
+	</objective>
+	<mnemonic>excecoes-conceitos</mnemonic>
+	<collection>exceptions</collection>
+</properties>
+
+<references>
+<ref id="1">
+<title>The Java Tutorials – Lesson Exception</title>
+<author>Sun Microsystems, Inc.</author>
+<url>http://java.sun.com/docs/books/tutorial/essential/exceptions/</url>
+</ref>
+<ref id="2">
+<title>Does Java need Checked Exceptions?</title>
+<author>Kevlin Henney</author>
+<url>http://www.mindview.net/Etc/Discussions/CheckedExceptions</url>
+</ref>
+<ref id="3">
+<title>JDBC 4.0 Enhancements in Java SE 6 </title>
+<author>Srini Penchikala</author>
+<url>http://www.onjava.com/pub/a/onjava/2006/08/02/jjdbc-4-enhancements-in-java-se-6.html</url>
+</ref>
+</references>
+
+
+	<body>
+		<section name="Conceito Inovador">
+			<p>Durante a codificação, o programador se depara muitas vezes com a necessidade de fazer várias verificações antes de proceder ao real propósito do código para garantir que as operações
+			seguintes não irão conrromper o funcionamento da aplicação. Por exemplo, verificar que o arquivo que quer ler, de fato existe ou que a conexão à internet realmente está aberta. 
+			Quando se verifica que a condição é falsa, então o programa não tem como continuar pois as condições essenciais ao seu funcionamento não estão satisfeitas. 
+			O conceito de Exceção foi introduzida pela linguagem C++ para tentar libertar o programador de continuamente ter que resolver o que fazer quando uma condição essencial 
+			não se verifica e libertar o programador utilizador de uma biblioteca de saber verificar tudo o que tem que ser verificado ao usar essa biblioteca. 
+			Com o mecanismo de Exceção o programador pode decidir o que fazer mais à frente no código. Este foi realmente um mecanismo inovador, que praticamente todas as linguagens adotaram  
+			desde então.</p>
+			<p>A linguagem Java introduziu pela primeira vez o conceito de exceção verificada (<estrang>Checked Exception</estrang>). A base para isto é que certas condições são 
+			tão importantes que o programador não deve se escusar de tratar o problema imediatamente. Normalmente este tipo de situação existe quando o programa tem que interagir 
+			com o ambiente em que executa, por exemplo com o sistema de arquivos ou a rede. </p>
+		</section>
+		<section name="Exceções em Java">
+			<p>Exceção é um evento que acontece durante a execução de um programa corrompendo o curso normal do seu fluxo lógico.  Em Java exceções são representadas por uma hierarquia 
+			particular de objetos. A classe raiz que representa uma exceção é <code>Throwable</code>.
+			 </p>
+			<figure>
+				<img src="chamadas.png"/>
+				<legend>Invocação de método vs lançamento de exceções</legend>
+			</figure>
+			<p>
+Todo o mecanismo da linguagem relativo a exceções é baseado no conceito de que exceções são lançadas e capturadas. Quando uma exceção acontece, ela é lançada de dentro do método onde 
+se verificou o problema. A exceção ser lançada significa que o fluxo normal do programa e interrompido e o controle volta ao método chamador. Se este método não capturar essa exceção
+ela será passada ao método que chamou o método chamador. Isso acontece assim, sucessivamente, até que a exceção seja capturada ou ela chegue na JVM, caso em que será capturada 
+automaticamente. Trabalhar com exceções é decidir onde capturar quais exceções e o que fazer uma vez que elas são capturar. 
+</p>
+			<section name="Tipos de Exceção">
+				<p>Existem três categorias de exceções: Erro, Falha e Exceção de Contingência representadas respectivamente pelas classes: <code>Error</code>,  <code>RuntimeException </code>e <code>Exception</code>.
+				Todas estas classes são filhas de <code>Throwable</code>.
+				
+			</p>
+				<p>A hierarquia de exceções em Java não tem como objetivo criar implementações ligeiramente diferentes da mesma coisa e sim diferenciar categorias diferentes de exceções.
+				Para cada tipo de exceção existe uma interpretação especial feita pelo compilador que se reflete na forma como o programador tem que lidar com elas.  </p>
+				<figure>
+					<img src="hierarquia.png"/>
+					<legend>Hierarquia de tipos exceções em Java</legend>
+				</figure>
+			</section>
+			<section name="Erros">
+				<p>Erros são exceções tão graves que a aplicação não tem como resolver o problema. São erros todas as classes que descendem diretamente de <code>Error</code>. </p>
+				<p>É importante que os erros sejam reportados e que se saiba que aconteceram, mas o programa não tem o que fazer para resolver o problema que eles apontam. 
+				Erros indicam que alguma coisa está realmente muito errada no funcionamento do código ou no ambiente de execução. 
+				Exemplos de erros são <code>OutOfMemoryError</code> que é lançada quando o programa precisa de mais memória mas ela não está disponível, 
+				e <SourceText>StackOverflowError</SourceText> que acontece quando a pilha estoura, por exemplo, quando um método se chama a si mesmo sem nunca retornar.</p>
+				<source language="java" legend="Exemplo de um método que causa StackOverflowError">
+public int stackOverFlow(int a){
+    return  stackOverFlow(a);
+} 
+				</source>
+			
+			<section name="Falhas">
+				<p>Falhas são exceções que a aplicação causa e <emph>pode</emph> resolver. Digo <emph>pode</emph> resolver porque não é obrigada a fazê-lo. 
+				São falhas todas as classes que descendem diretamente de <code>RuntimeException</code>. </p>
+				<p>Se a aplicação nunca apanhar este tipo de exceção, tudo bem, a JVM irá capturá-la. Mas provavelmente a sua aplicação não mais funcionará corretamente. 
+				Exemplos de falhas são <code>IllegalArgumentException</code> e <code>NullPointerException</code>. A primeira acontece quando se passa um parâmetro para um 
+				método e o método não o pode usar. A segunda acontece sempre que tentar invocar um método em uma variável de objeto não inicializada (<code>null</code>). 
+				Isso é bastante comum e por isso ela é, provavelmente, a exceção mais reportada de todas. Exceções deste tipo existem em outras linguagem que têm o conceito 
+				de exceção e são as que nos devem preocupar mais enquanto programamos porque traduzem situações que desafiam a lógica do programa.</p>
+			</section>
+			<section name="Exceções de Contingência">
+				<p>Exceções de Contingência são aquelas que a aplicação pode causar ou não, mas que tem que tratar explicitamente. Exceções de Contingência são todas aquelas 
+				que descendem diretamente de <code>Exception</code> exceto as que descendem de <code>RuntimeException</code>.
+				</p>
+				<p>Devido ao nome sugestivo é comum confundir o conceito de exceção com a própria classe <code>Exception</code>. Tenha sempre em mente que ao falarmos de exceções 
+				e tratamentos de exceções nos estamos referindo à hierarquia descendente de <code>Throwable</code>, a qualquer um dos conceitos acima, ao mecanismo em si e 
+				não apenas às classes nem a uma classes em particular.</p>
+				<p>As exceções de contingência se chamam assim porque freqüentemente representam exceções para as quais o programa <emph>deve</emph> ter um plano de contingência. 
+				O exemplo clássico é a exceção <code>FileNotFoundException</code> que significa que o arquivo que estamos tentando ler, não existe. Isto é uma exceção no sentido
+				que o programa espera que o arquivo exista, contudo, se ele não existir o programa deve ter um plano B, que pode ir de simplesmente não fazer nada até apresentar 
+				uma mensagem ao usuário final ou invocar outro método que irá buscar o arquivo em outro lugar( na rede ou via FTP, por exemplo).  </p>
+				<p>Ambientes que não se controlam não são confiáveis. Não se pode assumir que esses ambientes estão funcionado corretamente, ou sequer que estão funcionando. 
+				Como acessar a outros ambientes é o que uma aplicação normalmente faz é necessário que as exceções que daí decorrem sejam exceções de contingência. </p>
+			</section>
+			<section name="Exceções verificadas e não-verificadas">
+				<p>Java foi a primeira linguagem a introduzir o conceito de exceção verificada.  Por padrão as exceções em Java são verificadas.</p>
+				<p>A aplicação é obrigada a manipular estas exceções explicitamente na medida que o método que recebe este tipo de exceção é forçado a <emph>verificar</emph> se pode 
+				resolver o problema.  Se o método sabe que não poderá resolver a exceção, ele deve declarar isso explicitamente.</p>
+				<p>Note que este mecanismo de verificação é muito útil quando temos que antever planos de contingência para a ocorrência da exceção. O uso da palavra contingência 
+				não é coincidência. Java  entende que para todas as exceções devem existir planos de contingência, alternativas que permitam que o programa continue funcionando 
+				normalmente.Assim todas as classes que descendem diretamente de <code>Throwable</code> ou  <code>Exception</code> são exceções verificadas. </p>
+				<p>Mas o mundo não é perfeito e Java entende também que existem exceções para as quais não é  possível antever um plano de contingência, erros e falhas, são esses tipos.
+				Os primeiros nunca deveriam acontecer, portanto não faz sentido ter planos para os resolver. Os segundos podem  até demonstrar que a aplicação está funcionado corretamente
+				ao identificar aquele problema. Por isso   <code>Error</code> e <code>RuntimeException</code> são exceções não-verificadas.</p>
+				<figure>
+					<img src="verifcadasvsnao.png"/>
+					<legend>Exceções Verificadas e não-Verificadas</legend>
+				</figure>
+				<p>O fato de <code>RuntimeException</code> herdar de <code>Exception </code>confunde muita gente porque parece significar que todas as  <code>RuntimeException</code> são 
+				também <code>Exception.</code> Isso significaria que todas as falhas poderiam ser resolvidas se existirem planos de contingência para elas. O que é verdade,já que todas as 
+				falhas são possíveis exceções de contingência . Na verdade é por isso que todas as <code>RuntimeException</code> são também <code>Exception</code>. 
+				Elas podem ser resolvidas se o programa tiver como e desse ponto de vista a sua resolução é igual à de <code>Exception</code>.</p>
+				<p>Mas  <code>RuntimeException</code> herdar de <code>Exception </code>parece significar que o  comportamento de exceção verificada é também herdado,  o que não é verdade. 
+				O mesmo argumento poderia ser usado com <code>Error</code> e <code>Throwable</code>. A verificação é algo que o compilador obriga, como obriga por exemplo que não exista nenhum 
+				código depois de um <code>return</code> ou que seja feito um <emph>cast</emph> se os dois lados de uma atribuição não são da mesma classe. A verificação é portanto uma 
+				característica da linguagem, do compilador, que nada tem a ver com herança. Se este conceito é difícil de entender, pense apenas que as várias classes de exceção são 
+				marcadores para o compilador e a JVM saberem como e quando obrigar a lançar/capturar a exceção que elas representam. Exceções verificadas são  uma característica da
+				inteligência da linguagem Java. </p>
+				<p>Muitos poderão ler a última frase com um sorriso. Hoje parece irônico dizer que exceções verificadas são algo inteligente. 
+				Porque as exceções verificadas sempre têm que ser verificadas por todos os métodos por onde passam, tornam-se rapidamente um problema para o programador, 
+				que acaba incorrendo em muitos erros ao tratar todas as exceções verificadas que lhe aparecem. Veremos na segunda parte deste artigo como tratar corretamente 
+				as exceções verificadas. Espero que por agora, aceite a afirmação de que é realmente uma característica inteligente. </p>
+			</section>
+			</section>
+		</section>
+		<section name="Lançando Exceções ">
+			<p>Como foi dito, o mecanismos de exceções se baseia em lançar e capturar. Veremos agora como lançar e capturar exceções. </p>
+		</section>
+		<section name="Throw e Throws ">
+			<p>Para lançar uma exceção simplesmente usamos a cláusula <code>throw</code>
+				<code/> seguida do objeto que representa a exceção que queremos lançar. O conceito é semelhante ao de <code>return</code>, 
+				mas enquanto <code>return</code> está devolvendo um resultado de dentro do método, <code>throw</code> está lançando uma exceção.
+				Nunca é possível considerar uma exceção como o resultado de um método, o objetivo do método é obter resultados sem lançar exceções.</p>
+			<source language="java" legend="Lançando uma exceção" hightlight="4">
+	public double divide (double dividendo , double divisor){
+					   if (divisor==0){
+					    // não queremos poder dividr por zero. (embora o Java permita isso resultando em NaN)
+					    throw new ArithmeticException(“Divisor não pode ser zero”);
+					   }
+					  // o resto do codigo
+	} 
+			</source>
+			<p>Se o divisor é zero, isso não é correto.</p>
+			<p>Aqui temos um método que tentará dividir dois <code>double</code>.
+			O Java vai deixar dividir esses números mesmo que o divisor seja zero, mas como regra do nosso programa não queremos deixar isso acontecer. 
+			Então, testamos se o divisor é zero e se for, lançamos uma exceção. <code>ArithmeticException</code> é uma exceção não-verificada padrão que representa 
+			que há um problema na hora de fazer algum calculo.</p>
+			<p>Lançar exceções é o inicio do processo, mas quando a exceção for lançada o método que chamou este terá que saber que este método pode lançar este tipo de exceção.
+			Para informar isso usamos a palavra reservada <code>throws</code> na assinatura do método, indicando a quem usar o método que ele pode lançar uma  <code>ArithmeticException.</code>
+			</p>
+			<source language="java" legend="Usando throws" hightlight="1" >
+				public double divide (double dividendo , double divisor) throws   ArithmeticException{
+						 if (divisor==0){
+						    throw new ArithmeticException(“Divisor não pode ser zero”);
+					    }
+						 // o resto do codigo
+				} 
+			</source>
+			<p>Lembre-se que exceções só podem ser lançadas de dentro de métodos e que uma vez lançadas elas passam por toda a cadeia de métodos que estão na pilha de chamadas. 
+			Ou seja, passam pelo método que chamou o método que lançou a exceção. Pelo método que chamou esse método, e pelo método que chamou este outro 
+			e assim sucessivamente até que sejam apanhadas. Se o programa não apanhar a exceção a JVM o fará. Por padrão, a JVM exibirá uma mensagem no console. </p>
+		</section>
+		<section name="Documentando o lançamento">
+			<p>Quando a exceção é não-verificada, não é obrigatório indicar o seu lançamento na cláusula <code>throws</code> mas sempre é necessário documentar 
+			a razão que irá lançar essa exceção.  A forma mais simples de documentar é usar o Javadoc e a tag <code>@throws</code>. O código final seria então:</p>
+			<p> </p>
+			<source language="java" legend="Código com exceção e javadoc">
+						/**
+								Divide dois números double. O divisor não pode ser zero. 
+			
+								@param dividendo o numero a dividir 
+								@param divisor o numero pelo qual dividir. Não pode ser zero. 
+								@return o quociente da divisão.
+								@throw  ArithmeticException se o divisor for zero.
+
+						*/ 
+						public double divide (double dividendo , double divisor) throws   ArithmeticException{
+						    // o resto do codigo
+						}
+			</source>
+			<p>É sempre importante documentar as exceções , verificadas ou não, que o método pode lançar e as condições em que elas serão lançadas
+			dá informação a quem usar o método do tipo de condições em que o método pode ser usado. </p>
+		</section>
+		<section name="Capturando Exceções">
+			<p>Exceções são lançadas de dentro de métodos. Para entender como capturar a exceção temos que  entender com usar as diretivas <code>try-catch-finally</code>. 
+			Na realidade estamos falando de 3 blocos diferentes <code>try-cacth</code>, <code>try-finally</code> e <code>try-catch-finally</code>. </p>
+		</section>
+		<section name="Try-Catch">
+			<p>Esta é a forma mais usada. Todas as chamadas a métodos que sabemos que podem lançar exceções colocamos dentro de chaves com a palavra reservada <code>try</code> antes. 
+			Isso significa o seguinte: <emph>"JVM, tenta executar o seguinte código. Se uma exceção acontecer em qualquer método deixa-me tratá-la."</emph>
+			</p>
+			<p>Uma vez capturada temos que dar tratamento à exceção, ou seja, fazer alguma coisa para resolver o problema que ela representa, ou tomar ações alternativas. 
+			O código para fazer isso colocamos dentro de chaves com a palavra reservada <code>catch</code> atrás. </p>
+			<p>Muitos tipos de exceções podem ser lançadas e nem sempre o mesmo código de tratamento serve para todos os tipos. Para informar qual o tipo de exceção que 
+			o código se destina a resolver colocamos uma declaração a seguir ao <code>catch</code> que indica o tipo de exceção que podemos tratar naquele código.
+			O tipo é definido declarando uma classe especifica. Essa classe pode ser qualquer uma que herde direta ou indiretamente de <code>Throwable</code>. </p>
+			<source language="java" legend="Exemplo de uso do bloco try-catch" >
+						try { 
+						 // aqui executamos um, ou mais, métodos 
+						 // que podem lançar execções. 
+						}catch (Throwable   e) {
+						   // aqui a execção aconteceu e tentamos evitar o problema 
+						   // fazendo a operação de modo diferente
+						}  
+				<legend></legend>
+			</source>
+			<p>Podemos declarar mais do que um bloco <code>catch</code>. Isso é importante porque podemos ter vários tipos diferentes de exceção sendo lançados e 
+			necessitar de um tratamentos especifico para cada um. Por outro lado, não é sensato usar <code>Throwable</code> para definir a classe a ser capturada.
+			Isso significa que queremos capturar todos os tipos de exceção. Como vimos, não há muito o que fazer quando acontece um erro. Por isso não estamos normalmente 
+			interessados em capturar exceções do tipo de <code>Error</code>. Eis um exemplo mais realista do uso de <code>try-catch</code>. </p>
+			<p> </p>
+			<source language="java" lengend="Uso mais realista de try-cacth">
+						try { 
+						 // aqui executamos um método que tenta ler um arquivo
+						 
+						}catch (FileNotFoundException   e) {
+						   // se o arquivo não existir esta exceção é lançada. 
+						  
+						   // aqui colocamos a resolução
+						}catch (EOFException e) { 
+						   // quando esta exceção acontece significa que aconteceu 
+						   // um problema na leitura do arquivo. 
+						  
+						   // aqui colocamos a resolução
+						} catch (IOException e) { 
+						   // uma outra exceção de I/O aconteceu. 
+						 
+						   // aqui colocamos a resolução
+						} 
+			</source>
+			<p>Pode acontece que durante a tentativa de resolução do problema, cheguemos à conclusão que não podemos fazer mais nada e o problema é insolúvel. Nesse caso, é
+			possível usar <code>throw, </code>dentro do bloco <code>catch </code>para relançar a exceção que capturamos. Tudo se passa como se ela nunca tivesse sido apanhada. </p>
+			<p>A ordem pela qual devemos colocar os  blocos <code>catch</code> não é aleatória. Se usarmos classes de exceção de uma mesma hierarquia, a classe mais genérica 
+			tem que ser capturada depois das outras da sua descendência. No exemplo anterior, <code>FileNotFoundException</code> e  <code>EOFException</code> são filhas de  
+			<code>IOException </code>por isso ela é capturada depois das outras duas. Isto é assim porque a JVM irá comparar a classe da exceção que aconteceu com a classe 
+			declarada em <code>catch</code> e usar o primeiro bloco que for compatível. Se a classe mais genérica estiver antes, ela seria sempre a escolhida nunca dando 
+			chance de usar os outros blocos. Se você tentar fazer isso, o compilador irá reclamar, protegendo a lógica do mecanismo de tratamento. </p>
+		</section>
+		<section name="Try-Finally ">
+			<p>Por vezes, mesmo sabendo que os métodos que estamos usando lançam exceções, sabemos também que não podemos fazer nada para as resolver. Nesse caso, simplesmente não 
+			usamos o bloco try-<code>catch</code> e simplesmente declaramos as exceções com <code>throws</code> na assinatura do método. Mas, e se, mesmo acontecendo uma exceção 
+			existe um código que precisamos executar ?  É neste caso que usamos o bloco <code>finally</code>. </p>
+			<p>Este tipo de problema é mais comum do que possa parecer. Por exemplo, se você está escrevendo num arquivo e acontece um erro, o arquivo tem que ser fechado mesmo assim. 
+			Ou se você está usando uma conexão a banco de dados e acontece algum problema a conexão tem que ser fechada. </p>
+			<p>Para usar o bloco <code>try-finally</code>, começamos como envolver os métodos que podem lançar exceções como vimos antes, mas usamos um bloco <code>finally</code> 
+			em vez de um <code>catch</code>. </p>
+			<p> </p>
+			<source language="java" legend="Uso de bloco finally" >
+						try { 
+						// aqui executamos um método que pode lançar uma exceção que não    
+						// sabemos resolver
+						} finally { 
+						  // aqui executamos código que tem que ser executado, mesmo que um problema aconteça.
+						}  
+			</source>
+			<p>Isto é muito útil, mas pense o que acontece se dentro do bloco <code>try</code> colocamos um <code>return</code>. </p>
+			<p>Isso significa que algo tem que ser retornado para fora do método, mas significa também que o método acaba aí. Nenhum código pode ser executado depois de um 
+			<code>return </code> (o compilador vai-se queixar dizendo que o código seguinte é inalcançável). Isso é tudo verdade, exceto se esse código suplementar estiver
+			dentro de um bloco <code>finally</code>. O código dentro do bloco <code>finally</code> não apenas é executado se uma exceção acontecer, mas também se o método 
+			for interrompido. É garantido que o  código dentro do bloco <code>finally</code> sempre será executado, aconteça o que acontecer.
+			Este é um outro uso importante deste bloco.</p>
+		</section>
+		<section name="Try-Catch-Finally ">
+			<p>Este bloco é apenas a conjunção dos anteriores. Apenas é necessário deixar claro que o bloco <code>finally</code> tem que ser declarado depois de todos os 
+			blocos <code>catch</code>. A Listagem seguinte mostra o uso de todos os conceitos e palavras chave relacionados ao mecanismo de exceções. </p>
+			<p>
+				<code>SQLException</code> é uma exceção de contingência, e portanto verificada, mas nem sempre é claro como tratar esse tipo de exceção. 
+				Isso acontece porque na realidade essa exceção representa uma imensidão de exceções diferentes. A especificação JDBC 4.0 vem melhorar este cenário
+				definindo classes filhas mais especificas.</p>
+			<source language="java" legend="Exemplo completo do uso de try-catch-finally">
+						// faz uma consulta SQL ao banco retornando todos os produtos 
+						public List&lt;Produto&gt; queryAllProducts () throws SQLException { 
+						 
+						 // Para podermos usar o objecto con dentro do try e do finally 
+						 // precisamos declará-lo for de ambos os blocos.
+						    Connection con = null;
+						    try {
+						        // obtém conexão. Não nos importa muito como. 
+						        con = this.getConnection(); 
+						 
+						        // executa comando SQL
+						        ResultSet rs = con.createStament().executeQuery(“ SELECT * FROM PRODUTOS”);
+						 
+						        // mapeia o ResultSet para uma lista de objetos
+						        List&lt;Produto&gt; resultado = mapResultSet(rs,Produto.class);
+						 
+						        // retorna o resultado. 
+						        // O código no bloco finally ainda será executado.
+						        return resultado;
+						    } catch  (SQLException e) {
+						        // descobre se a falha se deve à tabela não existir no banco
+						        if (this.exceptionMeansTableMissing(e)){
+						           // realmente a tabela não exite no banco. 
+						           // retorna uma lista vazia. 
+						           return Collection.emptyList();
+						        } else {
+						           // não conseguimos resolver o problema. 
+						           // relançamos a exceção
+						           throw e;
+						        }
+						    } finally {
+						        // fecha a conexão
+						        con.close();
+						    }
+						} 
+			</source>
+		</section>
+		<section name="Resumo">
+			<p>O mecanismo de exceções é baseado no lançamento e captura de objetos da classe <code>Throwable</code>. Este mecanismo é diferente do mecanismo de retorno de 
+			resultados invocado quando usamos <code>return</code>  e por isso existe a palavra <code>throw</code>, que lança a exceção e dá inicio ao mecanismo de lançamento 
+			e captura de exceções.</p>
+			<p>Exceções podem ser verificadas ou não. As exceções verificadas obrigam o código a verificar se podem ser resolvidas ou evitadas. 
+			Exceções verificadas não são o padrão e não existem em outras linguagens.  Exceções verificadas são normalmente usadas em código que acesse recursos fora da memória 
+			da máquina, como o sistema de arquivos ou a rede. Java parte do principio de que ambientes que ele não controla não são confiáveis e que deve sempre haver pelo menos 
+			um plano de contingência no caso de algum problema acontecer.</p>
+			<p>Podemos capturar e tratar exceções usando uma conjunção do blocos <code>try-catch-finally</code>.  É garantido que o código no bloco <code>finally</code>  
+			<emph>sempre</emph> é executado, mesmo que exista uma exceção e mesmo que o bloco <code>try</code> contenha a instrução <code>return</code>. Esta funcionalidade 
+			especial do bloco <code>finally</code> é importante quando temos que fazer operações de limpeza, como fechar conexões, antes de sair do método e mesmo que não existam exceções.</p>
+			<p>Se queremos apanhar uma, ou mais exceções, que sabemos que podem ser originadas pelos métodos que estamos usando basta envolver esses métodos dentro de 
+			um bloco de execução com palavra <code>try</code>. Isto indica ao compilador que os métodos dentro do bloco podem lançar exceções. Se isso realmente acontecer, 
+			então a exceção será passado para o bloco <code>catch</code>, por fim, o código dentro de <code>finally</code> será executado.</p>
+		</section>
+	
+
+
+	</body>
+</document>
+

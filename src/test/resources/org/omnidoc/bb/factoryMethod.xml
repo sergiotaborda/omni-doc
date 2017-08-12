@@ -1,0 +1,113 @@
+[*Factory Method*]
+
+
+[h2]Objetivo[/h2]
+Encapsular a criação de um objeto em um método.
+
+[h2]Propósito[/h2][pattern]Factory Method[/pattern](Método de Fábrica[ção]) é um padrão de projeto que visa encapsular a criação de um objeto em um método .
+[pattern]Factory Method[/pattern] é provavelmente um dos padrões mais utilizados porque ele é muito natural. Ele é usado, muitas vezes, sem consciência de que está sendo usado um padrão.
+
+Algumas razões existem para que queria encapsular a criação de um objeto em um método.
+A mais simples e óbvia é esconder o uso de [keyword]new[/keyword]. A segunda, é poder escolher qual implementação realmente utilizar.
+Outras razões passam pelo controle de exceções o uso de técnicas de cache transparente e o acesso privilegiado ao estado de outros objetos.
+
+[h2]Implementação[/h2]
+A implementação de [pattern]Factory Method[/pattern] é, à partida, tão simples quanto fazer [keyword]new[/keyword] dentro de um método. Não existe nenhum secreto.
+Por outro lado, é quando encapsulamos a construção em um método em vez de um construtor, que ganhamos a capacidade de não apenas fazer [keyword]new[/keyword]. 
+
+[code=java]
+
+
+	public interface Matrix {
+	
+		// outros método omitidos
+		
+		public double get(int linha, int coluna);
+	
+		public Matrix transpose();
+	}
+
+	public class DenseMatrix {
+
+		// outros método omitidos
+		
+		
+		public Matrix transpose(){
+			return new MatrixTransposta(this);
+		}
+		
+	}
+	
+	public class MatrixTransposta {
+	
+		Matrix original;
+	
+		public MatrixTransposta(Matrix original){
+			this.original = original;
+		}
+		
+		// outros método omitidos
+		
+		public Matrix transpose(){
+			return original;
+		}
+
+		public double get(int linha, int coluna){
+			return original.get(coluna, linha); // simplesmente trocamos a ordem.
+		}
+		
+	
+	}
+
+
+[/code]
+	
+Neste exemplo queremos obter um objeto to tipo [icode]Matrix[/icode] a partir de outro objeto [icode]Matrix[/icode] que represente a sua transposta. Uma matrix transposta é igual à matrix original, mas trocando 
+os índices das linhas pelos das colunas e vice-versa.
+A matrix transposta da matrix transposta é a matrix original. O código acima utiliza o padrão [pattern]Factory Method[/pattern] no método [icode]transpose[/icode] em [icode]DenseMatrix[/icode] criando um outro objeto que implementa 
+a interface [icode]Matrix[/icode] e que compartilha o estado do objeto corrente. O código  utiliza novamente o padrão [pattern]Factory Method[/pattern] no método [icode]transpose[/icode] de [icode]MatrixTransposta[/icode] em
+que o objeto original é retornado. Repare que aqui nenhum objeto foi realmente criado porque se usou um objeto a que já se tinha acesso.
+
+[h2]Discussão[/h2]
+Note-se que o método de fábrica não é estático. Esta é uma diferença sutil mas importante entre o padrão [pattern]Factory Method[/pattern] e [pattern]Static Factory Method[/pattern].
+
+O uso de métodos permite  que o objeto seja criado conforme o estado do objeto criador. Este conceito é especialmente útil quando o objeto criado é um objeto "ajudante" cujo estado é na realidade 
+apoiado pelo estado do objeto criador. O exemplo clássico desta relação é na criação de iteradores.
+Embora o objeto retornado siga o padrão  [pattern]Iterator[/pattern] o iterador irá percorrer objetos em uma sequência que faz parte do estado do objeto criador.
+
+É fácil confundir os padrões [pattern]Factory Method[/pattern], [pattern]Factory[/pattern] e [pattern]Static Factory Method[/pattern] já que embora o propósito seja o mesmo : criar um objeto,
+as implicações de cada um não são as mesmas.
+[pattern]Static Factory Method[/pattern] é usado como um substituto do uso de construtores e normalmente usado pela mesma classe que será retornada
+pelo método. O exemplo clássico seria o método [icode]getCalendar[/icode] da classe [class]Calendar[/class] ou [icode]valueOf[/icode] da classe [class]Integer[/class].
+[pattern]Factory[/pattern] é usado como um encapsulamento da decisão da criação do objeto quando a decisão e/ou o objeto criado podem mudar no tempo ou conforme
+ algum outro estado ou circunstância. Não se trata apenas de substituir o construtor, mas poder definir diferentes estratégias de criação do objeto.
+[pattern]Factory Method[/pattern] é usado por um objeto cuja responsabilidade principal não é criar objetos , mas sim manter algum estado ou prover algum algoritmo.
+ O polimorfismo é possível, mas apenas se o objeto criador também for extendido de alguma forma. Ao contrário do objeto de fábrica de  [pattern]Factory[/pattern] o objeto que contém 
+ um  [pattern]Factory Method[/pattern] não existe para criar o objeto, mas ao contrário. O objeto criado é criado para ajudar o objeto criador a prover a sua funcionalidade.
+
+[h2]Exemplos na API padrão[/h2]
+O principal exemplo na API padrão de [pattern]Factory Method[/pattern] é o método [icode]iterator()[/icode] na interface [class]Collection[/class].
+Este método cria e retorna um objeto iterador seguindo o padrão [pattern]Iterator[/pattern]. 
+
+Um outro exemplo do uso de [pattern]Factory Method[/pattern] é o método  [icode]matcher(CharSequence)[/icode] da classe [class]Pattern[/class] que retorna um objeto [class]Matcher[/class].
+Aqui o objeto [class]Matcher[/class] irá utiliza a expressão regular definida pelo objeto [class]Pattern[/class] para analisar a sequência de caracteres passada como argumento. 
+Diferentemente do método  [icode]iterator()[/icode] na interface [class]Collection[/class] aqui é demonstrado como o objeto criado pode criar diferentes instância do objeto criado, inclusive com base em 
+dados externos ao objeto criador.
+
+A API padrão ainda conta com um uso de [pattern]Factory Method[/pattern] através da interface [class]Clonable[/class] que permite que qualquer objeto seja "clonado", ou seja, que um outro objeto seja criado
+com o estado exatamente igual ao objeto que o criou.
+
+[h2]Padrões Relacionados[/h2]
+O padrão [pattern]Factory Method[/pattern] nasce da aplicação direta do Principio do Encapsulamento e se relaciona
+a muitos outros padrões. 
+
+O padrão [pattern]Factory[/pattern] contém pelo menos uma aplicação do padrão [pattern]Factory Method[/pattern] já que um método é usado pela fábrica para criar o objeto.
+
+O padrão [pattern]Static Factory Method[/pattern] contém pelo menos uma aplicação do padrão [pattern]Factory Method[/pattern] já que um método é usado para criar o objeto.
+Neste caso podemos pensar que [pattern]Static Factory Method[/pattern] se trata de aplicar o padrão [pattern]Factory Method[/pattern] onde o objeto criador é uma instância de [class]Class[/class] e não 
+um objeto instanciado de uma classe.
+
+Como vimos antes o padrão [pattern]Factory Method[/pattern] se relaciona ao padrão [pattern]Iterator[/pattern] já que normalmente o iterador é criado com acesso ao estado do objeto sendo iterado.
+
+Finalmente o padrão [pattern]Factory Method[/pattern] pode ser relacionado aos padrões [pattern]Builder[/pattern] e  [pattern]Prototype[/pattern] já que todas as implementações
+destes padrões  contam com algum método que realmente constrói o objeto pretendido e o devolve.

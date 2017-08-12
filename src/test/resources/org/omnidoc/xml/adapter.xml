@@ -1,0 +1,170 @@
+<document>
+
+<properties>
+	<title>Adapter</title>
+	<created>2012-06-15</created>
+</properties>
+
+	<related-patterns>
+		<name>Decorator</name>
+		<name>Facade</name>
+		<name>Proxy</name>
+	</related-patterns>
+	
+	<references>
+		<ref id="1" >
+			<title>Design Patterns: Elements of Reusable Object-Oriented Software</title>
+			<book>gof-design-patterns</book>
+		</ref>
+	</references>
+	
+<body>
+<section name="Objetivo" >
+<p>
+Permitir que um objeto seja utilizado através de um contrato diferente.
+</p>
+</section>
+
+<section name="Propósito" >
+<p>
+<pattern>Adapter</pattern> (Adaptador) é um padrão de projeto que permite que um objeto seja utilizado com  um contrato diferente <ref id="1" /> do seu. 
+O contrato é o conjunto de métodos, parâmetros e funcionalidades públicos.
+</p>
+<p>
+Muitas vezes você precisa utilizar um objeto de uma classe no lugar de um outro, mas os contratos dos objetos não são compatíveis. 
+Modificar o objeto que você já possui pode não ser possível (porque é de terceiros, por exemplo) ou prático (as regras já implementadas são relativamente complexas).
+</p>
+<p>
+O padrão propõe que se construa um novo objeto, o Adapter. Este objeto terá a interface que o programa precisa mas ele delegará todos os comandos para um outro objeto que tem um contrato diferente.
+O <pattern>Adapter</pattern> encapsula o objeto que realmente irá realizar o trabalho em uma interface compatível com a que o é esperada. Por este motivo o padrão <pattern>Adapter</pattern> é também chamado de <strong>Wrapper</strong> ('que embrulha').
+</p>
+</section>
+<section name="Implementação" >
+<p>
+O padrão <pattern>Adapter</pattern> pode ser utilizando tanto quando o contrato original é especificada por uma classe java ou por uma interface. É mais fácil quando o contrato é definido por uma interface, porque desta forma você sabe que 
+pode sempre criar um objeto com aquele contrato. Ao trabalhar com classes é mais complexo. Se a classe é final e não pode ser herdada criar um adaptador é impossível apenas usando a linguagem Java e terá que recorrer a bibliotecas 
+avançadas de bytecode rewrite. Vejamos como seria a implementação quando o contrato é baseado em uma interface. Este é o caso mais comum.
+</p>
+<p>
+Imaginemos que temos um objeto de uma classe chamada <code>BalanceCalculator </code> de um pacote legado que contém um  conjunto de regras valioso que não queremos reimplementar.
+Este objeto tem o seguinte contrato
+</p>
+<source language="java"><![CDATA[
+
+public class BalanceCalculator {
+
+    // atributos e campos omitidos.
+	
+	public double calculateBalance(Integer account, Calendar date) {
+	   // lógica omitida
+	}
+
+}
+
+]]></source>
+<p>
+Queremos usar esta classe em um novo projeto que contém um contrato utilizado pelo sistema para calculo de saldos, contudo o contrato é diferente.
+</p>
+<source language="java"><![CDATA[
+
+public interface BalanceResolver {
+	
+	public Money balanceFor(Account account, Date date);
+
+}
+
+]]></source>
+<p>
+O objetivo do padrão <pattern>Adapter</pattern> é criar um objeto com este contrato, mas que se utiliza do objeto anterior.
+</p>
+<source language="java"><![CDATA[
+
+public class BalanceCalculatorAdapter implements  BalanceResolver{
+	
+	BalanceCalculator original;
+	
+	public BalanceCalculatorAdapter(BalanceCalculator original, Locale locale){
+		this.original = original;
+		this.locale = locale;
+	}
+	
+	public Money balanceFor(Account account, Date date) {
+	
+		Calendar calendar = Calendar.getInstance(locale);
+		calendar.setTime(date);
+	
+		return Money.valueOf(
+			original.calculateBalance(account.getId(), calendar),
+			Currency.getCurrency(locale)
+		)
+	
+	}
+
+}
+
+]]></source>
+<p>
+Este é um exemplo simplificado. Pode ser necessário adaptar também exceções que o objeto original lança e que o novo não. 
+Pode ser necessário realizar algumas ações extra, como no caso em precisamos do <code>Locale</code> correto para podermos criar o <code>Calendar</code> e o <pattern>Money</pattern>.
+</p>
+<p>
+O importante é que é agora possível utilizar o objeto <code>BalanceCalculator</code> onde for possível usar um <code>BalanceResolver</code>.
+</p>
+</section>
+<section name="Padrões relacionados" >
+<p>
+O padrão <pattern>Adapter</pattern> se relaciona a padrões como <pattern>Decorator</pattern> e <pattern>Proxy</pattern> e existe alguma semelhança entre as implementações. 
+O padrão mais fácil de confundir com <pattern>Adapter</pattern> é o <pattern>Proxy</pattern>. Enquanto o Adapter visa apenas traduzir contratos entre o cliente e o objeto final o Proxy visa poder interferir entre a chamada do cliente 
+e a execução do objeto real. Normalmente sem, sequer, alterar o contrato no caminho.
+</p>
+<p>
+<pattern>Decorator</pattern> não visa traduzir contratos mas aumentar o numero de operações possíveis com base num tipo previamente existente. 
+Ou seja, o <pattern>Decorator</pattern> cria um contrato que não existia antes por adição a um contrato base. 
+</p>
+<p>
+<pattern>Adapter</pattern> comunica apenas com um outro objeto e nunca com um conjunto de objetos. Se isso acontecer  estaremos na presença de um <pattern ref="facade">Façade</pattern> que visa simplificar a utilização de um conjunto de
+ objetos encapsulando as operações mais comuns com esses objetos. Embora esteja sendo feita uma tradução de contratos, <pattern ref="facade">Façade</pattern> vai um pouco mais além introduzindo uma lógica de cooperação 
+ entre os objetos chamados.
+</p> 
+<p>
+<table>
+	<tr>
+		<th>Padrão</th>
+		<th>Mapeia Contratos </th>
+		<th>Altera Contrato</th>
+		<th>Adiciona lógica</th>
+		<th>Comunica com mais que um objeto</th>
+	</tr>
+	<tr>
+		<td>Adapter</td>
+		<td>X</td>
+		<td></td>
+		<td></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>Decorator</td>
+		<td>X</td>
+		<td>X</td>
+		<td></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>Proxy</td>
+		<td>X</td>
+		<td></td>
+		<td>X</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>Façade</td>
+		<td>X</td>
+		<td>X</td>
+		<td>X</td>
+		<td>X</td>
+	</tr>
+</table> 
+</p>
+</section>
+</body>
+</document>

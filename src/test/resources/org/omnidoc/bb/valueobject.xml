@@ -1,0 +1,181 @@
+[*Value Object*]
+
+
+[h2]Objetivo[/h2]
+	Encapsular um valor em um objecto. 
+	
+[h2]Propósito[/h2]
+	Ao trabalhar com orientação a objetos temos a possibilidade de abstrair o mundo
+	real em categorias e em classes de objectos. Contudo, várias vezes nos deparamos
+	com objetos que podem ser utilizados em contextos variados porque apenas
+	representam valores de algum atributo de outros objetos.  
+	
+	Value Object é um padrão de projeto para modelar este tipo de objeto util e recorrente
+	e auxiliar na modelagem de objetos mais complexos.
+	
+	O propósito principal deste padrões é facilitar a manipulação de um valor através de uma tipagem forte fazendo
+	o tipo pertencer a um classe de objetos.
+	Porque o valor tem associadas a si diversas propriedades e operações é util encapsulá-las
+	em uma única classe. Estas propriedades e operações dizem respeito apenas ao tipo de valor
+	que estamos encapsulando e são universais o suficiente para serem utilizadas em vários contextos.
+	
+	A utilização deste padrão também ajuda a explicitar a intenção do programador e na documentação do codigo.
+	Por exemplo, um método com a assinatura [icode]findByCode(String)[/icode] não explicita o que deve estar
+	contido na String. Sendo que o tipo String pode ser utilizado para conter práticamente qualquer outro tipo
+	de dado, este método exige uma documentação explicita que defina o conteudo válido para o parametro. Contudo,
+	um método com a assinatura [icode]findByCode(CPF)[/icode] deixa claro que pretendemos procurar utilizando um código de CPF.
+	Não apenas documenta a intensão do programador como ainda provê ao compilador uma forma de nos ajudar, pois agora
+	ele só aceitará objetos do tipo CPF.
+	
+	As vantagens deste padrão são:
+	Fornecer tipagem mais forte – É muito melhor usar BigDecimal do que String na assinatura de um método. Ou Date em vez de três inteiros.Fornecer métodos de manipulação do valor de forma coesa – Se o objeto representa um numero porque não ter métodos plus() ou mutliply()? Este métodos se fornam aceleradores já que são usado inumeras vezes em vez de código que transforma o valor em algo manipulável e faz a operação e converte de volta. Repetir isso sempre que é necessário torna o codigo poluido e de dificil manutenção ( já para não dizer sensivel a erros)
+	
+[h2]Implementação[/h2]
+	A implementação de um [icode]Value Object[/icode] é simples à primeira vista. Queremos apenas encapsular um valor.
+	Se o valor é numérico iremos provávelmente utilizar algum dos tipos numéricos primitivos ou arrays de [icode]char[/icode]
+	ou [icode]String[/icode]. Podemos até mesmo criar estruturas complexas. 
+	
+	Por outro lado, não existe uma implementação especifica para o padrão Value Object já que 
+	dependente muito do tipo de valor em causa e das regras relativas a esse valor que queremos 
+	implementar. Contudo existem algumas propriedades da classe que implementa deste padrão.
+	
+	Tomemos como exemplo a classe seguinte:
+	
+[code=java]
+
+public class CPF implements Serializable{
+
+	// método de criação usando valores equivalentes
+
+	public static CPF valueOf(String value){ 
+		if( value == null || value.trim().isEmpty()){
+			return null;
+		} else if (value.trim().length() != 9) {
+			// validate
+			throw new IllegalArgumentException();
+		}
+		return valueOf(value.toCharArray());
+	}
+	
+	public static CPF valueOf(char[] value){ 
+		if( value == null){
+			return null;
+		} else if ( value.length != 9) {
+			// validate
+			throw new IllegalArgumentException();
+		}
+		int[] algarims = new int[value.length];
+		
+		for (int i = 0; i < algarims.lengt; i++){
+			if (Character.isDigit(c)){
+				int[i] = (int)c; 
+			} else {
+				// some is not an algarism
+				throw new IllegalArgumentException();
+			}
+		}
+		
+		return new CPF(algarisms);
+	}
+
+	// estado interno
+	private final int[] algarisms;
+	
+	private CPF(int[] algarisms){ // impede herança
+		this.algarisms = algarisms;
+	} 
+	
+	public int algarismAt(int index){
+		return algarisms[index];
+	}
+	
+	// métodos de Object
+	public boolean equals (Object other){
+		return other instanceof CPF && Arrays.equals(this.algarisms, ((CPF)ohter).algarisms));
+	}
+	
+	public int hashCode(){
+		return int[0] + 37 * int[4];
+	}
+	
+	public String toString(){
+		return Arrays.toString(algarisms);
+	}
+} 
+	
+[/code]
+	
+	Primeiro (linha 1) Criamos uma classe que implementa [class]Serializable[/class]. Isto não é obrigatório, mas normalmente não ha mal 
+	em tornar a classe serializável. Depois criamos métodos seguindo o padrão [pattern]Static Factory Method[/pattern] que permitem
+	criar o objeto a partir de valores equivalentes expressos em objetos mais simples. Normalmente primitivos da linguagems ou objectos da
+	API padrão. Estes métodos são também aproveitados para consistir o estado do objeto que será criado.
+	O método pode ter qualquer nome, mas o uso de [icode]valueOf[/icode] já se tornou popular e é aquele usado
+	pelos objetos da JSE que implementam este padrão.
+	
+	Deixamos o construtor (lina 35) privado para evitar extenções do objeto que poderia danificar a sua imutabilidade.
+	Repare-se que o valor é atribuido no contrutor e nunca mais é alterado. Isto nos garante a imutabilidade. 
+	A imutabildiade, por sua vez permite garantir que o objeto possa ser utiliza em ambiente multi-thread e que possa
+	ser utilizado por objetos e contextos diferentes. 
+	
+	Os métodos herados de Object ( linhas 44 e seguintes) devem sempre ser implementados para qualquer objeto
+	e neste caso é mais importante ainda.
+	
+	Métodos utilitários que permitem de alguma forma acessar indirectamente o valor, ou uma prespectiva do valor do objecto, podem ser incluindos
+	também conforme a necessidade e o contexto de uso (linha 39). 
+	
+[h2]Discussão[/h2]
+	Quando a tecnologia Enterprise JavaBeans (EJB) foi lançada, ela assumia que os métodos eram invocados 
+	remotamente. Isso significava que se o método [icode]setName()[/icode] da entidade [icode]Customer[/icode] 
+	fosse invocada na máquina cliente a invocação aconteceria na realidade na máquina servidor. 
+	A comunicação usando um protocolo sobre IIOP tornava todos os EJB transparentemente remotos.
+	
+	O problema é que se o objeto tivesse 10 atributos (ou mais) aconteceriam 10 invocações remotas 
+	(ou mais). Rápidamente isso se mostrou um problema já que mesmo em uma rede veloz isso era um 
+	problema de eficiencia. A solução foi criar um objeto auxiliar onde todos os modificadores 
+	eram invocados (localmente) e depois o objeto seria enviado ao bean de uma só vez. 
+	Uma só chamada remota faria a atribuição de todos os atributos. 
+	Este objecto de transferência rápidamente se tornou um padrão; o [pattern]Transfer Object[/pattern] (TO),
+	que na época foi batizado de Value Object (VO) ou Data Transfer Object (DTO). Todos sinónimos.
+	
+	À medida que mais e mais pessoas usavam esta gambiarra do EJB ficou evidente que os 
+	Entity Beans tinham um uso falho. Duas respostas foram encontradas para este problema:
+		Minimizar a comunicação remota quando o bean e o seu cliente estavam na mesma JVM. 
+			Isso levou à introdução das interfaces locais.Adbicar de usar a tecnologia EJB. Algumas soluções tecnicas apareceram – 
+			como o framework Spring.Martin Fowler elaborou um catálogo de padrões uteis a quem constrói aplicações empresariais.
+	 Um desses padrões considerava que é muitas vezes util encapsular valores em objetos em vez 
+	 de usar tipos primitivos ou objetos padrão ( como String, por exemplo). 
+	 Este padrão parte da ideia de que cada objeto desta classe representa um valor diferente 
+	 de entre um conjunto possivel Exemplos simples deste tipo de objeto podem ser 
+	 encontrados no próprio JDK: Integer, BigDecimal, Date e até String. 
+	 Fowler chamou a este padrão Value Object criando uma colisão de nomes com o que era chamado de Value Object 
+	 no mundo EJB. Mas ideia agradou e encontrou adeptos na filosofia DDD. Objetos como Quantity e Money 
+	 nascem diretamente da aplicação deste padrão.
+	
+	Value Object representava,portanto, dois padrões diferentes. Para quem conhece o padrão descrito por Fowler,
+	padrão original derivado do uso de EJB começou a ser chamado simplesmente DTO ou TO deixando a sigla VO
+	para o novo padrão. Claro que esta destinção só é válida para quem conhece os dois padrões. Caso contrário
+	a ambiguidade é um empecilho. O padrão Value Object referido aqui é aquele descrito por Fowler. 
+	Um objeto que representa um valor.
+	
+[h2]Exemplos na API padrão[/h2]
+	Todos os objetos que herdam de [class]Number[/class] seguem o padrão Value Object. Alguns penas encapsulam um valor primitivo como [class]Integer[/class]
+     e [class]Double[/class].
+	E outros como [class]BigDecimal[/class] e BigInteger que permitem  operações de maior precisão e sem o limite binário tipos 
+	primtivos. Outro exemplo de Value Object é a fomosa [class]String[/class] que encapsula uma sequencia de characteres.
+	Além destes podemos ainda citar [class]java.util.Date[/class] e suas extenções do pacote [icode]java.sql[/icode] ; [class]java.sql.Date[/class], 
+	[class]java.sql.Time[/class] e [class]java.sql.Timestamp[/class].
+	
+[h2]Padrões relacionados[/h2]
+			O padrão Value Object tem várias especializações. As mais importantes seriam o padrão [pattern]Quantity[/pattern]
+			o qual se especializa aida mais no padrão [pattern]Money[/pattern]. Estes padrões além de valores associam ainda unidades
+			de forma que é possivel trabalhar com ambos ( valor e unidade) simultâneamente.
+			
+			Quando algum valor especifico é muito usado pode ser boa ideia não criar muitos objectos para esse valor. 
+			Isso diminui o esforço de ficar construindo e destruido objetos a todo o momento. Nesta situação é conveniente utilizar o padrão
+			Shared Object mantendo alguns valores em memoria e utilizando o mesmo objeto para o mesmo valor. Um exemplo disto é
+			o método [icode]valueOf()[/icode] da classe [icode]Integer[/icode] que mantem um cache de valores inteiros. Outro exemplo são as constantes
+			[icode]BigDecimal.ZERO[/icode],[icode]BigDecimal.ONE[/icode] e [icode]BigDecimal.TEN[/icode].
+			Controle  a criação dos objetos de valor não é possivel se deixarmos que o construtor seja utilizado directamente. Para evitar isso e implementar
+			o uso de [pattern]Shared Object[/pattern] é boa ideia prover métodos estáticos de criação , seguindo o padrão [pattern]Static Factory Method[/pattern], como 
+			no exemplo de [icode]Integer.valurOf()[/icode].  
+			

@@ -1,0 +1,346 @@
+<document>
+
+<properties>
+	<title>Quantity</title>
+</properties>
+
+<related-patterns>
+	<name>Value Object</name>
+	<name>Money</name>
+	<name>Composite Object</name>
+</related-patterns>
+	
+<body>
+<section name="Objetivo" >
+<p>
+Permitir representar uma quantidade pela associação de uma quantia e uma unidade.
+</p>
+</section>
+
+<section name="Propósito" >
+<p>
+Quando precisamos trabalhar com quantidade de várias unidades diferentes podemos correr o risco de realizar operações matemáticas equivocadas.
+Se utilizarmos os objetos de valor padrão do Java como <class>Integer</class> ou <class>BigDecimal</class> este risco é real porque o conceito do que 
+a unidade representa está apenas na cabeça do programador.
+</p>
+<p>
+O padrão <pattern>Quantity</pattern> visa resolver o problema simplesmente associando à quantia, a unidade. A forma prática
+deste padrão pode ser variada. Podemos usar apenas como uma estrutura de dados de associa as duas coisas, mas normalmente estamos interessados
+em realizar cálculos de forma que regras como não somar números de unidades diferentes possam ser estabelecidas.
+</p>
+<p>
+Associar uma unidade não significa apenas associar uma escala de valores, mas também associar uma dimensão. Por exemplo, 5 metros e 5 segundos 
+representam a mesma quantia de unidades diferentes. Estas unidades são diferentes na escala e na dimensão: metros tem dimensão de distancia e segundos de tempo.
+Se comparamos 5 metros com 5 pés, ambos são quantias de dimensão de distância mas com escala diferente. 
+</p>
+<p>
+Se dividirmos 5 metros por 5 segundos iremos obter a quantidade 1 metro por segundo, que tem dimensão de velocidade.A unidade que queremos utilizar e as operações que queremos utilizar irão 
+definir a complexidade da implementação. No caso geral a implementação da unidade tem que seguir as regras de calculo possíveis para a quantidade.
+</p>
+<p>
+Um caso mais simples é quando a dimensão é sempre a mesma e estamos só preocupados com a escala. Um exemplo seria o uso de quantidades de dinheiro.
+Cada moeda corresponde a uma escala, mas a dimensão é sempre dinheiro. O padrão <pattern>Quantity</pattern> aplicado a dinheiro é muito relevante, tanto
+que deu origem a um padrão especifico: o padrão <pattern>Money</pattern>.
+</p>
+</section>
+<section name="Implementação">
+<p>
+Muitas implementações são possíveis dependendo do uso que será feito e de outros constrangimentos do projeto onde o padrão será usado.
+</p>
+<section name="Implementação para propagação de operações matemáticas" >
+<p>
+Esta implementação permite que cálculos sejam feitos com a quantidade e que o sistema além de validar a possibilidade de realizar os cálculos saiba propagar 
+as unidades durante os cálculos.
+</p>
+<p>
+Para um implementação  de <pattern>Quantity</pattern> precisamos de uma classe que represente a quantia matemática e uma que represente 
+a unidade. Para a quantia usaremos como exemplo a classe <class>Ratio</class> que implementa o padrão <pattern>Ratio</pattern>, e para a unidade criaremos uma classe nova.
+</p>
+<source language="java">
+public class Unit {
+
+    private String name;
+	private String simbol;
+     
+	 
+	 public Unit(String name, String simbol){
+		this.name = name;
+		this.simbol = simbol;
+	 }
+	 
+	 // acessores, modificadores, hashcode e equals omitidos.
+}
+</source>
+<p>
+Agora podemos criar algumas unidades como metro e segundo.
+</p>
+<source language="java"><![CDATA[
+public class Metro {
+
+	 public Metro(){
+		super("metro", "m");
+	 }
+	 
+}
+
+public class Segundo {
+
+	 public Segundo(){
+		super("segundo", "s");
+	 }
+	 
+}
+]]>
+</source>
+<p>
+Com isto criamos a nossa classe de quantidade. É necessário referir que os objetos, tanto a classe que implementa
+a quantidade como a que implementa a unidade, devem ser imutáveis.
+</p>
+<source language="java"><![CDATA[
+public class Quantidade {
+
+	// privates omitidos. não há modificadores para a quantia e a unidade.
+
+	public static Quantidade de(Ratio quantia, Unit unidade){
+		return new Quantidade( quantia,  unidade);
+	}
+	
+	 private Quantidade(Ratio quantia, Unit unidade){
+		this.quantia = quantia;
+		this.unidade = unidade;
+	 }
+	 
+	 public Ratio getQuantia(){
+		return quantia;
+	 }
+	 
+	 public Unidade getUnidade(){
+		return unidade;
+	 }
+	 
+	 public Quantidade soma(Quantidade outro){
+		// a unidade tem que ser a mesma
+		if (!this.unidade.equals(outro.quantidade)){
+			throw new IllegalArgumentException("A unidade não é a mesma. Esperado " + this.unidade);
+		}
+		return new Quantidade(this.quantia.soma(outro.quantia) , this.unidade);
+	 }
+	 
+	 public Quantidade subtrai(Quantidade outro){
+		// a unidade tem que ser a mesma
+		if (!this.unidade.equals(outro.quantidade)){
+			throw new IllegalArgumentException("A unidade não é a mesma. Esperado " + this.unidade);
+		}
+		return new Quantidade(this.quantia.subtrai(outro.quantia) , this.unidade);
+	 }
+	 
+	 public Quantidade multiplica(Quantidade outro){
+		// a unidade não tem que ser a mesma
+		return new Quantidade(this.quantia.multiplica(outro.quantia) , this.unidade.multiplica(other.unidade);
+	 }
+	 
+	public Quantidade dividir(Quantidade outro){
+		// a unidade não tem que ser a mesma
+		return new Quantidade(this.quantia.dividir(outro.quantia) , this.unidade.dividir(other.unidade);
+	 }
+	 
+}
+]]>
+</source>
+<p>
+Se reparar estamos controlando na soma e subtração se a unidade é a mesma, isto porque apenas quantidades da mesma unidade podem ser somadas.
+Temos que somar metros com metros, não vale somar metros com segundos. Mas esta verificação não é feita na multiplicação e divisão
+porque é válido multiplicar ou dividir metros por segundos. Exemplificando:
+</p>
+<source language="java"><![CDATA[
+
+Quantidade distancia = Quantidade.de(Ratio.valueOf(10), new Metros());
+Quantidade tempo =  Quantidade.de(Ratio.valueOf(5, new Segundos());
+
+Quantidade velocidade = distancia.divide(tempo);
+]]>
+</source>
+<p>
+Neste momento a complicação está nos métodos <code>multiplicar</code> e <code>dividir</code>  da classe de unidade. A implementação do objeto de Quantidade está feita 
+e é simples. A implementação da classe de unidade depende bastante do seu modelo e quais unidades quer usar. No nosso caso, teremos que definir uma nova unidade
+e implementar as operações de multiplicar e dividir da classe Unidade.
+</p>
+<source language="java"><![CDATA[
+
+public class Velocidade (){
+
+	public Velocidade(){
+		super("metros por segundo", "m/s");
+	}
+}
+
+public class Unit (){
+
+	public Unit dividir (Unit other){
+		if (this instanceof Metro &amp;&amp; other instanceof Segundo){
+			return new Velocidade();
+		} 
+		
+		(...) // outras opções
+	}
+}
+
+]]></source>
+<p>
+É claro que o código de dividir teria que realizar a verificação de todas as combinações das três unidades.
+Contudo, é fácil de ver que isto não é nada prático. Por isso que os constrangimentos da aplicação são necessários para restringir as opções.
+Por outro lado, podemos fazer uso de outros padrões, como <pattern>Composite Object</pattern>, para conseguirmos um modelo mais flexível e fácil de usar.
+</p>
+<p>
+Criar um modelo de unidades e operações é que é o real desafio. Se o seu sistema só irá fazer somas e subtrações o modelo de unidades pode ser bem simples
+já que não temos que reconhecer as combinações entre elas. Caso contrário terá que investir algum esforço em desenhar um modelo de unidades adequado ao seu caso.
+</p>
+</section>
+<section name="Implementação para tipagem forte">
+<p>
+Outra opção é utilizar o padrão <pattern>Quantity</pattern> apenas para enriquecer a semântica dos seus tipos e aumentar a força da tipagem.
+</p>
+<source language="java"><![CDATA[
+
+public class Distancia {
+
+	// privates omitidos. não há modificadores para a quantia 
+
+	public static Distancia metros(Ratio quantidade){
+		return new Distancia(quantidade);
+	}
+	
+	public static Distancia quilômetros(Ratio quantidade){
+		return new Distancia(quantidade.multiply(1000));
+	}
+	
+	private Distancia(Ratio quantidade){
+		this.quantidade = quantidade;
+	}
+	
+	
+	public Ratio getQuantidade(){
+		return this.quantidade;
+	}
+}
+
+public class Duracao {
+
+	// privates omitidos. não há modificadores para a quantia 
+
+	public static Duracao segundos(Ratio quantidade){
+		return new Duracao(quantidade);
+	}
+	
+	public static Duracao horas(Ratio quantidade){
+		return new Duracao(quantidade.multiply(3600));
+	}
+	
+	private Duracao(Ratio quantidade){
+		this.quantidade = quantidade;
+	}
+	
+	public Ratio getQuantidade(){
+		return this.quantidade;
+	}
+}
+
+public Velocidade {
+
+
+	// privates omitidos. não há modificadores para a quantia 
+
+	public static Velocidade metrosPorSegundo(Ratio quantidade){
+		return new Velocidade(quantidade);
+	}
+
+	public Ratio getQuantidade(){
+		return this.quantidade;
+	}
+}
+
+public Dinheiro {
+
+	// privates omitidos. não há modificadores para a quantia 
+
+	public static Dinheiro reais(Ratio quantidade){
+		return new Dinheiro(quantidade);
+	}
+	
+	public Ratio getQuantidade(){
+		return this.quantidade;
+	}
+}
+
+]]>
+</source>
+<p>
+Agora podemos tipar nossos métodos para receberem apenas o tipo de quantidade certo. Por exemplo:
+</p>
+<source language="java"><![CDATA[
+
+public Velocidade calculaVelocidade(
+	Distancia distancia, 
+	Duracao tempoUtilizado){
+
+	return Velocidade.metrosPorSegundo(
+				distancia.getQuantidade().divide(
+					tempoUtilizado.getQuantidade()
+				)
+			);
+}
+
+
+public Dinheiro calculaConsumo (
+	Distancia distancia, 
+	Dinheiro porKm){
+
+	return distancia.getQuantidade()
+			.divide(
+				Ratio.valueOf(1000)
+			).multiply(porKm);
+}
+
+]]>
+</source>
+<p>
+Com estas definições poderíamos agora encontrar o consumo e a velocidade de uma viagem sem nunca passarmos o numero errado no parâmetro errado.
+</p>
+<source language="java"><![CDATA[
+
+Distancia distanciaViagem = Distancia.quilometros(Ratio.valueOf(500));
+Duracao duracaoViagem = Duracao.horas(Ratio.valueOf(6));
+
+Dinheiro consumo = calculaConsumo (distanciaViagem , Dinheiro.reais(Ratio.valueOf(20)));
+
+Velocidade velocidade = calculaVelocidade(distanciaViagem, duracaoViagem);
+]]>
+</source>
+<p>
+No caso do calculo da velocidade poderíamos ter colocado o método no objeto de distância, usamos aqui um método separado apenas para exemplificar a tipagem forte.
+Exemplificamos aqui o uso de dinheiro de uma forma simples. Para uma forma mais completa recomenda-se o uso do padrão <pattern>Money</pattern>
+</p>
+</section>
+<p>
+Existem muitas formas de implementar o padrão <pattern>Quantity</pattern>. Umas mais simples que outras dependendo dos objetivos que quer cumprir. Em um sistema que é fortemente orientado ao calculo
+a primeira forma pode ter mais vantagens, mas em geral uma forma mais simples como a segunda é suficiente para garantia uma tipagem forte 
+</p>
+</section>
+<section name="Discussão">
+<p>
+Não existe uma implementação do padrão <pattern>Quantity</pattern> na API padrão do Java já que este padrão está intimamente ligado ao domínio da aplicação
+e não à plataforma. Podemos entender como o uso do padrão <pattern>Quantity</pattern> pode ser complexo se o seu modelo de unidades é mais completo,
+mas as vantagens do uso do <pattern>Quantity</pattern> são reais pois além de trazer mais claridade e tipagem forte aos seus métodos e implementações ainda oferece um conjunto de 
+verificações extra embutidas no objeto. O padrão ajuda ainda a documentar no código a intenção já que não é possível colocar tempo onde é necessário distancia, ou dinheiro.
+</p>
+</section>
+<section name="Padrões associados">
+<p>
+O padrão <pattern>Quantity</pattern> é uma especialização do padrão <pattern>Value Object</pattern> e é especificado pelo padrão <pattern>Money</pattern>.
+</p>
+<p>
+Dependendo do modelo de implementação o padrão <pattern>Composite Object</pattern> pode ser utilizado para montar a estrutura de objetos.
+</p>
+</section>
+</body>
+</document>

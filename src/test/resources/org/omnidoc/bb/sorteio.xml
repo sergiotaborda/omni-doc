@@ -1,0 +1,275 @@
+[*Sorteios aleatórios em Java*]
+
+
+[h2]Proposta[/h2]
+			Construir um algoritmo que selecione aleatoriamente números mas de forma que não 
+			haja repetição dos números selecionados.
+			
+[h2]Processos de seleção aleatória[/h2]
+			Existem dois processos básicos de seleção de números: sorteio e sequência aleatória.
+			Estes processo são semelhantes mas são dois processos diferentes. A seguir exploraremos cada um 
+			deles e exemplificaremos implementações em Java.
+			
+[h3]Sequência Aleatória[/h3]
+				O conceito da sequência aleatória limita-se a obter um numero após o outro, 
+				tal que o numero seguinte é imprevisível dada a sequência de números já 
+				escolhidos antes. A sequência aleatória é o processo implementado comummente 
+				em API de apoio em linguagens de programação e em Java é representado pela 
+				classe [class]java.util.Random[/class]. 
+				Esta classe é o que se chama de um [i]Gerador de Números Aleatórios[/i] 
+				mas ele é de fato um gerador de sequências aleatórias.
+				
+				A geração de sequências aleatórias com [class]Random[/class] não é tão 
+				aleatória assim.A geração baseia-se num algoritmo que parte de um numero e gera outro, e a partir desse outro , 
+				assim sucessivamente.
+				Esse primeiro numero é chamado de semente (seed, em inglês). Diz-se que este tipo de sequência 
+				é pseudo-aleatória porque tentar prever essa geração "força bruta é demasiado complexo para ser feito na prática 
+				mas não é impossível em teoria. Portanto, a geração não é verdadeiramente aleatória. Para quase todos os fins práticos 
+				este tipo de geração é suficiente, mas para aplicações em segurança não é. Por isso existe a classe 
+				[class]SecureRandom[/class] que implementa algoritmos mais difíceis de prever.
+				
+				Uma utilidade muito importante das sequências pseudo-aleatórias é a capacidade de repetir a mesma sequência caso 
+				seja necessário. [class]Random[/class] suporta o conceito de semente. Portanto, criando o objeto com a mesma 
+				semente será produzida a mesma sequência. Isto é de extrema importância em algoritmos como os 
+				[wiki={@lang};{@key}]Testes de Monte Carlo[/wiki] onde queremos produzir números aleatoriamente,
+				mas queremos produzir sempre os mesmos a cada execução do teste para obter repetibilidade.
+				
+				Objetos da classe [class]Random[/class] geram sequências de quase todos os tipos primitivos em java nomeadamente: 
+				[icode]boolean[/icode], [icode]int[/icode], [icode]long[/icode], [icode]float[/icode] e [icode]double[/icode]. 
+				O contra-domínio ( ou seja, o conjunto de números possíveis de serem gerados) 
+				das sequências aleatórias é limitado entre 0.0 (zero) e 1.0 (um) para double e float. Para os outros tipos o 
+				contra-domínio são todos os valores possíveis para esse tipo de variável em Java. A geração é feita tal que todos 
+				os valores possíveis têm igual probabilidade.
+				
+[h3]Sorteio[/h3]
+				O conceito de sorteio é o de um processo em que um dos possíveis valores é escolhido de entre todos os outros. 
+				O sorteio pode ser com repetição ou sem repetição.
+				Imagine que tem um sacola de pano preto de forma que o seu interior não pode ser visto de fora. 
+				São colocadas bolas dentro dessa sacola, uma para cada numero possível de ser sorteado. O sorteio é o processo 
+				em que uma pessoa coloca a mão na sacola e retira um bola. Após o numero na bola ser visto a bola pode, 
+				ou não, voltar para dentro do saco. Se voltar estamos perante um sorteio com repetição. 
+				Se não voltar estamos perante um sorteio sem repetição. A loteria, por exemplo, é um processo de sorteio 
+				sem repetição já que as bolas não voltam para a tombola.
+				
+				A diferença de um processo de sequência aleatória para um de sorteio é que em um sorteio nós escolhemos o 
+				conjunto de números possíveis ao invés de utilizar todo o intervalo de um certo tipo de valor.
+				
+[h4]Sorteio de um elemento em um conjunto[/h4]
+					Simular um sorteio com o auxilio de um computador não utiliza uma sacola de pano preto, 
+					mas pode utilizar outra implementação de um conjunto: uma coleção.
+					
+					Para começar podemos pensar numa coleção dos números que queremos sortear. 
+					O sorteio é simulado pela escolha de um desses elementos da coleção. Esse é o numero sorteado.
+					Em um sorteio com repetição o elemento é devolvido à coleção. Em um processo sem repetição o 
+					elemento é descartado e não é devolvido à coleção.
+					
+					Contudo, se simplesmente adicionarmos os elementos na coleção e depois os retirarmos vamos ter 
+					um sorteio completamente previsível. Precisamos de um elemento que misture os elementos. 
+					Em Java conseguimos isso usando o método [icode]suffle()[/icode] em [class]java.util.Collections[/class]. 
+					Este método aceita um [class]List[/class] que é um tipo especial de coleção onde os elementos podem ser 
+					referidos por um índice. Eis um exemplo simples. Queremos sortear entre os números 1, 10 , 100 e 1000.
+					
+[code=java]
+
+ public int sorteia (){
+ 	List lista = new ArrayList () ;
+	
+	lista.add ( new Integer ( 1 )) ; 
+    lista.add ( new Integer ( 10 )) ;
+    lista.add ( new Integer ( 100 )) ;
+    lista.add ( new Integer ( 1000 )) ;
+
+    Collections.suffle ( lista ) ;
+ 
+   // pega qualquer indice. pegamos o primeiro para conveniencia.
+ 
+   return (( Integer ) lista.get ( 0 )) .intValue () ;
+}
+					
+[/code]
+	
+					Repare que a grande diferença aqui é que escolhemos os números que podem ser sorteados, um a um. 
+					Utilizando este processo podemos simular uma loteria com quaisquer números. Se os números forem muitos 
+					utilizaremos um laço para iniciar a lista de opções, mas o processo de sorteio, em si, é o mesmo.
+					
+[code=java]
+
+public int sorteia (){
+	List lista = new ArrayList () ;
+
+	for ( int i = 1 ; i <= 60 ; i++ ){ // de 1 a 60
+		lista.add ( new Integer ( i )) ; 
+	}
+
+	Collections.suffle ( lista ) ;
+
+	// pega qualquer indice. pegamos o primeiro para conveniencia.
+ 
+	return (( Integer ) lista.get ( 0 )) .intValue () ;
+}
+					
+[/code]
+	
+[h4]Sorteio em um intervalo[/h4]
+					É comum sortear números dentro de um determinado intervalo. No exemplo acima, sorteamos entre 1 e 60.
+					Se quisermos simular um dado, sortearemos entre 1 e 6. Para poucos elementos, o processo de utilizar uma
+					coleção funciona, mas para intervalos grandes não é um processo prático. 
+					
+					Se,por outro lado, o sorteio for feito num contra-domínio continuo ( por exemplo os números não-inteiros entre 1 e 2) 
+					o uso de uma coleção também não é eficaz. Nestas circunstâncias é utilizada um processo que simula o sorteio por meio 
+					da geração de uma sequência aleatória limitada. As únicas sequências aleatórias limitadas que temos disponíveis são as 
+					de tipos [icode]double[/icode] ou [icode]float[/icode] que produzem números entre 0.0 e 1.0. Como fazer para que esse 
+					intervalo possa ser qualquer que queiramos? Na realidade é bem simples. Basta utilizarmos uma formula
+					
+[code=java]
+
+public int sorteia (){
+ 
+	Random r = new Random () ;
+	final int H = 60 ; // sorteia entre 1 e 60 
+	final int L = 1 ; 
+	return (int)( r.nextDouble () * ( H-L )) + L 
+}
+					
+[/code]
+	
+					Onde H representa o numero mais alto, e L o numero mais baixo do intervalo. 
+					Desta forma reduzimos o intervalo à escala que queremos.
+					
+					A classe Random tem um método especial que ajuda nesta geração em intervalos. O código ficaria assim:
+					
+[code=java]
+
+public int sorteia (){
+
+	Random r = new Random () ;
+	final int H = 60 ; / sorteia entre 1 e 60 
+	final int L = 1 ; 
+	return r.nextInt (H+1) + L
+}
+					
+[/code]
+	
+					O método [icode]nextInt[/icode] de Random gera um inteiro no intervalo [0, H+1[ , ou seja, entre 
+					0 inclusive e H+1 exclusive. Somando L a geração é entre L e H inclusive.
+					
+[h4]Sorteio sem repetição[/h4]
+					Vimos como faríamos sorteios com repetição em conjunto e intervalos. Vejamos agora como faríamos 
+					sorteios sem repetição em cada modalidade.
+					
+					Para fazer sorteios sem repetição em conjunto, basta, como vimos antes, remover o numero da coleção. 
+					Voltando ao exemplo inicial:
+					
+[code=java]
+
+					List<Integer> lista = new ArrayList<Integer> () ;
+public void iniciaConjunto { 
+	lista.add ( new Integer ( 1 )) ; 
+ 	lista.add ( new Integer ( 10 )) ;
+	lista.add ( new Integer ( 100 )) ;
+	lista.add ( new Integer ( 1000 )) ;
+}
+					
+public int sorteia (List<Integer> lista){
+
+	Collections.shuffle ( lista ) ;
+
+	// pega qualquer indice. pegamos o primeiro para conveniencia.
+	return (( Integer ) lista.remove ( 0 )) .intValue () ;
+}
+					
+[/code]
+	
+					Como vemos a diferença é minima. Basta utilizar o método [icode]remove[/icode] em vez do [icode]get[/icode].
+					Contudo a lista de valores possíveis é guardada e iniciada fora do método. Para intervalos o processo 
+					é mais complexo já que temos que memorizar o elemento sorteado.
+					
+[code=java]
+
+Set<Integer> sorteados = new TreeSet<Integer> () ;
+
+public int sorteia (){
+
+	Random r = new Random () ;
+	final int H = 60 ; / sorteia entre 1 e 60 
+	final int L = 1 ; 
+	int result;
+	do (){
+		result = r.nextInt ( H+ 1 ) + L
+	while ( !sorteados.add (  Integer.valueOf(result))) ;
+
+	return result;
+}
+					
+[/code]
+	
+					O numero é gerado e adicionado a coleção de números já sorteados. Se o numero já existia no conjunto o 
+					método [icode]add[/icode] retorna [icode]false[/icode] e o laço recomeça gerando outro numero.O laço só termina quando 
+					um numero novo for gerado. Este processo é extremamente ineficiente pois à medida que o numero de
+					elementos no conjunto dos já sorteados cresce é cada vez mais difícil gerar um numero diferente. 
+					
+					Na prática o sorteio sem repetição dentro de um intervalo não é muito útil no caso geral. Normalmente
+					estamos interessados em sortear números inteiros de um conjunto e nesse caso é melhor
+					utilizar o mecanismo baseado em coleções que vimos antes.
+					
+[h4]Sortando Objectos[/h4]
+					Sortear números é um processo comum, mas muitas vezes precisamos sortear outro tipo de objeto. 
+					Podemos querer sortear [icode]String[/icode] ou qualquer outro objeto. Por exemplo, podemos querer sortear
+					produtos para mostrar na página principal do site.
+					
+					Nestes casos podemos utilizar o sorteio utilizando listas para sortear os objetos. Na realidade, com 
+					este método, sempre estivemos sorteando objetos desde um inicio. Acontecia apenas que esses objetos 
+					representavam números.Eis um exemplo de sorteio de [icode]String[/icode]s
+					
+[code=java]
+ 
+public int sorteia (){
+	List<Integer> lista = new ArrayList<Integer> () ;
+	
+	lista.add ( "Alice" ) ; 
+	lista.add ( "Bruno" ) ;
+	lista.add ( "Carlos" ) ;
+	lista.add ( "Daniel" ) ;
+
+    Collections.shuffle ( lista ) ;
+
+	// pega qualquer indice. pegamos o primeiro para conveniencia.
+
+	return (( Integer ) lista.get ( 0 )) .intValue () ;
+}
+					
+[/code]
+	
+					As Strings podem ser quaisquer. Utilizamos aqui nomes para ser mais claro.	
+					
+[h4]Sorteio de um número limitado de elementos[/h4]
+					Quando falamos em sorteio estamos normalmente interessados em sorter um subconjunto de elementos. 
+					Por exemplo, sortear 6 números entre 1 e 60. O código a seguir mostra como fazer este sorteio
+					
+[code=java]
+
+public List<Integer> sorteia ( int quantidadeDeElementosASortear, int limiteInferior, int limiteSuperior){
+
+		// cria a lista de elementos
+		List<Integer> elementos = new ArrayList<Integer>(limiteSuperior - limiteInferior + 1);
+		for (int i = limiteInferior; i <= limiteSuperior; i++){
+			elementos.add(Integer.valueOf(i));
+		}
+		
+		// altera a ordem aleatóriamente
+		Collections.shuffle (elementos) ;
+		 
+		// sorteia o numero de elementos necessários
+		
+		List<Integer> resultado = elementos.subList(0,quantidadeDeElementosASortear);
+		
+		return new ArrayList<Integer>(resultado);
+
+}
+					
+[/code]
+	
+					Primeiro montamos a lista completa de elementos possíveis. Reordenamos a lista de forma aleatória com [icode]Collections.shuffle()[/icode].
+					Por fim pegamos os primeiros elementos dessa lista reordenada utilizando [icode]subList()[/icode].A lista que resulta deste método
+					está vinculada à lista original, para a desvincularmos copiamos para um [icode]ArrayList[/icode].
+					

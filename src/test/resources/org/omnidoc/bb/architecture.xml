@@ -1,0 +1,232 @@
+[*Introdução à Arquitetura de Software*]
+
+
+[h2]Introdução à Arquitetura de Software[h2]
+		A Arquitetura de Software é a área do desenvolvimento de software 
+		preocupada com a infraestrutura sobre a qual o software irá assentar. 
+		O termo remete a semelhanças com a arquitetura tradicional de edificações, 
+		porém, a idéia não é controlar o processo de construção do software, mas guiar a 
+		posição dos alicerces sobre os quais o software será construído.
+		
+		A Arquitetura de Software é baseada em definir plataformas, formas de distribuição de informação e 
+		reutilizar componentes, e em pouco ou nada se relaciona com a programação do software propriamente dita.
+		Definir estes componentes e a sua organização é uma das tarefas mais importantes do arquiteto, pois
+		são eles que sedimentam como o software será criado. Esta é a semelhança com a arquitetura 
+		de edificações, onde a planta define os alicerces da edificação. Tal como o edifício nunca poderá ir além
+		do suporte dos seus alicerces, um software não pode ir além dos componentes da sua arquitetura.
+		
+		A expressão [i]uma arquitetura[/i], refere-se a um conjunto específico desses componentes 
+		para utilizar em determinada aplicação. 
+		
+		Arquitetura de Software é uma daquelas disciplinas que permitem a discussão sem ter que entrar muito no
+		detalhes da programação, mas obriga a detalhar tecnologias, plataformas e paradigmas que irão permear a 
+		programação e a organização interna do software. 
+		
+		A definição de arquitetura que será utilizada em um software é tanto mais importante quanto maior for o tempo de vida
+		previsto para esse software. Se o software se destina a ser um produto, ou seja, se ele tende a 
+		evoluir naturalmente sob demanda dos seus utilizadores, ele tem que ser capaz de comportar modificações com 
+		baixo esforço e que acompanhem a evolução natural da tecnologia, ou, então, o software ficará obsoleto antes do tempo previsto.  
+		
+		Estabelecer uma boa arquitetura é, portanto, uma forma de proteger o investimento feito no software e como tal
+		assenta um conjunto de decisões que tem que conter as expectativas futuras para o software, para todo o seu ciclo de vida,
+		e não apenas as expectativas imediatas relacionadas à construção da primeira versão. Uma má arquitetura, uma arquitetura 
+		inexistente ou criada por pessoas sem a experiência e conhecimento necessários, torna o software obsoleto
+		antes do tempo. Muitas vezes o torna obsoleto antes mesmo de ser terminada a primeira versão.
+		A pessoa, ou as pessoas, responsáveis pela definição da arquitetura de um software desempenham o papel de Arquiteto.
+		O Arquiteto é responsável pelo equilíbrio entre os aspectos que formam a arquitetura, as necessidade dos software,
+		e as expectativas de investimento a médio e longo prazo.
+		
+[h2]A constituição de uma Arquitetura de Software[h2]
+		Podemos nomear três principais aspectos que formam uma arquitetura de software: Plataformas, Andares e Qualidades. 
+		Estes três diferentes aspectos ortogonais e independentes têm que ser ponderados a cada escolha e decisão dos 
+		arquitetos do software.
+		
+	[img=/ilust/{img/@src}]{legend/text()}[/img]
+	
+[h3]Alicerce físico : a Plataforma[/h3]
+		Embora nem a construção nem o planejamento de um software possam ser comparados aos de um edifício, 
+		ambos se baseiam na utilização de um suporte físico, um sub-estrato. O edifício assenta em um solo
+		cuja composição, história e propriedades determinam em grande medida o que pode ser, ou não, 
+		edificado naquele local. 
+		Para o software o solo é o hardware: a máquina, ou máquinas, em que o software irá correr.
+		
+		Há uma ampla diversidade de tipos de máquinas disponíveis para se executar software: 
+		celulares, PDA, set-top boxes, laptops, desktops, mainframes e até aparelhos menos comuns embarcados a bordo de automóveis,
+		aviões ou até mesmo em eletrodomésticos. Todos eles possuem capacidade para correr um software.
+		
+		O hardware é o conjunto de peças que fisicamente suportam o funcionamento de um software. 
+		Em ultima análise, tudo não passa de um conjunto de sinais eletromagnéticos viajando em condutores 
+		e semi-condutores. É esta a primeira plataforma a ser escolhida: a Plataforma Física. Esta Plataforma é
+		normalmente vinculada ao local onde o software poderá ser utilizado. Se, por exemplo, se desejar que o
+		software possa ser utilizado em viagem, em qualquer ponto do planeta, o software poderá ter que ser executado
+		em um PDA ou um celular. Contudo, talvez, a capacidade de processamento de um laptop seja necessária. 
+		
+		Acima da plataforma física jaz uma plataforma dedicada a abstrair todos esses sinais elétricos e lógicos
+		necessário para o controle e instrução da máquina.  O nível de abstração é variado e se divide normalmente em três
+		outras plataformas: Sistema Operacional (Plataforma Inferior), middlewares (Plataforma Superior) e às API diretamente 
+		utilizadas na programação do software (Plataforma Virtual). 
+		
+		A Plataforma é um dos componentes da arquitetura e, por isso, para que esta esteja completa várias são as plataformas
+		necessárias. Não apenas isso, mas a estrutura específica da plataforma obriga que exista um natural empilhamento 
+		das plataformas. Esta pilha de plataformas - chamada [e]stack[/e] - 
+		define as capacidades máximas de um software. O software será tão rápido, eficiente, produtivo, 
+		quanto a pilha de plataformas permitir, sendo limitada pelos recursos disponíveis em cada uma.
+		
+		A pilha de plataformas está para o software como as várias camadas de solo estão para o terreno onde assenta o edifício.
+		Elas não são o software e não são específicas para um software, mas determinam em larga medida o que o
+		software pode, ou não, fazer e como ele pode, ou não, evoluir. O [e]stack[/e] pode limitar a utilização do software 
+		em formas imprevistas ou indesejáveis. Por exemplo, uma aplicação construída com C++ (Plataforma Superior)
+		e compilada para funcionar no sistema operativo Linux (Plataforma Inferior) não funcionará, sem ajustes,
+		no sistema operativo Windows. Por outro lado, utilizando uma Plataforma Superior como Java este problema 
+		não existirá.
+		
+[h3]Qualidades[/h3]
+			Todo o software tem um objetivo. Ele faz algo por alguém. Esse é o seu objetivo funcional. 
+			Contudo, não se espera que o software apenas cumpra o objetivo funcional. 
+			Espera-se que o software cumpra outros objetivos como ser: confiável, seguro, durável, de fácil manutenção, 
+			e evolução, de fácil manuseio e aprendizagem, consistente, etc.
+			
+			Para que todos esses objetivos sejam cumpridos certas qualidades têm que ser levadas em consideração.
+			Estas qualidades não são empilháveis. Cada uma atua por si mesma. Contudo, ao tomar uma decisão durante
+			o desenvolvimento do software, todas elas têm que ser levadas em consideração e ponderadas. 
+			Este é um trabalho difícil e nem sempre é possível incorporar todas as qualidades. 
+			Muitas vezes, uma ou outra têm que ser sacrificada em benefício das demais.
+			É esta escolha que requer experiência dos arquitetos, pois, neste momento, decisões erradas geralmente acarretam
+			o aborto do desenvolvimento do software.
+			
+			Eis um conjunto das qualidades mais comuns, mais requisitadas, e normalmente mais prioritárias no desenvolvimento
+			de um software:
+			Segurança. O software tem que ser seguro. "Seguro" pode significar muitas coisas. Desde a impossibilidade de alguém poder contaminar o código - tanto o código-fonte como o código binário, ou ainda o código em execução.
+			Até o usuário tem que se identificar e esta identificação deve ser autenticada, para que o software possa ser usado. Outras formas
+			de segurança comuns são a impossibilidade de cópia não autorizada e o bloqueio de operações não autorizadas para o usuário.Disponibilidade. O software tem que está pronto para responder a uma ação do usuário. Às vezes, o software está sobrecarregado
+			e no meio de processamentos complexos que travam a interação com o usuário. Assim o usuário não pode fornecer novas informações ou comandos ao software, 
+			inclusive o comando para que o software pare o que está fazendo.Consistência. Quando o software aponta um resultado para uma determinada ação, ele tem que fornecer sempre o mesmo resultado para a mesma ação.
+			Espera-se que as ações que foram uma vez feitas e levaram a um resultado possam ser repetidas e levem ao mesmo resultado.Extensabilidade / Evolutabilidade. O software deve poder ser aumentado. Tanto acrescentando de capacidades novas (evolução), tanto melhorando as que já tem(extensabilidade). 
+			Para se obter isso, várias formas são possíveis e não significa que teremos que criar um sistema de [e]plug-ins[/e] para que software seja extensível. Essa é uma das opções. Escalabilidade. O sistema permite usuários simultâneos? E ao aumentar o número de usuários simultâneos, as outras qualidades se degradam? O software pode suportar mais do que um usuário,
+			e se o fizer é preciso sabermos qual o máximo de usuários que ele precisa/pode suportar. Esta qualidade não depende apenas da parte programática
+			ou da parte funcional do software, e está também intimamente ligada à escolha de plataformas e à distributividade do software.
+			Uma das formas mais simples de aumentar a escalabilidade é aumentar os recursos de hardware. Outra é utilizar mais do que uma máquina física, ou seja, distribuir o software
+			por várias máquinas. A utilização de protocolos mais eficientes para diminuir a demora entre máquinas é outro ponto.
+			Do lado da programação, também é preciso ter cuidados como tornar os processos [e]thread-safe [/e] sem o uso de primitivas de sincronização.
+			Manutenabilidade. É a qualidade do software ter uma fácil manutenção. "Fácil" pode significar barato, rápido ou com pouco esforço. Se o software é um produto,
+			espera-se que seja alterável de forma a incluir novas demandas dos clientes. Isso pode não ser barato, mas tem que ser possível com pouco esforço e num prazo aceitável
+			pelo cliente. Diferentes tipos de software têm diferentes tipos de custo, esforço e prazo. Um software em que a manutenção não foi pensada é um projeto morto. 
+			O custo, o esforço ou o tempo necessários para alterar o software são tão elevados que simplesmente é mais "fácil" criar outro software. 
+			A Manutenabilidade começa mesmo antes de escrever a primeira linha de código com a fixação de regras para a organização do código-fonte, o uso de comentários,
+			documentação, testes automáticos e seguimento de boas práticas já consagradas pelo mercado ou pela academia. 
+			Performance. Consiste na qualidade do software executar ações em curto período de tempo. O usuário espera que o sistema responda rapidamente ao comandos que ele executa.
+			Isto pode ser alcançado melhorando o hardware ou qualquer uma das outras plataformas, mas normalmente tem que ser pensado com antecedência, pois o tendão de Aquiles
+			da performance é uma programação de pouca qualidade com o abuso de repetições, iterações e algoritmos ingênuos cujo desempenho sofre com o aumento da quantidade de dados
+			ou de usuários simultâneos. Performance não se ganha gratuitamente com o aumento do hardware e, portanto, tem que ser considerada um requisito
+			durante o processo de desenvolvimento. Esta é uma das qualidades mais esperadas pelos usuários e por quem compra um software, mas é normalmente
+			deixada de fora da lista de requisitos por ser considerada automática, isto é, as pessoas pensam que "se é um software, ele é rápido."
+			
+[h3] Funcionalidade: Andares[/h3]	
+			Em cima da plataforma de aplicação é montado um conjunto de regras que ao serem executadas irão prover ao usuário a resposta que ele 
+			espera aos seus comandos. Nem todas estas regras têm o mesmo objetivo. Algumas são puramente estéticas e estão lá para que o usuário 
+			ache prazeroso utilizar o software. Algumas são regras que dão utilidade ao software. Desde cálculos complexos até tocar um vídeo ou processar imagens, passando 
+			pela manipulação de arquivos e dados. Algumas regras prendem-se com a comunicação com outros software ou com partes distribuídas do mesmo software.
+		
+		Estas regras prendem-se de alguma forma com o fluxo de informação de e para o software, e são divididas em andares.
+		Andares são para o fluxo lógico da informação o que as plataformas são para o fluxo de comandos que têm que ser instruídos à máquina física.
+		Os andares são as divisões lógicas de responsabilidade para as várias partes do software.
+			Visualização - cuida de receber os comandos ([e]input[/e]) do usuário e também de disponibilizar ao usuário forma
+			de consulta do resultados das suas ações. Textos, imagens, sons, cores, animações, tudo é válido para ser utilizado como forma 
+			de informar o usuário. O usuário não necessariamente é um ser humano, portanto a visualização não necessariamente é audiovisual.
+			O software pode simplesmente receber um arquivo e exportar um arquivo em formato XML, ou qualquer outro formato que sirva ao seu propósito.
+			Apresentação - cuida de interpretar e responder aos comandos do usuário de uma forma coerente com o propósito do software.
+			Apertar um botão é um comando comum que a visualização irá receber, mas o que acontecerá pode ser muito diversificado. Cabe à apresentação
+			decidir. A apresentação pode conter regras de segurança que detectam comandos não autorizados dos usuários.
+			Domínio - cuida de executar processamentos, consultas ou outras ações que decorrem da intenção do usuário tal como interpretada
+			pela apresentação. O domínio é a parte central do software, isolada do exterior pelos outros andares acima e abaixo dele.
+			As regras contidas no andar do domínio são normalmente específicas do tipo de negócio que o software atende e podem ser reaproveitadas
+			para softwares que atendam o mesmo tipo de negócio.
+			 Integração - é comum que um software não atue sozinho para cumprir o seu propósito e requisite informações e até mesmo serviços
+			de outros softwares. Este andar contém as regras para essas comunicações e o que deve acontecer quando elas falharem ou não forem possíveis.
+			A integração com outros softwares sempre é delicada porque implica acordo sobre qual protocolo utilizar e isto pode ter influência direta
+			nas qualidades do software e levar a muita ponderação. Em sistemas distribuídos esta camada é ainda mais importante, pois é ela quem normalmente
+			atua para interligar as várias partes do software, fazendo com que pareçam apenas uma. 
+			Recursos - este andar cuida dos dados, dos acessos a dados, e da conservação e confiabilidade dos dados. Recursos podem ser imagens, vídeos, 
+			documentos, ou qualquer outra fonte de informação que o software possa consultar e/ou escrever. Problemas com a segurança dos dados
+			e as permissões de executar ações no stack.
+			
+[h2]Distribuição[h2]
+	Um dos paradigmas do funcionamento e organização da arquitetura de software moderna é a distribuição. 
+	Em uma era onde o custo das máquinas é reduzido, mais interessante é que o processamento seja dividido entre
+	várias máquinas físicas "menos-poderosas" (menos caras também) do que concentrar em uma máquina única 
+	e "super-poderosa" (e mais cara). Esta idéia ganhou destaque na "era da internet" com sistemas sendo 
+	distribuídos a todo o mundo sem custos, mas já existia na arquitetura do tipo cliente-servidor dos anos pré-internet.
+	
+	A distribuição distingue-se pela existência de mais do que uma pilha de plataformas, o que automaticamente significa
+	mais do que um conjunto de andares. Cada conjunto de [e]stack[/e] e andares é chamado [i]Nodo[/i] ([e]Tier[/e] em inglês). 
+		
+	A distribuição não afeta apenas a escolha das plataformas do stack de cada nodo, mas
+	também a escolha de protocolos de comunicação e a responsabilidade de cada andar em nodo. 
+	Além disto, coloca ainda um desafio à satisfação das qualidades definidas para a arquitetura. 
+	
+	A possibilidade de distribuir pedaços lógicos da aplicação em stack diferentes leva várias combinações possíveis
+	e a uma diversificação dos andares que compõem cada nodo. 
+	
+[h3]Arquitetura Standalone[/h3]
+	Apenas existe um nodo e ele contém apenas uma pilha de plataformas e uma pilha de andares. 
+	Este tipo de arquitetura é utilizada por softwares de uso privado, tais como programas de escritório, tocadores de mídia e antivírus.
+	Este foi o padrão de arquitetura durante muito tempo, especialmente antes do advento da comunicação em rede.
+	
+[h3]Arquitetura Cliente-Servidor[/h3]
+	Nesta arquitetura existem vários nodos. Um deles é chamado de servidor e os outros de clientes. Os nodos-clientes
+	contém os andares de visualização destinados a seres humanos, apresentação, domínio e integração; sendo que o andar de domínio é quase inexistente e apenas
+	contém regras simples relacionadas à apresentação/visualização condicional. 
+	
+	O nodo-servidor contém um andar de visualização que comunica com o andar de integração dos clientes. Além disso, contém toda o andar de domínio, 
+	o de integração com outros softwares e o de recursos; sendo que o de integração com outros softwares normalmente não tem funcionalidade e/ou esta integração acontece
+	no andar de integração dos próprios clientes.
+	
+	Este modelo foi muito utilizado durante a década de 80 e princípios de 90 com o advento do Sistemas de Gerenciamento de Bando de Dados (SGBD) capazes
+	não apenas de armazenar dados, mas também processá-los e operar sobre eles de diferentes formas programáveis (Procedimentos).  
+	
+[h3]Peer-to-Peer[/h3]
+	Esta arquitetura é baseada na existência de vários nodos. Cada nodo se comunica com pelo menos um outro nodo através de um protocolo
+	que não diferencia entre a responsabilidade do nodos (não é servidores e clientes), embora seja possível que alguns nodos contenham mais 
+	funcionalidades que outros (desta forma se aproximando do conceito de servidor-cliente).
+	A grande diferença deste tipo de arquitetura é que o andar de integração de cada nodo está munido de ferramentas para encontrar 
+	os andares de integração dos outros nodos e dessa forma uni-los através deste andar. 
+	
+	Este tipo de arquitetura é comum em software de partilha de arquivos ou comunicação instantânea. 
+	
+[h3]Arquitetura Web e de 3-níveis[/h3]
+	A arquitetura de 3-níveis, também chamada de 3-camadas ou 3-[e]tier[/e] é uma evolução da arquitetura cliente-servidor.
+	Nesta arquitetura existe um conjunto de nodos com o papel de clientes, um conjunto com o papel de servidor de aplicação e um conjunto
+	com o papel de servidor de dados. Esta arquitetura tornou-se popular pelo seu uso em sistema web.
+	
+	Em sistemas web os nodos-cliente são munidos de um browser que é um software 
+	mais ou menos padronizado que contém o andar de visualização que consegue interpretar documentos HTML e comunicar-se através do protocolo HTTP.
+	O servidor de aplicação contém uma camada de visualização que consegue entender comandos HTTP e repassá-los ao andar de apresentação onde
+	esses comandos são interpretados. No fim do processo um documento HTML é gravado e enviado de volta ao browser via HTTP. 
+	
+	O servidor de aplicação contém ainda os andares de domínio e integração. Em particular, é comum ter um andar de integração com algum SGDB.
+	A grande diferença é que o SGDB atua mais como um sistema de arquivamento de dados e menos como um processador desses dados.  
+	
+	Esta arquitetura permite, por um lado, que as aplicações seja escritas de uma forma independente do banco de dados e da tecnologia de acesso ao SGDB 
+	e, por outro, que os usuários possam acessar o software a partir de qualquer browser em qualquer máquina.
+	
+	Recentemente com o advento do uso de JavaScript para a programação do browser é possível manter, além do andar de visualização, o andar de apresentação, utilizando
+	um conjunto de tecnologias que são referidas como Ajax. O uso de Ajax permitiu portar para as máquinas-cliente o processamento e o
+	andar de apresentação. Isso não só libera recursos valiosos no servidor de aplicação como torna a experiência do uso muito mais interessante para o usuário.
+	
+	Observe-se que este tipo de arquitetura não tem que ser apenas utilizada com browsers e sistemas web, podendo ser também utilizada 
+	por sistemas com clientes criados na plataforma nativa da máquina-cliente, tal como eram os antigos sistemas-cliente da arquitetura cliente-servidor.
+	Este tipo de arquitetura é ainda mais importante para softwares que precisam comunicar com periféricos conectados nas máquinas-cliente como 
+	é o caso de Pontos de Venda (PDV) em supermercados.
+	
+[h3]Arquitetura Orientada a Serviço[/h3]
+		A Arquitetura Orientada a Serviço (SOA)é baseada no conceito de software como serviço, e permite que um software seja constituído pela 
+		interação e integração de softwares diferentes e especializados. 
+		
+		Neste tipo de arquitetura não existem nodos responsáveis por correr os serviços e um ou mais nodos integradores responsáveis por correr
+		a integração (orquestração) entre eles.  
+		
+		A arquitetura é baseada no compartilhamento da camada de integração que, à semelhança da arquitetura [e]peer-to-peer[/e],
+		permite que todos os nodos comuniquem. A diferença é que todos têm que comunicar não apenas um protocolo comum, como nenhum
+		deles pode assumir o papel de comando do processo. Na arquitetura SOA existe um nodo responsável por iniciar, controlar e terminar
+		o processo de invocar os serviços certos nos nodos certos. 
+		

@@ -1,0 +1,290 @@
+<document>
+
+<properties>
+	<title>Polimorfismo</title>
+</properties>
+
+<references>
+	<ref id="1" >
+		<title>Design Patterns: Elements of Reusable Object-Oriented Software</title>
+		<book>design-patterns-elements-of-reusable-object-oriented-software</book>
+	</ref>
+	<ref id="2" >
+		<title>Design Patterns Java Workbook </title>
+		<book>design-patterns-java-workbook</book>
+	</ref>
+</references>
+<body>
+<section name="Polimorfismos" >
+	<p>
+	Polimorfismo é uma característica importante em qualquer linguagem, especialmente se a linguagem é 
+	orientada a objetos, e especificamente em Java. O polimorfismo é muitas vezes confundido com o 
+	próprio conceito de orientação a objetos, mas embora dependa dele em certa medida, é, na realidade, um conceito separado.
+	</p>
+	<p>
+	O polimorfismo está presente de diferentes maneiras. Estas são aquelas relevantes para Java mas 
+	quase todas se aplicam a outras linguagens.
+	</p>
+	<section name="Variável Polimórfica">
+		<p>
+		Este tipo de polimorfismo permite atribuir objetos de tipos (classes, interfaces, ...) diferentes a uma mesma variável. 
+		Para que isto seja possível deve existir uma relação de hiearquia entre o tipo da variável e o tipo do objeto, de tal 
+		modo que o tipo da variável seja igual ou mais abstrato que o tipo do objeto.
+		</p>
+		<p>
+		Este tipo do polimorfismo é na realidade uma forma de encapsulamento que, por sua vez, é uma concretização do Princípio de Separação de Responsabilidade;
+		e é necessária para uma linguagem orientada a objeto completa.
+		</p>
+		<p>
+		No exemplo a seguir a variável texto não é polimórfica já que <code>String</code> é uma classe final. 
+		Não é possível estender <code>String</code> e, portanto, não é possivel criar tipos menos abstratos que <code>String</code>.
+		</p>
+		<source language="java" >
+		 String texto;
+		 texto = "Apenas uma String";
+		</source>
+		<p>
+		No exemplo seguinte, a varável texto é polimórfica já que <code>CharSequence</code> é uma interface, o que, 
+		por definição, significa que é possivel que exista um conjunto de possibilidades para os objetos que podem 
+		ser atribuidos a essa variável.
+		</p>
+		<source language="java" >
+ CharSequence texto;
+ texto = "Apenas uma String" ; 
+ texto = new StringBuffer ( "Ou um StringBuffer" ) ;
+ texto = new StringBuilder ( "Ou um StringBuilder" ) ;
+		</source>
+		<p>
+		Utilizar interfaces e classes abstratas como os tipos das variáveis garante explicitamente que a variável é polimórfica. 
+		Utilizar classes abstratas e sobretudo interfaces como tipos de variáveis é considerado uma boa prática e é 
+		conhecido pela expressão "programar para interfaces". Na realidade, isto apenas significa : "utilize variáveis polimórficas 
+		por padrão e sempre que possível".
+		</p>
+	</section>
+	<section name="Sombreamento">
+		<p>
+		Sombreamento (shadowing) é a capacidade de poder definir duas, ou mais, variáveis com o 
+		mesmo nome em escopos diferentes. O código a seguir apresenta o exemplo clássico:
+		</p>
+		<source language="java" >
+public class UmaClasse {
+		
+ 	String nome; // variável no escopo "classe"
+
+	public void setName ( String nome ){ // variável no escopo "método"
+	    this .nome = nome;
+	}
+}
+		</source>
+		<p>
+		O sobreamento permite que o mesmo nome seja utilizado para duas variávels diferentes. 
+		No caso, a variável "nome" definida na classe e a variável "nome" definida no método.
+		O detalhe com o uso de sobreamento é que as variáveis de maior escopo podem interagir 
+		com as de menor escopo. Contudo, como elas têm o mesmo nome, é necessário destingui-las. 
+		Para isso, é utilizada a palavra reservada <keyword>this</keyword> que representa o objeto 
+		corrente e contém, portanto, variáveis de escopo de classe. Caso o <keyword>this</keyword> não 
+		fosse utilizado junto de ‘nome’, o compilador assume que você está se referindo à variável de menor escopo;
+		 no caso a definida no método. Isso não é uma falha. É a utilidade do sobreamento.
+		 </p>
+		 <p>
+		O compilador Java é um tanto esperto e avisa o programador de falhas básicas. 
+		Uma delas é a tentativa de atribuir uma variável a ela própria. 
+		Isso é um código que não tem nenhum propósito e o compilador o avisará quando detectar essa situação. 
+		Por isso se você escrever o código seguinte:
+		</p>
+		<source language="java" highlight="6" >
+public class UmaClasse {
+ 
+	String nome; // variável no escopo "classe"
+ 
+	public void setName ( String nome ){ // variável no escopo "método"
+		nome = nome;
+	}
+}
+		</source>
+		<p>
+		O compilador apresentará um aviso na linha 6 dizendo que a variável está sendo 
+		atribuída a ela própria. Isso demonstra que o compilador escolhe sempre a variável 
+		de menor escopo.
+		</p>
+	</section>
+	<section name="Sobrecarga">
+		<p>	
+		Sobrecarga (overload) é a capacidade de poder definir dois, ou mais métodos, 
+		numa mesma classe, ou suas derivadas, com o mesmo nome. 
+		</p>
+		<p>
+		Para que exista sobecarga não é necessário que a linguagem seja orientada a objetos e, 
+		por isso, à semelhança do sombreamento a sobrecarga é normalmente entendida com uma 
+		característica da linguagem e não como uma forma de polimorfismo.
+		</p>
+		<p>
+		Embora os métodos possam ter o mesmo nome, eles têm obrigatoriamente que ter uma 
+		assinatura diferente. Eis alguns exemplos:
+		</p>
+		<source language="java" >
+public int calculaIdade ( int ano , int mes, int dia ) ;
+public int calculaIdade ( Date data ) ;
+public int calculaIdade ( Calendar data ) ;
+		</source>
+	</section>
+	<section name="Sobrescrita" >	
+		<p>
+		Sobrescrita (overriding) é a capacidade de poder redefinir a implementação de 
+		um método que já foi definido e implementado em uma classe superior na hierarquia 
+		de herança.
+		</p>
+		<p>
+		Para que exista sobre-escrita é necessário que o método seja definido com a exata 
+		assinatura que existe na classe superior.
+		</p>
+		<source language="java" >
+public class Somador {
+
+	public int calculaSoma ( int inicio, int fim ){
+	 
+		int soma = 0 ;
+		for ( int i = inicio ; i &lt;= fim ; i++ ){
+		 soma += i;
+		} 
+		return soma;
+	}
+	 
+}
+ 
+public class SomadorInteligente extends Somador {
+ 
+	public int calculaSoma ( int inicio, int fim ){
+	 
+		int umAteInicio = inicio ( inicio + 1 ) / 2 ;
+		int umAteFim = fim ( fim + 1 ) / 2 ;
+		 
+		return umAteFim – umAteInicio;
+	}
+
+ }
+		</source>
+		<p>
+		O método <code>calculaSoma</code> em <code>SomadorInteligente</code> sobrescreve o 
+		método <code>calculaSoma</code> em <code>Somador</code> redefinindo a logica de soma.
+		</p>
+	</section>
+	<section name="Tipo Genérico">
+		<p>
+		Tipos genéricos permitem estabelecer relações fortes entre os tipos, mas sem 
+		especificar o tipo real que será utilizado. Tipos genéricos são uma inovação 
+		recente da linguagem Java mas já conhecidos e utilizados em linguagems anteriores.
+		</p>
+		<p>
+		Esta forma de parametrização possibilita que classe sejam criadas utilizando uma 
+		outra classe ou grupo de classes sem necessidade de fazer casting explícito e 
+		possibilitando maior controle sobre o funcionamento da classe. Tipo genérico é 
+		uma parametrização do tipo e portanto é utilizando em qualquer lugar onde tipo 
+		é usado. Por exemplo, na definição de uma variável.
+		</p>
+		<source language="java" >
+List&lt;Number&gt; numbers = new ArrayList&lt;Number&gt; () ;
+		</source>
+		<p>
+		Tipo generico, à semelhança da variável polimorfica, é também um forma de encapsulamento.
+		</p>
+	</section>
+	<section name="Auto-boxing e Auto-unboxing" >
+		<p>
+		Java suporta tipos primitivos,ou seja, tipos de variáveis que não são objetos. 
+		Em algumas situações é necessário converter esses valores primitivos para objetos. 
+		Isso é conhecido como boxing (colocar em caixas). O processo inverso é chamado 
+		unboxing (retirar das caixas). Por exemplo, converter um <code>int</code> para
+		um <code>Integer</code> pode ser feito assim:
+		</p>
+		<source language="java" >
+			int inteiroPrimitivo = 5;
+			Integer inteiroObjecto = Integer.valueOf(inteiroPrimitivo);
+		</source>
+		<p>
+		Auto-boxing e Auto-umboxing acontece quando próprio compilador faz essa operação. 
+		Este recurso foi adicionado à linguagem Java a partir da sua versão 5. 
+		</p>
+	</section>
+	<section name="Numero de argumentos indefinido (Var args)" >
+		<p>
+Algumas vezes é útil passar vários argumentos de um certo tipo para um método. 
+Normalmente isso é feito pela utilização de arrays ou coleções. 
+Contudo, nem sempre isso é prático do ponto de vista do programador.
+</p>
+<p> 
+O ideal seria passar os argumentos como se fossem argumentos individuais e 
+capturá-los depois como um array. Essa funcionalidade conhecida como var args é 
+uma forma de polimorfismo já que a forma como o programador invoca o método é 
+diferente da forma com que ele trabalha o resultado, contudo os dados são os mesmos.
+</p>
+<source language="java" >
+public class Vector {
+ 
+	public void setElements ( int … elements ){
+	
+	  for ( int i = 0 ; i &lt; elements.length; i++ ){
+	   // faz algo com o elemento
+	  }
+	}
+
+}
+
+ // uso 
+ 
+ Vector v;
+ v.setElements ( 4 , 8 , 15 , 16 , 23 , 42 )
+</source>
+
+</section>
+</section>
+
+<section name="Categorias de Polimorfismo">
+	<p>
+	Alguns dos tipos de polimorfismo escondem o real funcionamento do programa por serem forma de encapsulamento.
+	Para alguns tipos de polimorfismo única forma de saber exatamente o que está acontecendo é analisar o programa enquanto está funcionando. 
+	Estes tipos de polimorfismo formam uma categoria designada: Polimorfismo Dinâmico.
+	</p>
+	<p>
+	Os outros tipos cujo efeito no programa é claro mesmo quando o programa não está 
+	funcionando, ou seja, pode ser compreendido diretamente da análise do código compõem a 
+	categoria designada: Polimorfismo Estático.
+	</p>
+	<p>
+	Muitas das funcionalidades do polimorfismo estático não dependem do conceito de objeto 
+	e podem ser encontrados em outras linguagens, mesmo nas não orientadas a objetos. 
+	Talvez por isso não seja comum encontrar referência a essas capacidades como tipos 
+	de polimorfismo e são normalmente apresentadas como funcionalidades da linguagem. 
+	Em contrapartida, as funcionalidades de polimorfismo dinâmico dependem, quase todas, 
+	dos conceitos de objeto e herança (ou alguma forma de hierarquia). Muitas vezes elas
+	 se confundem com os próprios conceitos de herança e orientação a objetos e são 
+	 normalmente apresentadas como parte integrante desse paradigma.
+	</p>
+	<p>
+		Eis um sumário da características integrantes do polimorfismo dinâmico:
+			<ul>
+				<li>Variáveis Polimórficas</li>
+				<li>Tipo genérico</li>
+				<li>Polimorfismo Estático</li>
+			</ul>
+	</p>
+	<p>
+		Eis um sumário da caracteristicas integrantes do polimorfismo estático:
+			<ul>
+				<li>Sobrecarga</li>
+				<li>Sobrescrita</li>
+				<li>Sombreamento</li>	
+				<li>Auto-(un)boxing</li>
+				<li>Var args</li>
+			</ul>
+	</p>
+
+</section>
+
+ 
+
+
+
+
+</body>
+</document>

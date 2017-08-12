@@ -1,0 +1,160 @@
+<document>
+
+	<properties>
+		<title>Property Bag</title>
+	</properties>
+	
+	<related-patterns>
+		<name>Java Bean</name>
+		<name>Transfer Object</name>
+		<name>Value Object</name>
+		<name>Registry</name>
+	</related-patterns>
+	
+	<references>
+		<ref id="1">
+			<title>System Properties</title>
+			<url>http://java.sun.com/docs/books/tutorial/essential/environment/sysprop.html</url>
+		</ref>
+	</references>
+	<body>
+		<section name="Objetivo">
+			<p>
+			Agrupar um conjunto de propriedades numa unidade lógica.
+			</p>
+		</section>
+		<section name="Propósito" >
+			<p>
+			É bastante comum que se necessite trabalhar com um conjunto de valores
+			para diferentes propriedades normalmente como argumento para um método, 
+			como resultado de um, ou como informação de configuração de um outro objecto. 
+			</p>
+			<p>
+			Se cada propriedade fica "livre" pelo código é mais dificil saber depois onde
+			alterá-la ou de onde lê-la. A ideia, portanto, é usar um objeto como ponto
+			de amarração para todas as propriedades relacionadas a um certo item,ou contexto. 
+			Assim, de certa forma reforçamos a tipagem de um  conjunto (sacola) de propriedades
+			sem forçar nenhuma abstração mais elaborada.
+			</p>
+		</section>
+
+		<section name="Implementação" >
+			<p>
+			Existem várias formas de implementar um Property Bag em java.
+			</p>
+			<section name="java.util.Map e java.util.Properties">
+				<p>
+				A forma mais simples de construir um Property Bag em java é utilizando
+				um mapa (um objeto cuja classe implemente <class>java.util.Map</class>) , como por exemplo
+				<class>HashMap</class>.
+				</p>
+				<p>
+				Esta classe já provê métodos que permitem atribuir valor a uma propriedades,
+				listar todas as propriedades, todos os valores e todos os pares propriedade-valor.
+				Por outro lado, o uso do mapa obriga a que todas as propriedades tenham o mesmo tipo (todas String,
+				ou todas Color,etc...).Isto se usarmos a tipagem forte oferecida pelo recurso de tipos genéricos.
+				Mas caso não usemos isso, poderemos ter diferentes tipos, mas à custa de uma tipagem fraca.
+				</p>
+				<p>
+				Embora fracamente tipado este padrão é tão util que existe até uma classe utilitária que o implementa 
+				de uma forma mais dirigida. A classs <class>Properties</class> implementa um mapa de <code>String</code> para 
+				<code>String</code> e ainda possibilita persistir esse mapeamento em arquivo. Muito util para configurações 
+				simples que podem ser convertidas de e para texto. O único problema é que essa conversão tem que ser feita por
+				outro objecto que leia/escreva no objeto <code>Properties</code> mapeando de/para os valores corretos.
+				</p>
+			</section>
+			<section name="Bean">
+				<p>
+				Uma forma mais fortemente tipada é utilizar uma classe java comum que permita definir o tipo de cada propriedade.
+				Esta é a forma mais comum por ser menos propensa a erro de tipagem e relativamente fácil de programar. De tão comum
+				esta abordagem foi batizada de Bean.
+				</p>
+				<p>
+				Na realidade o nome "bean" (grão) deriva da diminuição de "JavaBean" (grão de Java - um trocadilho com o grão de café Java).
+				JavaBean é uma tecnologia de componentes padronizada na JSE no pacote <code>java.beans</code>.
+				A diferença principal é que um JavaBean contém um mecanismo de geração de eventos seguindo o padrão <pattern>Observer</pattern>
+				que avisa quando uma propriedade é modificada e pode até delegar o controle da mudança do valor num mecanismo
+				em que a mudança pode ser vetada. 
+				</p>
+				<p>
+				Um "bean" tem a mesma estrutura  que um JavaBean mas sem o mecanismo de eventos. Daí a ideia de que um "bean" é 
+				um JavaBean diminuido.
+				</p>
+				<p>
+				A implementação do <code>Property Bag</code> com um bean java estabelece uma tipagem forte
+				para os tipos dos valores das propriedades, mas não contêm mecanismos embutidos para listar
+				essas propriedades,valores,ou pares propriedade-valor. Isto é contra-produtivo para o uso de classes
+				para a definição de <code>Property Bag</code> e por conseguinte um mecanismo que permitisse isso seria necessário.
+				</p>
+				<p>
+				O java inclui o pacote <code>java.lang.reflect</code> que permite ler os métodos e atributos de uma classe
+				através de introspeção. Este mecanismo aliado ao pacote <code>java.beans</code> permite tratar uma classe
+				como a definição de um <code>Property Bag</code> e qualquer objeto dessa classe como uma instância de <code>Property Bag</code>.
+				</p>
+				<p>
+				Para que estes pacotes entendam que a sua classe define um <code>Property Bag</code> algumas convenções
+				devem ser seguidas (chamadas de JavaBeans naming conventions):
+				</p>
+					<ul>
+						<li>A classe deve ter definir um construtor sem argumentos.</li>
+						<li>A classe deve ter definir um método acessor e modificador para cada propriedade, e nomeá-los
+						corretamente. A nomenclatura consiste em prefixar o nome da propriedade com o prefixo "get" para os acessores,
+						e o prefixo "set" para os modificadores. No caso da propriedade ter um valor logico, o prefixo do acessor deve ser "is"
+						em vez de "get".</li>
+					</ul>
+				<p>
+				A convenções para JavaBeans exigem mais tipos de métodos relacionados ao controle de eventos e ao padrão <pattern>Observer</pattern>.
+				Para implementar um <code>Property Bag</code> estes são suficientes.
+				</p>
+				<p>
+				Normalmente as propriedades de um <code>Property Bag</code> são objetos simples e não coleções de objetos (caso isso seja necessário
+				essa coleção deverá ser encapsulada em um objeto simples), contudo nada proibe que utilize um objecto de coleção ou <estrang>array</estrang> 
+				como valor de uma propriedade (propriedade multivalorada), mas o seu tratamento automático é estranho. Normalmente, ao chegar nesta
+				situação é bom começar a desconfiar que objeto que está modelando pode não ser um <code>Property Bag</code>.
+				</p>
+			</section>
+		</section>
+		<section name="Discussão">
+			<p>
+			O padrão <code>Property Bag</code>, mais conhecido  pela implementação do tipo Bean no lingo java, é de uso comum e muitas vezes
+			desapercebido sendo só evidente quando se utilizam os recursos da classe <class>Properties</class>. 
+			</p>
+			<p>
+			A tecnologia de objetos é fortemente vinculada a este padrão sendo muito fácil criar um Property Bag
+			que contenham qualquer conjunto de propriedades. E é tão comum que passa desapercebido mesmo quando
+			a pessoa nomeia as suas classes como <code>QualquerCoisaBean</code>.   
+			</p>
+			<p>
+			Outra mostra de como a tecnologia de objetos é dependente deste padrão é a tecnologia de componentes
+			Java Bean. Esta tecnologia foi extentida por meio da Java Management Extentions (JMX) transendo outros
+			tipos de Propery Bags baseados em classes e interfaces. Estas tecnologias , e até os Enterprise Java Beans
+			embora não sendo formados apenas de Property Bag têm este padrão na sua essência.
+			</p>
+		</section>
+		<section name="Exemplos na API padrão" >
+			<p>
+			Como já vimos a classe <class>Properties</class> implementa o padrão <code>Property Bag</code> 
+			até com possibilidade de persistencia em arquivo ( o famoso arquivo .properties). 
+			O JSE utiliza este padrão em <code>System.getProperties()</code> que retorna um objeto <class>Properties</class>
+			com várias propriedades do ambiente de execução <ref id="1"/> da aplicação que permitem saber coisas interessantes como,
+			por exemplo, o nome do sistema operacional.
+			</p>
+		</section>
+		<section name="Padrões associados">
+			<p>
+			Property Bag pode também ser chamado de <pattern>Bean</pattern>, pois como vimos, essa é a essência
+			da tecnologia Java Bean. Muitas vezes Property Bag precisam ser acessada globalmente e é util utilizar o
+			padrão Registry.   
+			</p>
+			<p>
+			Transfer Objects são casos particulares de Property Bag que são utilizados para transportar informaçao entre
+			nodos, ou andares, diferentes da aplicação. Transfer Object é a Property Bag vianjante.
+			</p>
+			<p>
+			Value Objets podem ser entendido como Proeprty Bags de uma propriedade só que se especializam em dar suporte
+			à leitura e manipulação dessa propriedade sem nunca a tornar acessivel a objetos exteriores.
+			</p>
+		</section>
+	</body>
+
+</document>

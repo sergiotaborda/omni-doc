@@ -1,0 +1,78 @@
+[*Composite Object*]
+
+
+[h2]Objectivo[/h2]
+			Permite que uma hierarquia de objetos seja tratada como um objeto só.
+		
+[h2]Propósito[/h2]
+		Composite Object (Objecto Composto) é um padrão de projeto que permite que um objeto seja constituído de outros objetos semelhantes a ele formando uma hierarquia [1].
+		Semelhantes, significa aqui, objetos que implementam um contrato comum. 
+		
+		Seguindo este padrão podemos construir um objeto que seja construído de outros objetos tal que, um ou mais objetos desses podem ser do mesmo tipo do objeto construído. 
+		O objeto é construído por objetos que contém uma coleção de outros objetos. Os quais contêm uma coleção de outros objetos, e assim sucessivamente. 
+		Contudo esses objetos não são quaisquer, eles compartilham um contrato comum. Por exemplo, um objeto do tipo [icode]Forma[/icode]. Existem várias formas, mas todas elas podem ser construídas 
+		pela composição de outras formas. Uma ou mais formas são primitivas, ou seja, não são construídas a partir de nenhuma outra forma. As outras são apenas composições. 
+		O exemplo mais simples é a forma [icode]Linha[/icode] que representa uma semi-reta. Um [icode]Triangulo[/icode] é composto por três 
+		objetos [icode]Linha[/icode]. Um quadrado por quatro , etc... Um circulo não é apresentável por um conjunto finito de linhas, 
+		logo precisamos de uma forma primitiva [icode]Circulo[/icode].
+		
+		Este padrão pode ser usado sempre que desejarmos construir objetos pela composição recursiva de objetos do mesmo tipo e/ou queiramos construir uma hierarquia de 
+		objetos do mesmo tipo. Este é o padrão por detrás da estrutura de árvore, muito utilizada em computação. A estrutura de arvore tem como primitivas as folhas. 
+		Os ramos são os objetos compostos. A árvore é uma composição de ramos, por sua vez compostos de ramos menores, por sua vez compostos de ramos menores e folhas.
+		Sempre que estiver perante uma estrutura deste tipo, ou semelhante, poderá usar o padrão Composite Object.
+		
+[h2]Implementação[/h2]
+		O padrão propõe que se construa uma interface, ou classe abstrata, que representa o tipo de objeto na hierarquia. 
+		Para que o padrão possa ser aplicado tem que existir esta interface ou classe no domínio do problema. Ou seja, esta interface ou classe
+		tem que representar um conceito presente no modelo.
+		Objetos que implementam esta interface podem ser de dois tipos: primitivos e compostos.
+		Os objetos primitivos são aqueles que não se podem construir com base em outros objetos do mesmo tipo. Eles implementam a interface
+		mas não têm objetos filhos associados.
+		Os compostos, são, claro, aqueles que se constroem com base num conjunto de outros objetos do mesmo tipo.
+		
+	[img=/ilust/{img/@src}]{legend/text()}[/img]
+	
+[h2]Self Composite[/h2]
+	Em algumas situações especiais não existe um objeto primitivo na hierarquia ou a sua interface não se distingue da interface do objeto composto. Neste caso o objeto que representa o tipo de hierarquia é simultaneamente o objeto composto e o objeto primitivo. O objeto composto é constituído de objeto iguais a si mesmo. O objeto é self-composite(auto-composto).
+O exemplo clássico deste padrão é o objeto Node que representa um item em uma árvore. Nesta caso, um objeto Node contém um ou mais objetos Node. A raiz, ou seja, o primeiro elemento de todos, é também um Node. Não há necessidade de criar vários tipos de classes já que apenas uma classe descreve completamente a hierarquia.
+Na API padrão do Java encontramos o objeto java.io.File. O objeto File implementa o padrão self-composite. O objeto representa simultaneamente um arquivo e uma pasta de arquivos num sistema de arquivos ( que tem uma estrutura em árvore).
+Neste caso é utilizada a mesma a interface para tratar ambos os tipos de objeto minimizando o número de classes necessárias para trabalhar com o sistema de arquivos.
+É interessante notar que ao fundir o elemento primitivo com o composto numa só interface, mas maiorias das vezes, somos obrigados a implementar métodos que nos informam se o elemento é de um , ou de outro tipo. Por exemplo, no caso de File os métodos isFile() e isDirectory() informam se o objeto corresponde a um arquivo ou a uma pasta.
+O padrão self-composite é interessante em estruturas genéricas em que estamos mais interessados em trabalhar com a estrutura do que com o que ela representa. Este padrão também diminui o numero de tipos diferentes necessários para a implementação do padrão, mas o faz à custa de desprezar o polimorfismo ao introduzir métodos para determinar o tipo de componente.
+	
+[h2]Composite View[/h2]
+	Composite View (Visualização composta) é um padrão comum para componentes visuais. 
+	A idéia é ter uma interface gráfica montada pela composição de componentes visuais. AWT e Swing são baseados em Composite View.
+	 
+	Composite View é também utilizado em ambiente web em que existe a composição de páginas "template" com as páginas de dados podendo ou não
+	haver uma estrutura composta formal. Algumas tecnologias, como JSF, se aproveitam desta padrão de forma explicita. Produtos como 
+	Google Web Toolkit (GWT), Wicked e Web User Interface (WUI) também seu funcioanmento em estruturas compostas de componentes visuais.
+	
+[h2]Discussão[/h2]
+	Composite Object é um padrão simples de implementar e serve como base para muitos algoritmos e estruturas, especialmente as
+	que trabalham sobre arvores de objetos.
+	
+	Outro uso do padrão é para conseguir composição de funcionalidades sem ser obrigado a usar o recurso de herança.
+	Um exemplo seria a criação de Validadores. Validadores primitivos seriam responsáveis por validar campos, por exemplo,
+	enquanto um validador composto por esses, poderia validar uma entidade inteira.
+	
+[h2]Exemplos na API padrão[/h2]
+Na API padrão, Composite Object, é utilizado nas classes [icode]java.io.File[/icode], [icode]javax.swing.JComponent[/icode] e 
+[icode]javax.swing.tree.TreeNode[/icode], por exemplo.
+
+Na classe [icode]java.io.File[/icode] acontece a composição de objetos da mesma classe sendo um exemplo do padrão [e]self-composite[/e]
+para modelar a estrutura de arvores do sistema de arquivos. 
+
+Na classe [icode]javax.swing.JComponent[/icode] acontece a composição de objetos de classes derivadas. Esta composição é depois traduzida visualmente
+o que torna esta classe um exemplo do padrão Composite View.
+
+Na classe [icode]javax.swing.tree.TreeNode[/icode] acontece a composição de objetos da mesma classe ou classes derivadas, sendo a representação direta
+de uma estrutura de dados em arvore utilizada pelo componente [icode]javax.swing.JTree[/icode]. 
+
+[h2]Padrões Associados[/h2]
+O uso do padrão Composite Object é muito comum, especialmente se considerarmos o padrão self-composite. 
+Ele é extremamente útil já que estruturas em árvore de objetos são muito comuns em vários domínios.
+Existem padrões especificamente desenhados para trabalhar sobre hierarquias de objetos como [pattern]Visitor[/pattern] e [pattern]Template Method[/pattern]. 
+Outros padrões podem ser adicionados para aumentar as capacidades do Composite Object, como por exemplo, adicionando o padrão [pattern]Iterator[/pattern] 
+que poderia ser usado iterar uma arvore em profundidade com simplicidade.
+Alguns outros padrões podem ser entendidos como especializações ou usos do padrão Composite Object como [pattern]Query Object[/pattern] , [pattern]MoneyBag[/pattern], por exemplo.
