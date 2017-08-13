@@ -38,6 +38,8 @@ public class TextBuilderState extends ParseState {
 	@Override
 	public ParseState recieve(ScanPosition pos, char c, Consumer<Token> consumer) {
 		switch (c){
+		case '#':
+			return new InlineTitleState();
 		case '-':
 			if (builder.length() == 0){
 				return new TitleState('-');
@@ -130,6 +132,11 @@ public class TextBuilderState extends ParseState {
 			} 
 		case '\r':
 			return this;
+		case '*':
+		case '\\':
+		case '`':
+		case '\'':
+			return new ShortcutCommandState(c);
 		default:
 			if (escapeContent){
 				escaped.append(c);

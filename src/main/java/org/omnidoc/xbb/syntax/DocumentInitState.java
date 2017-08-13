@@ -13,7 +13,7 @@ import org.omnidoc.xbb.scanner.Token;
 /**
  * 
  */
-public class DocumentInitState extends SyntaxState {
+public class DocumentInitState extends ParseState {
 
 	private StructuredDocument doc;
 
@@ -29,18 +29,18 @@ public class DocumentInitState extends SyntaxState {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public SyntaxState recieve(Token token, Consumer<Element> consumer) {
+	public ParseState recieve(ParseContext context, Token token, Consumer<Element> consumer) {
 		if (token.isCommand()){
 			if (token.as(CommandToken.class).map(t -> t.getName()).orElse("").equals("doc")){
 				consumer.accept(doc);
 				return new CommandInitState(doc, doc);
 			} else {
 				consumer.accept(doc); // send default document
-				return new CommandInitState(doc).recieve(token, consumer);
+				return new CommandInitState(doc).recieve(context, token, consumer);
 			}
 		} else if (token.isText()){
 			consumer.accept(doc); // send default document
-			return new SectionInitState(doc).recieve(token, consumer);
+			return new SectionInitState(doc).recieve(null, token, consumer);
 		} 
 			
 		return this;

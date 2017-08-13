@@ -30,13 +30,13 @@ public class ArticleTransformer {
 		
 		// Define nome do arquivo resultado
 		String fileName = dataFile.getName().substring(0, dataFile.getName().lastIndexOf("."));
-    	File result = new File (dataFile.getParentFile().getAbsolutePath() + File.separator + fileName + ".html" );
+    	File result = new File (dataFile.getParentFile().getAbsolutePath() , fileName + ".html" );
 		
     	//Produz transformacao
    
     	DocumentProcessor.createProcessor()
     	.add(new FormulaTransformer())
-    	.add(new SourceCodeColouringTransformer())
+    	//.add(new SourceCodeColouringTransformer())
     	.add(new YmlUmlTransformer())
     	.add(XSLTransfomer.forFile(configFile))
     	.process(

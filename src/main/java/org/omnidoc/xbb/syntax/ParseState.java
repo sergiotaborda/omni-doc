@@ -12,9 +12,9 @@ import org.omnidoc.xbb.scanner.Token;
 /**
  * 
  */
-public abstract class SyntaxState {
+public abstract class ParseState {
 
-	public abstract SyntaxState recieve( Token token, Consumer<Element> consumer);
+	public abstract ParseState recieve( ParseContext context, Token token, Consumer<Element> consumer);
 
 	/**
 	 * @param sectionInitState

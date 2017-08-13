@@ -11,7 +11,7 @@ import org.omnidoc.xbb.scanner.Token;
 /**
  * 
  */
-public class StandByState extends SyntaxState {
+public class StandByState extends ParseState {
 
 	private Element parent;
 
@@ -29,11 +29,11 @@ public class StandByState extends SyntaxState {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public SyntaxState recieve(Token token, Consumer<Element> consumer) {
+	public ParseState recieve(ParseContext context, Token token, Consumer<Element> consumer) {
 		if (token.isCommand()){
-			return new CommandInitState(parent).recieve(token, consumer);
-		} else if (token.isText()){
-			return new SectionInitState(parent).recieve(token, consumer);
+			return new CommandInitState(parent).recieve(context, token, consumer);
+		} else if (token.isText() || token.isTitle()){
+			return new SectionInitState(parent).recieve(context, token, consumer);
 		} else {
 			return this;
 		}

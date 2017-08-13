@@ -1,43 +1,41 @@
-[doc author='S√©rgio Taborda' title='T√≠tulo da p√°gina' ] 
+[doc author='SÈrgio Taborda' title='TÌtulo da p·gina' ] 
 
-Titulo 1
----------
+# Titulo 1
 
-Este √© um teste das facilidade de escrever documentos com [wiki=realKeyword]xdoc[/wiki] um dialecto de bb code.
+
+Este È um teste das facilidade de escrever documentos com [wiki=realKeyword]xdoc[/wiki] um dialecto de bb code.
 Com isto vou escrever os textos do [url=www.javabuilding.com]javabuilding[/url] e do [e]framwork[/e].
 
-Titulo 1.1
-==========
+## Titulo 1.1
 
-Este √© um teste das [b]facilidades[/b] de [i]escrever[/i] documentos com este novo tipo de formato.
+Este È um teste das [b]facilidades[/b] de [i]escrever[/i] em *bold* ou \it·lico\ \*documentos*\ com este [b][i]novo[/i][/b] tipo de formato.
 
-Neste formato dois enters s√£o um paragrafo e um enter √© descartado
+Neste formato dois enters s„o um paragrafo e um enter È descartado
 apenas usado para organizar o arquivo fonte.
 
-[source=java legend="Exemplo de c√≥digo em java"]
+CÛdigo fonte pode ser escrito inline [c] x = x + 2 [/c] ou com `c = 3;`
+
+[source=java legend="Exemplo de cÛdigo em java"]
  // codigo java de exemplo 
 public static void main(String [] args) {
        System.out.println("Hello World");
 }
 [/source]
 
+# Titulo 2
 
-Titulo 2
---------
-
-Uma linha significa titulo de n√≠vel 1, e um sinal de igual == significa titulo 2, mas apenas se s√£o no principio da linha.
 
 Para colocar uma imagem escreve-se [img="http://maven.apache.org/archives/maven-1.x/images/apache-maven-project-2.png"/] no meio do paragrafo.
 E depois continuamos escrevendo no mesmo paragrafo.
                  
-Se quisermos colocar uma figura ent√£o seria com um c√≥digo diferente, que quebra a linha: [fig="http://maven.apache.org/archives/maven-1.x/images/apache-maven-project-2.png" legend="Logotipo do maven"/]
-e coloca uma separa√ß√£o entre o texto do mesmo paragrafo.
+Se quisermos colocar uma figura ent„o seria com um cÛdigo diferente, que quebra a linha: [fig="http://maven.apache.org/archives/maven-1.x/images/apache-maven-project-2.png" legend="Logotipo do maven"/]
+e coloca uma separaÁ„o entre o texto do mesmo paragrafo.
 
-Parece  muito f√°cil escrever este tipo de documentos que aqueles em xml.
+Parece  muito f·cil escrever este tipo de documentos que aqueles em xml.
 
-Certos autores [ref=smith/] assumem que o indicado no [art n="40" livro="cc"/] √© mentira e apenas o [art n="21" livro="cp"/] pode ser admitido.
+Certos autores [ref=smith/] assumem que o indicado no [art n="40" livro="cc"/] È mentira e apenas o [art n="21" livro="cp"/] pode ser admitido.
 
-Seria tamb√©m util marcar palavras com [k=nome]chaves[/k] ou [e]palavras estrangeiras[/e] para criar palavras chave ou marcar palavras em outra lingua.
+Seria tambÈm util marcar palavras com [k=nome]chaves[/k] ou 'palavras estrangeiras' para criar palavras chave ou marcar palavras em outra lingua.
 
 [references]
 	[ref id="smith" author="Adam Smith" url="http://wwww.adamsmith.com.ur"]Obra sobre o espirito das leis[/ref]   

@@ -33,9 +33,9 @@ public class TestParser {
 		
 		HtmlDocumentModel model = new HtmlDocumentModel();
 		
-		// add costum command rendered
+
 		model.AddWriter("art" , (m, element, writer, tab) -> {
-			writer.append("<i> art n.ยบ").append(element.getAttribute("n")).append(" do ").append (element.getAttribute("livro")).append("</i>");
+			writer.append("<i> art n.บ").append(element.getAttribute("n")).append(" do ").append (element.getAttribute("livro")).append("</i>");
 		});
 		
 		model.writeDocument(doc, new FileSource(h));

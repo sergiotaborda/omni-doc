@@ -17,8 +17,7 @@ public class TextFormatHtmlWriter  extends AbstractCommandHtmElementWriter{
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void writeGenericElement(HtmlDocumentModel model, Element element,
-			PrintWriter writer, int tab) {
+	public void writeGenericElement(HtmlDocumentModel model, Element element,PrintWriter writer, int tab) {
 		
 		String tag = "";
 		if (element.getName().equals("emph")){

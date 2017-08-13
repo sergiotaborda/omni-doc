@@ -1,67 +1,46 @@
-<document>
-
-	<properties>
-		<title>Builder</title>
-	</properties>
-	
-	<related-patterns>
-		<name>Factory</name>
-		<name>Method Chaining</name>
-	</related-patterns>
-	
-	<references>
-		<ref id="1">
-			<title>Design Patterns Java Workbook</title>
-			<book>design-patterns-java-workbook</book>
-		</ref>
-		<ref id="2">
-			<title>Method Channing</title>
-			<url>http://martinfowler.com/dslwip/MethodChaining.html</url>
-		</ref>
-		<ref id="3" >
-			<title>Design Patterns: Elements of Reusable Object-Oriented Software</title>
-			<book>gof-design-patterns</book>
-		</ref>
-	</references>
-	
-	<body>
-		<section name="Objetivo">
-			<p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<div>
+<div class="article">
+<h1>Builder</h1>
+<div id="pages">
+		<h2 class="ttl">Objetivo</h2>
+			<p align="justify">
 			Prover uma forma de facilitar a montagem ou construção de objetos que seria complexa ou aborrecida quando feita manualmente.
 			</p>
-		</section>
-		<section name="Propósito" >
-			<p>
+		
+		<h2 class="ttl">Propósito</h2>
+			<p align="justify">
 			Objectos são compostos por outros objetos e todos os objetos precisam ser criados e configurados de alguma forma antes de 
 			serem realmente úteis. Contudo, nem sempre a construção de um objetos é simples o suficiente para ser escrita em duas linhas 
 			de código, ou existem regras que não permitem criar o objeto de forma qualquer. 
 			</p>
-			<p>
+			<p align="justify">
 			Ao codificar orientado a objetos é comum representarmos entidades do sistema como estruturas de objetos aninhados ou utilizar 
-			objetos no padrão <pattern ref="property-bag">Bean</pattern> com várias propriedades. A construção de objetos deste tipo pode ser complexa e 
+			objetos no padrão <span class="pattern" ref="property-bag">Bean</span> com várias propriedades. A construção de objetos deste tipo pode ser complexa e 
 			obrigar a escrever muito código burocrático devido à estrutura interna do objeto estar encapsulada.
 			Construir um objeto complexo é uma tarefa chata, propensa a erros e pouco controlável.
 			</p>
-			<p>
+			<p align="justify">
 			A solução é clássica, mas quem realmente funciona bastante bem, é criar um outro objeto cuja responsabilidade é 
 			correta criação do objeto que queremos construir. Para que não haja confusão com o conceito de construtor, passarei a 
-			referir à responsabilidade do objeto que implementa o padrão <pattern>Builder</pattern> como "montar". 
-			Um construtor, constrói, um <pattern>Builder</pattern>, monta.
+			referir à responsabilidade do objeto que implementa o padrão <span class="pattern">Builder</span> como "montar". 
+			Um construtor, constrói, um <span class="pattern">Builder</span>, monta.
 			</p>
-			<p>
-			O objeto <pattern>Builder</pattern> é responsável por montar um outro objeto. Esse outro objeto que construir é chamado <strong>produto</strong>, 
-		    no contexto deste padrão. O objeto <pattern>Builder</pattern> conta com vários métodos na sua interface de forma a poder ser 
+			<p align="justify">
+			O objeto <span class="pattern">Builder</span> é responsável por montar um outro objeto. Esse outro objeto que construir é chamado <strong>produto</strong>, 
+		    no contexto deste padrão. O objeto <span class="pattern">Builder</span> conta com vários métodos na sua interface de forma a poder ser 
 		    informado das características que o produto terá e um método que realmente irá montar o produto e entregá-lo. A chamada a este método
-		    termina o trabalho do objeto <pattern>Builder</pattern>.
+		    termina o trabalho do objeto <span class="pattern">Builder</span>.
 			</p>
 			
-		</section>
+		
 
-		<section name="Implementação" >
-			<p>
+		<h2 class="ttl">Implementação</h2>
+			<p align="justify">
 			A estrutura clássica de uma implementação do objeto <code>Builder</code> tem este aspecto:
 			</p>
-			<source language="java">
+			<div class="sourceCodeDisplay">
+<pre class="brush: java; highlight: [];" name="source">
 public class Builder&lt;Produto&gt; {
 
 	public void setPropriedadeA ( String propriedadeA ){...}
@@ -70,11 +49,15 @@ public class Builder&lt;Produto&gt; {
 	public void montaProduct (){...}
 	public Produto getProduct (){...}
 }
-			</source>
-			<p>
+			</pre>
+<div class="legend">
+		Código 1: </div>
+</div>
+			<p align="justify">
 			Por exemplo, um objeto <code>Builder</code> para montar veículos seria assim:
 			</p>
-			<source>
+			<div class="sourceCodeDisplay">
+<pre class="brush: java; highlight: [];" name="source">
 public class BuilderVehicle {
 
 	public void setColor ( Color color ){...}
@@ -83,20 +66,24 @@ public class BuilderVehicle {
 	public void assemble (){...}
 	public Vehicle getVehicle (){...}
 }
-		</source>
-		<p>
+		</pre>
+<div class="legend">
+		Código 2: </div>
+</div>
+		<p align="justify">
 		Note que as propriedades e os nomes dos métodos montador e acessor estão vinculados ao objeto a ser construído e fazem sentido 
 		para esse objeto e dentro do domínio em que ele se insere. Isto não é uma regra do padrão, mas é uma boa prática para que o 
 		programador se sinta confortável ao usar o objeto montador e o use naturalmente.
 			</p>
-		</section>
-		<section name="Interface Fluente">
-			<p>
+		
+		<h2 class="ttl">Interface Fluente</h2>
+			<p align="justify">
 			Utilizar o objeto <code>Builder</code> resulta em invocar vários métodos no objeto e no fim invocar o método montador. 
 			Isto rapidamente se torna prolixo se não tivermos certos cuidados. Tomando o exemplo do montador de veículos ficaria 
 			mais ou menos assim:
 			</p>
-			<source language="java">
+			<div class="sourceCodeDisplay">
+<pre class="brush: java; highlight: [];" name="source">
 BuilderVehicle builder = new BuilderVehicle () ;
 builder.setColor ( Color.WHITE ) ;
 builder.setEngine ( new TurboEngineAs234 ()) ;
@@ -105,12 +92,16 @@ builder.setFuelType ( FuelType.FLEX ) ;
 builder.assemble () ;
 
 Vehicle vehicle = builder.getVehicle () ;
-			</source>
-			<p>
+			</pre>
+<div class="legend">
+		Código 3: </div>
+</div>
+			<p align="justify">
 			Como se vê é muita coisa para escrever.Imagine que existem mais campos ou que o nome da variável <code>builder</code> é maior. 
 			Muita coisa para escrever. O ideal seria poder encaixar as invocações com o mínimo possível de esforço , algo assim:
 			</p>
-			<source>
+			<div class="sourceCodeDisplay">
+<pre class="brush: java; highlight: [];" name="source">
 Vehicle vehicle = new BuilderVehicle ()
 	.setColor ( Color.WHITE )
 	.setEngine ( new TurboEngineAs234 ())
@@ -118,62 +109,74 @@ Vehicle vehicle = new BuilderVehicle ()
 	.setFuelType ( FuelType.FLEX )
 	.assemble ()
 	.getVehicle () ;
-			</source>
- 			<p>
+			</pre>
+<div class="legend">
+		Código 4: </div>
+</div>
+ 			<p align="justify">
  			Nada mau, mas poderíamos melhorar mais ainda. Porque o objeto <code>Builder</code> tem que montar o produto ele 
  			conhece a sua estrutura e as opções dessa montagem, por isso é natural definir um Builder mais inteligente. 
  			Por outro lado se sempre invocamos <code>assemble()</code> antes de <code>getVehicle()</code> podemos fundir os dois. 
  			O resultado é ainda menos coisas para escrever:
  			</p>
-			<source>
+			<div class="sourceCodeDisplay">
+<pre class="brush: java; highlight: [];" name="source">
 Vehicle vehicle = new BuilderVehicle ()
 	.setColor ( Color.WHITE )
 	.setTurboEngineAs234 ()
 	.setFiveDoors ()
 	.setFuelFlex () 
 	.assembleVehicle () ;
-			</source>
-			<p>
-			Esta forma de fazer encaixar os métodos de forma a que funcionem como uma macro instrução chamado <pattern>Method Channing</pattern><ref id="2"/> mas
-			mais conhecido como Interface Fluente. <emph>Interface</emph> aqui se refere ao contrato do objeto <code>Builder</code> e <emph>Fluente</emph> 
+			</pre>
+<div class="legend">
+		Código 5: </div>
+</div>
+			<p align="justify">
+			Esta forma de fazer encaixar os métodos de forma a que funcionem como uma macro instrução chamado <span class="pattern">Method Channing</span>
+<sup>[2]</sup> mas
+			mais conhecido como Interface Fluente. <i>Interface</i> aqui se refere ao contrato do objeto <code>Builder</code> e <i>Fluente</i> 
 			porque diz muito com poucas palavras (pouca escrita).
 			</p>
-			<p>
-			<emph>Interface Fluente</emph> é um nome bonito para o padrão <pattern>Method Channing</pattern> que é antigo mas pouco utilizado devido ao
-			 vício de usar o padrão <pattern ref="property-bag">Bean</pattern> 
-			para todos os objetos ignorando a real responsabilidade do objeto. A classe <class>StringBuffer</class> já tradicional na API Java sempre 
+			<p align="justify">
+			<i>Interface Fluente</i> é um nome bonito para o padrão <span class="pattern">Method Channing</span> que é antigo mas pouco utilizado devido ao
+			 vício de usar o padrão <span class="pattern" ref="property-bag">Bean</span> 
+			para todos os objetos ignorando a real responsabilidade do objeto. A classe <span class="codeType" name="">StringBuffer</span> já tradicional na API Java sempre 
 			contou com interface fluente : o método <code>append()</code>.
 			</p>
-			<p>
+			<p align="justify">
 			Implementar uma interface fluente é simples, basta que cada método sempre retorne o próprio objeto (<code>this</code>) permitindo o 
 			encadeamento das invocações de forma simples.
 			</p>
-			<p>
-			O uso da Interface Fluente é especialmente útil quando em conjunção com o padrão <pattern>Builder</pattern>, pois quase sempre estamos 
+			<p align="justify">
+			O uso da Interface Fluente é especialmente útil quando em conjunção com o padrão <span class="pattern">Builder</span>, pois quase sempre estamos 
 			interessados em passar alguma informação – várias, na realidade – para ele e raramente queremos pedir alguma coisa dele. 
 			O único método que não segue esta regra é aquele que retorna o produto já montado. Contudo, nesse momento, a nossa configuração 
 			do objeto montador já terminou.
 			</p>
-		</section>
-		<section name="Builder, QueryObject e DSL" >
-			<p>
-			Uma das grandes utilidades do padrão Builder é utilizá-lo para construir estruturas que implementem o padrão <pattern>Composite Object</pattern> ou que sejam, 
-			de alguma forma, composições de objetos. Um exemplo importante são as implementações de <pattern>QueryObject</pattern>. 
-			O objetivo de um <pattern>QueryObject</pattern> é ser um objeto que representa toda a informação necessária para impor critérios 
-			de pesquisas. Uma String com SQL é uma forma 'primitiva' de <pattern>QueryObject</pattern>. Os <pattern>QueryObject</pattern> de hoje correspondem 
+		
+		<h2 class="ttl">Builder, QueryObject e DSL</h2>
+			<p align="justify">
+			Uma das grandes utilidades do padrão Builder é utilizá-lo para construir estruturas que implementem o padrão <span class="pattern">Composite Object</span> ou que sejam, 
+			de alguma forma, composições de objetos. Um exemplo importante são as implementações de <span class="pattern">QueryObject</span>. 
+			O objetivo de um <span class="pattern">QueryObject</span> é ser um objeto que representa toda a informação necessária para impor critérios 
+			de pesquisas. Uma String com SQL é uma forma 'primitiva' de <span class="pattern">QueryObject</span>. Os <span class="pattern">QueryObject</span> de hoje correspondem 
 			a objetos especiais – conhecidos como Criteria – que serão interpretados para criar o SQL ou interpretados diretamente para 
-			obter os resultados da pesquisa. Um montador de objetos que implementam <pattern>QueryObject</pattern> seria algo como:
+			obter os resultados da pesquisa. Um montador de objetos que implementam <span class="pattern">QueryObject</span> seria algo como:
 			</p>
-			<source language="java">
+			<div class="sourceCodeDisplay">
+<pre class="brush: java; highlight: [];" name="source">
 Criteria criteria = CriteriaBuilder.search (Customer.class)
 .and ( "active" ) .eq (true)
 .and ( "name" ) .match ( "%io" )
 .orderBy ( “name” ) .asc ()
 .build () ;
-			</source>
-		</section>
-		<section name="Interface Progressiva">
-		 <p>
+			</pre>
+<div class="legend">
+		Código 6: </div>
+</div>
+		
+		<h2 class="ttl">Interface Progressiva</h2>
+		 <p align="justify">
 		 Vimos que a interface fluente é conseguida retornando o próprio objeto no método de forma a poder encadear as ações. 
 		 Contudo, repare que a frase <code>.and("active").eq(true)</code> atua como uma unidade não sendo possível escrever 
 		 <code>.and("active").and("name")</code>. Não faria sentido explicitar o nome do campo sem dizer qual valor queremos para ele.
@@ -182,65 +185,116 @@ Criteria criteria = CriteriaBuilder.search (Customer.class)
 		 tiver todos os seus componentes é que ela é adicionada internamente ao builder original e voltamos a ele builder podendo invocar
 		 <code>and()</code> novamente ou outro método como <code>orderBy</code> (no qual usamos a mesma técnica para invocar <code>asc()</code>)
 		 </p>
-		 <p>
-		 Martin Fowler apelidou esta mecânica de <strong>Interface Progressiva</strong><ref id="2"/>. A idéia é que o contrato ( a interface, o conjunto de métodos disponíveis)
+		 <p align="justify">
+		 Martin Fowler apelidou esta mecânica de <strong>Interface Progressiva</strong>
+<sup>[2]</sup>. A idéia é que o contrato ( a interface, o conjunto de métodos disponíveis)
 		 é  alterado sempre que queremos garantir algum tipo de coesão ou caminho a seguir pelo programador em relação ao objeto <code>Builder</code>.
-		 Esta técnica além de útil nos IDE de hoje com recursos de <estrang>auto-complete</estrang>, ajuda a garantir tipagem forte ao longo de todo o processo de montagem
+		 Esta técnica além de útil nos IDE de hoje com recursos de <i class="estrang">auto-complete</i>, ajuda a garantir tipagem forte ao longo de todo o processo de montagem
 		 além de garantir que regras complexas ou burocráticas serão cumpridas pelo programador.
 		 </p>
-		</section>
-		<section name="Exemplos na API padrão" >
-			<p>
-			O padrão <pattern>Builder</pattern> está presente originalmente na API padrão na classe <class>StringBuffer</class> que 
-			é usada para construir objetos <class>String</class>.
-			Mais recentemente com a introdução da classe <class>StringBuilder</class> foi criada a interface <class>Appendable</class>
+		
+		<h2 class="ttl">Exemplos na API padrão</h2>
+			<p align="justify">
+			O padrão <span class="pattern">Builder</span> está presente originalmente na API padrão na classe <span class="codeType" name="">StringBuffer</span> que 
+			é usada para construir objetos <span class="codeType" name="">String</span>.
+			Mais recentemente com a introdução da classe <span class="codeType" name="">StringBuilder</span> foi criada a interface <span class="codeType" name="">Appendable</span>
 			que expõe o método <code>append()</code> que é responsável por parte da fluência destes objetos. Essa interface foi aplicada
-			a objetos como <class>PrintWriter</class> tornando mais simples a operação de concatenar <class>String</class>. 
+			a objetos como <span class="codeType" name="">PrintWriter</span> tornando mais simples a operação de concatenar <span class="codeType" name="">String</span>. 
 			</p>
-		</section>
-		<section name="Discussão">
-			<p>
+		
+		<h2 class="ttl">Discussão</h2>
+			<p align="justify">
 			O Builder acaba fazendo o papel de 'linguagem de programação' específica para o domínio do objeto construído já que os seus métodos 
 			mapeiam condições comuns que queremos usar para aquele tipo de objeto. Torna-se, portanto, claro que ao implementar um objeto <code>Builder</code>
 			o ganho é tanto maior quanto mais a interface fluente se aproximar da forma com o programador pensa quando pretende montar o objeto 
 			produto. 
 			</p>
-			<p>
+			<p align="justify">
 			Estas interfaces fluentes especificamente úteis em certo domínio ganharam a denominação de Linguagens Específicas de Domínio 
 			(DSL em inglês). A Interface Fluente e um Builder são características comuns às DSL quando implementadas em Java. Outros tipos 
 			possíveis que incluem o uso de linguagens realmente específicas (com seu compilador e interpretador) são também uma hipótese – e 
 			até possível de integrar com java via Java Scripting Framework mas um Builder com interface fluente é muito mais simples 
 			de construir e muito útil mesmo assim.
 			</p>
-			<p>
-			O objetivo do padrão <pattern>Builder</pattern> é ajudar o programador na tarefa de montar/configurar objetos. Contudo isto
+			<p align="justify">
+			O objetivo do padrão <span class="pattern">Builder</span> é ajudar o programador na tarefa de montar/configurar objetos. Contudo isto
 			não significa que o objeto não possa ser montado ou configurado à mão, da forma tradicional, invocando cada um dos seus modificadores.
 			Também não significa que o objeto <code>Builder</code> tenha algum acesso particular aos atributos do objeto produto. Embora isso possa 
 			acontecer, isso implicaria em que o produto poderia apenas ser criado usando o objeto <code>Builder</code> transformando-o num misto de 
-			<pattern>Factory</pattern>, o que não é o objetivo aqui.
+			<span class="pattern">Factory</span>, o que não é o objetivo aqui.
 			</p>
-			<p>
-			Às vezes não é simples distinguir entre um objeto que implementa o padrão <pattern>Builder</pattern> de 
-			um que implementa o padrão <pattern>Factory</pattern> pois as diferenças são sutis. Contudo é normal para um objeto <code>Builder</code> existirem diversos métodos
+			<p align="justify">
+			Às vezes não é simples distinguir entre um objeto que implementa o padrão <span class="pattern">Builder</span> de 
+			um que implementa o padrão <span class="pattern">Factory</span> pois as diferenças são sutis. Contudo é normal para um objeto <code>Builder</code> existirem diversos métodos
 			que podem ser invocados ou não e um único método cuja invocação é obrigatório e que retorna o objeto produto devidamente montado enquanto
 			que num objeto <code>Factory</code> existir apenas um método com uma série de parâmetros, possivelmente até várias sobrecargas desse método.
 			Normalmente um <code>Factory</code> não tem estado usando os parâmetros para construir o objeto, enquanto um <code>Builder</code> vai acumulando parâmetros
 			para produzir o produto no final. Por vezes a forma como o programador desenha estes objetos pode iludir a sua finalidade ou o padrão que estão sendo usado
 			o que apenas leva à confusão. 
 			</p>
-			<p>
-			Enquanto o padrão <pattern>Factory</pattern> visa substituir o papel do construtor da classe, o padrão <pattern>Builder</pattern> visa
+			<p align="justify">
+			Enquanto o padrão <span class="pattern">Factory</span> visa substituir o papel do construtor da classe, o padrão <span class="pattern">Builder</span> visa
 			principalmente simplificar a invocação dos métodos modificadores do objeto depois que o construtor da classe já foi invocado. 
 			</p>
-		</section>
-		<section name="Padrões relacionados">
-			<p>
-			O padrão <pattern>Builder</pattern> é facilmente relacionado ao padrão <pattern>Method Channing</pattern> já que é extremamente útil
+		
+		<h2 class="ttl">Padrões relacionados</h2>
+			<p align="justify">
+			O padrão <span class="pattern">Builder</span> é facilmente relacionado ao padrão <span class="pattern">Method Channing</span> já que é extremamente útil
 			para a sua implementação, embora não sendo obrigatório. 
 			</p>
-			<p>
-			O padrão <pattern>Builder</pattern> é também facilmente relacionado ao padrão <pattern>Factory</pattern> devido à semelhança de objetivos.
+			<p align="justify">
+			O padrão <span class="pattern">Builder</span> é também facilmente relacionado ao padrão <span class="pattern">Factory</span> devido à semelhança de objetivos.
 			</p>
-		</section>
-	</body>
-</document>
+		
+	</div>
+</div>
+<div class="references">
+<h3 class="ttl">Referências</h3>
+<table class="referencetable">
+<tr>
+<td align="center" valign="top">
+				[1]
+				</td>
+<td align="left" valign="top">
+<strong>Design Patterns Java Workbook</strong>
+<br/>
+<i/>
+<br/>
+				Livro:<a href="/library/books/design-patterns-java-workbook.html" title="Design Patterns Java Workbook">Design Patterns Java Workbook</a>
+<br/>
+<p/>
+</td>
+</tr>
+<tr>
+<td align="center" valign="top">
+				[2]
+				</td>
+<td align="left" valign="top">
+<strong>Method Channing</strong>
+<br/>
+<i/>
+<br/>
+				URL:
+			<title>Method Channing</title>
+			<a href="http://martinfowler.com/dslwip/MethodChaining.html" rel="nofollow" target="_new">http://martinfowler.com/dslwip/MethodChaining.html</a>
+		<br/>
+<p/>
+</td>
+</tr>
+<tr>
+<td align="center" valign="top">
+				[3]
+				</td>
+<td align="left" valign="top">
+<strong>Design Patterns: Elements of Reusable Object-Oriented Software</strong>
+<br/>
+<i/>
+<br/>
+				Livro:<a href="/library/books/gof-design-patterns.html" title="Design Patterns: Elements of Reusable Object-Oriented Software">Design Patterns: Elements of Reusable Object-Oriented Software</a>
+<br/>
+<p/>
+</td>
+</tr>
+</table>
+</div>
+</div>

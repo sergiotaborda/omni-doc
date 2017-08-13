@@ -11,20 +11,23 @@ import org.omnidoc.Document;
 import org.omnidoc.inputsources.InputSource;
 import org.omnidoc.stucture.Element;
 import org.omnidoc.stucture.StructuredDocument;
-import org.omnidoc.stucture.UrlElement;
-import org.omnidoc.xbb.scanner.AttributeNameToken;
-import org.omnidoc.xbb.scanner.AttributeValueToken;
 import org.omnidoc.xbb.scanner.Scanner;
 import org.omnidoc.xbb.scanner.Token;
+import org.omnidoc.xbb.syntax.CommandFromElementFactory;
 import org.omnidoc.xbb.syntax.DocumentInitState;
-import org.omnidoc.xbb.syntax.SyntaxState;
+import org.omnidoc.xbb.syntax.ParseContext;
+import org.omnidoc.xbb.syntax.ParseState;
 
 /**
  * 
  */
 public class XbbParser {
 
+	CommandFromElementFactory factory = new CommandFromElementFactory();
 	
+	public XbbParser(){
+		
+	}
 	public Document parse(InputSource source) throws IOException{
 		
 		Scanner s = new Scanner();
@@ -61,12 +64,21 @@ public class XbbParser {
 	 * @return
 	 */
 	private void parse(LinkedList<Token> tokens, StructuredDocument doc) {
-		SyntaxState state = new DocumentInitState(doc);
+		ParseState state = new DocumentInitState(doc);
 		final LinkedList<Element> elements = new LinkedList<>();
+		
+		ParseContext ctx = new ParseContext(){
+
+			@Override
+			public CommandFromElementFactory getCommandFromElementFactory() {
+				return factory;
+			}
+			
+		};
 		
 		while (!tokens.isEmpty()){
 			Token t = tokens.removeFirst();
-			state = state.recieve(t, o -> elements.add(o));
+			state = state.recieve(ctx, t, o -> elements.add(o));
 	
 		}
 	

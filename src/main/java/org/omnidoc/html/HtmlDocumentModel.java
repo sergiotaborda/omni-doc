@@ -34,6 +34,7 @@ public class HtmlDocumentModel implements DocumentModel {
 		writers.put("strong", new TextFormatHtmlWriter());
 		writers.put("estrang", new TextFormatHtmlWriter());
 		writers.put("source", new SourceCodeHtmlWriter());
+		writers.put("code", new InlineCodeHtmlWriter());
 		writers.put("references", new ReferencesHtmlWriter());
 		writers.put("ref", new RefHtmlWriter());
 	}

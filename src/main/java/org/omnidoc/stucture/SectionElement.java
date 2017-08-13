@@ -13,6 +13,7 @@ public class SectionElement extends AbstractElement{
 	
 	public SectionElement(int level){
 		this.level = level;
+		add(new ParagraphElement());
 	}
 
 	public int getLevel(){

@@ -5,7 +5,6 @@ package org.omnidoc.xbb.syntax;
 
 import java.util.function.Consumer;
 
-import org.omnidoc.Document;
 import org.omnidoc.stucture.Element;
 import org.omnidoc.stucture.ParagraphElement;
 import org.omnidoc.stucture.PlainTextElement;
@@ -17,7 +16,7 @@ import org.omnidoc.xbb.scanner.Token;
 /**
  * 
  */
-public class SectionInitState extends SyntaxState {
+public class SectionInitState extends ParseState {
 
 	private Element parent;
 	private StringBuilder builder = new StringBuilder();
@@ -34,7 +33,7 @@ public class SectionInitState extends SyntaxState {
 			this.section = (SectionElement)parent;
 		} else if (parent instanceof ParagraphElement){
 			this.section = (SectionElement)((ParagraphElement)parent).getParent();
-		}
+		} 
 	}
 	
 	public SectionInitState(Element parent, SectionElement section) {
@@ -48,7 +47,7 @@ public class SectionInitState extends SyntaxState {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public SyntaxState recieve(Token token, Consumer<Element> consumer) {
+	public ParseState recieve(ParseContext context, Token token, Consumer<Element> consumer) {
 		if (token.isCommand()){
 //			if (parent != null && paragraph == null){
 //				paragraph = new ParagraphElement();
@@ -68,7 +67,7 @@ public class SectionInitState extends SyntaxState {
 					superElement = section.getLastParagraf();
 				}
 			}
-			return new CommandInitState(superElement).recieve(token, consumer);
+			return new CommandInitState(superElement).recieve(context, token, consumer);
 		} else if (token.isText()){
 			String text = token.as(TextToken.class).map(t -> t.getText()).orElse("");
 			if (section != null){
@@ -107,26 +106,21 @@ public class SectionInitState extends SyntaxState {
 					section = new SectionElement(level);
 					doc.add(section);
 					parent = doc;
-					section.setAttribute("title", builder.toString()); // TODO TitleElement
-					builder.delete(0,  builder.length()); // reset text
-					
-					section.add(new ParagraphElement());
-					
-					return this;
+
+					return new SectionTitleState(parent, section);
+				
 				} else {
 					// new section
 					// terminate paragraf TODO
 
 					// add section to parent
 					SectionElement newSection  = new SectionElement(level);
-					newSection.setAttribute("title", builder.toString());
 					
-					section.getLastParagraf().removeTextAtEnd(builder.toString());
 					Element doc = this.resolveDocument(section);
 					
 					doc.add(newSection);
 					
-					return new SectionInitState(doc, newSection);
+					return new SectionTitleState(doc, newSection);
 				}
 			} else {
 
@@ -139,9 +133,8 @@ public class SectionInitState extends SyntaxState {
 					section = (SectionElement)it;
 				}
 				section.add(subSection);
-				subSection.setAttribute("title", builder.toString()); 
-				section.getLastParagraf().removeTextAtEnd(builder.toString());
-				return new SectionInitState(section, subSection);
+				
+				return new SectionTitleState(section, subSection);
 
 			}
 
